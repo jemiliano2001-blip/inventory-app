@@ -1,0 +1,2118 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión Central de Inventario</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts: Poppins -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Chart.js for Dashboard -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+    
+    <!-- jsPDF for PDF Generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#4f46e5">
+
+    <style>
+        /* CSS Variables for Theming */
+        :root {
+            --bg-color: #f3f4f6;
+            --text-color: #1f2937;
+            --text-color-light: #6b7280;
+            --card-bg: #ffffff;
+            --border-color: #e5e7eb;
+            --sidebar-bg: #4338ca;
+            --sidebar-hover-bg: #3730a3;
+            --sidebar-active-bg: #3730a3;
+            --sidebar-text: #ffffff;
+            --header-bg: #ffffff;
+            --input-bg: #ffffff;
+            --input-border: #d1d5db;
+        }
+
+        html.dark {
+            --bg-color: #0f172a; /* slate-900 */
+            --text-color: #e2e8f0; /* slate-200 */
+            --text-color-light: #94a3b8; /* slate-400 */
+            --card-bg: #1e293b; /* slate-800 */
+            --border-color: #334155; /* slate-700 */
+            --sidebar-bg: #1e293b; /* slate-800 */
+            --sidebar-hover-bg: #334155; /* slate-700 */
+            --sidebar-active-bg: #475569; /* slate-600 */
+            --sidebar-text: #e2e8f0; /* slate-200 */
+            --header-bg: #1e293b; /* slate-800 */
+            --input-bg: #334155; /* slate-700 */
+            --input-border: #475569; /* slate-600 */
+        }
+
+        /* Applying Variables */
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s;
+        }
+        
+        #login-screen, #app-container, #modal-container, #notification-container {
+            color: #1f2937; /* Reset text color for overlays */
+        }
+        
+        html.dark #login-screen, html.dark #app-container, html.dark #modal-container, html.dark #notification-container {
+             color: var(--text-color);
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        html.dark ::-webkit-scrollbar-track {
+            background: #2d3748;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+        /* Other styles */
+        .low-stock {
+            background-color: #fee2e2 !important;
+        }
+        html.dark .low-stock {
+             background-color: #450a0a !important;
+             color: #fca5a5;
+        }
+        
+        @keyframes pop {
+            0% { transform: scale(0.8); opacity: 0; }
+            50% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .pop-animation {
+            animation: pop 0.3s ease-out forwards;
+        }
+        
+        i[data-lucide], svg {
+            pointer-events: none;
+        }
+
+        /* Themed components */
+        .themed-card { background-color: var(--card-bg); border-color: var(--border-color); }
+        .themed-sidebar { background-color: var(--sidebar-bg); color: var(--sidebar-text); }
+        .themed-sidebar .nav-link:hover { background-color: var(--sidebar-hover-bg); }
+        .themed-sidebar .nav-link.active { background-color: var(--sidebar-active-bg); }
+        .themed-header { background-color: var(--header-bg); border-color: var(--border-color); color: var(--text-color); }
+        .themed-input { background-color: var(--input-bg); border-color: var(--input-border); color: var(--text-color); }
+        .themed-table-header { background-color: var(--bg-color); }
+        .themed-table-body { background-color: var(--card-bg); }
+        .themed-border { border-color: var(--border-color); }
+        .themed-divide > * + * { border-color: var(--border-color); }
+        .themed-text-light { color: var(--text-color-light); }
+        /* Toggle Switch */
+        .switch { position: relative; display: inline-block; width: 40px; height: 24px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px;}
+        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 4px; bottom: 4px; background-color: white; transition: .4s;  border-radius: 50%;}
+        input:checked + .slider { background-color: #4f46e5; }
+        input:checked + .slider:before { transform: translateX(16px); }
+
+    </style>
+</head>
+<body class="bg-gray-100">
+
+    <!-- Login Screen -->
+    <div id="login-screen" class="fixed inset-0 bg-gray-200 z-50 flex items-center justify-center">
+        <div class="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-md">
+            <div class="text-center">
+                <i data-lucide="boxes" class="mx-auto h-12 w-12 text-indigo-600"></i>
+                <h2 class="mt-6 text-3xl font-bold text-gray-900">
+                    Control de Inventario
+                </h2>
+                <p class="mt-2 text-sm text-gray-600">
+                    Inicia sesión para continuar
+                </p>
+            </div>
+            <form id="login-form" class="mt-8 space-y-6">
+                <div class="rounded-md shadow-sm -space-y-px">
+                    <div>
+                        <input id="email" name="email" type="email" autocomplete="email" required class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm" placeholder="Correo electrónico">
+                    </div>
+                    <div>
+                        <input id="password" name="password" type="password" autocomplete="current-password" required class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm" placeholder="Contraseña">
+                    </div>
+                </div>
+
+                <div id="auth-error-message" class="text-red-500 text-sm text-center hidden"></div>
+
+                <div>
+                    <button type="button" id="login-button" class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        Iniciar Sesión
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main App Structure (hidden by default) -->
+    <div id="app-container" class="hidden h-screen w-full flex">
+        <!-- Sidebar -->
+        <aside id="sidebar" class="themed-sidebar w-64 space-y-6 py-7 px-2 absolute inset-y-0 left-0 transform -translate-x-full md:relative md:translate-x-0 transition duration-200 ease-in-out z-30 flex flex-col">
+            <div>
+                <a href="#" class="text-white flex items-center space-x-2 px-4">
+                    <i data-lucide="boxes"></i>
+                    <span class="text-2xl font-extrabold">Inventario</span>
+                </a>
+
+                <nav id="main-nav" class="mt-10">
+                    <a href="#dashboard" class="nav-link flex items-center space-x-2 py-2.5 px-4 rounded transition duration-200 active">
+                        <i data-lucide="layout-dashboard"></i>
+                        <span>Dashboard</span>
+                    </a>
+                    <a href="#inventory" class="nav-link flex items-center space-x-2 py-2.5 px-4 rounded transition duration-200">
+                        <i data-lucide="archive"></i>
+                        <span>Inventario</span>
+                    </a>
+                    <a href="#active-loans" class="nav-link flex items-center space-x-2 py-2.5 px-4 rounded transition duration-200">
+                        <i data-lucide="arrow-right-left"></i>
+                        <span>Préstamos Activos</span>
+                    </a>
+                    <a href="#history" class="nav-link flex items-center space-x-2 py-2.5 px-4 rounded transition duration-200">
+                        <i data-lucide="history"></i>
+                        <span>Historial</span>
+                    </a>
+                    <a href="#reports" class="nav-link flex items-center space-x-2 py-2.5 px-4 rounded transition duration-200">
+                        <i data-lucide="file-down"></i>
+                        <span>Reportes</span>
+                    </a>
+                    <a href="#shopping-list" class="nav-link flex items-center space-x-2 py-2.5 px-4 rounded transition duration-200 relative">
+                        <i data-lucide="shopping-cart"></i>
+                        <span>Lista de Compras</span>
+                        <span id="shopping-list-count" class="absolute right-2 top-1/2 -translate-y-1/2 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center hidden">0</span>
+                    </a>
+                    <a href="#users" id="users-nav-link" class="nav-link flex items-center space-x-2 py-2.5 px-4 rounded transition duration-200 hidden">
+                        <i data-lucide="users"></i>
+                        <span>Usuarios</span>
+                    </a>
+                    <a href="#settings" id="settings-nav-link" class="nav-link flex items-center space-x-2 py-2.5 px-4 rounded transition duration-200 hidden">
+                        <i data-lucide="settings"></i>
+                        <span>Ajustes</span>
+                    </a>
+                </nav>
+            </div>
+            <div class="mt-auto">
+                 <a href="#" id="dark-mode-toggle" class="nav-link flex items-center space-x-2 py-2.5 px-4 rounded transition duration-200">
+                    <i data-lucide="moon"></i>
+                    <span>Modo Oscuro</span>
+                </a>
+                 <a href="#" id="logout-button" class="nav-link flex items-center space-x-2 py-2.5 px-4 rounded transition duration-200">
+                    <i data-lucide="log-out"></i>
+                    <span>Cerrar Sesión</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <header class="themed-header flex justify-between items-center p-4 border-b">
+                <div class="flex items-center">
+                    <button id="menu-button" class="focus:outline-none md:hidden">
+                        <i data-lucide="menu"></i>
+                    </button>
+                    <h1 id="page-title" class="text-2xl font-semibold ml-2">Dashboard</h1>
+                </div>
+                <div class="w-1/3">
+                     <div class="relative">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3">
+                            <i data-lucide="search" class="h-5 w-5 themed-text-light"></i>
+                        </span>
+                        <input id="search-input" type="text" class="themed-input w-full pl-10 pr-4 py-2 border rounded-lg" placeholder="Buscar artículo...">
+                    </div>
+                </div>
+            </header>
+
+            <main id="main-content" class="flex-1 overflow-x-hidden overflow-y-auto p-6">
+                <!-- Views will be injected here -->
+            </main>
+        </div>
+    </div>
+
+    <!-- Modals Container -->
+    <div id="modal-container"></div>
+
+    <!-- Notification Container -->
+    <div id="notification-container" class="fixed top-5 right-5 z-50"></div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, doc, getDocs, onSnapshot, addDoc, updateDoc, writeBatch, query, where, serverTimestamp, setDoc, getDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
+
+        // --- CONFIGURACIÓN ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyDPvm07EShBWY_tqG1J6DZCxuKj0sbN1Cw",
+            authDomain: "mi-inventario-app-e44a9.firebaseapp.com",
+            projectId: "mi-inventario-app-e44a9",
+            storageBucket: "mi-inventario-app-e44a9.appspot.com",
+            messagingSenderId: "863395232436",
+            appId: "1:863395232436:web:3f65ad3cc2ce61d30175e1",
+            measurementId: "G-GE6QRCGJRH"
+        };
+
+        // --- INICIALIZACIÓN DE FIREBASE ---
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const storage = getStorage(app);
+
+        // --- ESTADO GLOBAL DE LA APP ---
+        let state = {
+            inventory: [],
+            activeLoans: [],
+            transactions: [],
+            shoppingList: [],
+            categories: [],
+            allUsers: [],
+            currentUser: null,
+            userRole: 'operator',
+            currentPage: 1,
+            itemsPerPage: 10,
+            searchTerm: '',
+            activeCategory: 'Todas',
+            isInitialized: false,
+            settings: {
+                itemsPerPage: 10,
+                lowStockNotifications: false,
+                notificationEmails: '',
+                defaultUnit: 'pza',
+                defaultMinStock: 5,
+            }
+        };
+        
+        // --- LÓGICA DE INICIALIZACIÓN Y AUTENTICACIÓN ---
+        
+        window.addEventListener('load', () => {
+            setupStaticEventListeners();
+            if (localStorage.getItem('theme') === 'dark') {
+                document.documentElement.classList.add('dark');
+            }
+            updateDarkModeToggle();
+
+            onAuthStateChanged(auth, async (user) => {
+                const loginScreen = document.getElementById('login-screen');
+                const appContainer = document.getElementById('app-container');
+
+                if (user) {
+                    loginScreen.classList.add('hidden');
+                    appContainer.classList.remove('hidden');
+                    state.currentUser = user;
+                    await fetchUserRole(user.uid);
+                    await loadSettings();
+
+                    if (!state.isInitialized) {
+                        state.isInitialized = true;
+                        initializeAppState();
+                    }
+                    
+                    const isAdmin = state.userRole === 'admin';
+                    document.getElementById('users-nav-link').classList.toggle('hidden', !isAdmin);
+                    document.getElementById('settings-nav-link').classList.toggle('hidden', !isAdmin);
+
+                } else {
+                    loginScreen.classList.remove('hidden');
+                    appContainer.classList.add('hidden');
+                    state.isInitialized = false; 
+                }
+            });
+        });
+        
+        async function fetchUserRole(uid) {
+            const userDocRef = doc(db, 'users', uid);
+            const userDoc = await getDoc(userDocRef);
+            if (userDoc.exists()) {
+                state.userRole = userDoc.data().role;
+            } else {
+                await setDoc(userDocRef, { email: auth.currentUser.email, role: 'operator' });
+                state.userRole = 'operator';
+            }
+        }
+
+        async function loadSettings() {
+            const settingsRef = doc(db, 'settings', 'global');
+            const settingsDoc = await getDoc(settingsRef);
+            if (settingsDoc.exists()) {
+                state.settings = { ...state.settings, ...settingsDoc.data() };
+                state.itemsPerPage = state.settings.itemsPerPage || 10;
+            } else if (state.userRole === 'admin') {
+                await setDoc(settingsRef, state.settings);
+            }
+        }
+
+        function displayAuthError(message) {
+            const errorMessage = document.getElementById('auth-error-message');
+            switch(message) {
+                case "Firebase: Error (auth/user-not-found).":
+                case "Firebase: Error (auth/wrong-password).":
+                case "Firebase: Error (auth/invalid-credential).":
+                    errorMessage.textContent = "Correo o contraseña incorrectos.";
+                    break;
+                default:
+                    errorMessage.textContent = "Ocurrió un error. Inténtelo de nuevo.";
+            }
+            errorMessage.classList.remove('hidden');
+        }
+
+        async function initializeAppState() {
+            await checkAndLoadInitialData();
+            setupRealtimeListeners();
+            const page = window.location.hash.substring(1) || 'dashboard';
+            navigateTo(page);
+        }
+
+        async function checkAndLoadInitialData() {
+            const inventoryRef = collection(db, 'inventory');
+            const snapshot = await getDocs(inventoryRef);
+            if (snapshot.empty) {
+                showNotification('Cargando inventario inicial...', 'info');
+                const initialInventory = getFullInventoryList(); 
+                const batch = writeBatch(db);
+                initialInventory.forEach(item => {
+                    const docRef = doc(collection(db, 'inventory'));
+                    batch.set(docRef, { ...item, imageUrl: '', cost: 0 });
+                });
+                await batch.commit();
+                showNotification('Inventario inicial cargado.', 'success');
+            }
+        }
+        
+        function setupRealtimeListeners() {
+            onSnapshot(collection(db, 'inventory'), (snapshot) => {
+                state.inventory = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })).sort((a, b) => a.description.localeCompare(b.description));
+                const uniqueCategories = [...new Set(state.inventory.map(item => item.category))].sort();
+                
+                const settingsRef = doc(db, 'settings', 'global');
+                getDoc(settingsRef).then(docSnap => {
+                    const storedCategories = docSnap.exists() ? docSnap.data().categories || [] : [];
+                    state.categories = ['Todas', ...new Set([...uniqueCategories, ...storedCategories])].sort();
+                    
+                    const currentPage = window.location.hash.substring(1) || 'dashboard';
+                    if (state.isInitialized) {
+                        if (currentPage === 'inventory') renderInventoryView();
+                        if (currentPage === 'dashboard') renderDashboardView();
+                        if (currentPage === 'settings') renderSettingsView();
+                    }
+                });
+            });
+
+            const loansQuery = query(collection(db, 'loans'), where('returnedAt', '==', null));
+            onSnapshot(loansQuery, (snapshot) => {
+                state.activeLoans = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                if (state.isInitialized && window.location.hash === '#active-loans') renderActiveLoansView();
+            });
+
+            onSnapshot(collection(db, 'transactions'), (snapshot) => {
+                state.transactions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                if (state.isInitialized) {
+                    if (window.location.hash === '#history') renderHistoryView();
+                    if (window.location.hash === '#dashboard') renderDashboardView();
+                }
+            });
+
+            onSnapshot(collection(db, 'shoppingList'), (snapshot) => {
+                state.shoppingList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                updateShoppingListCount();
+                if (state.isInitialized && window.location.hash === '#shopping-list') renderShoppingListView();
+            });
+            
+            if (state.userRole === 'admin') {
+                onSnapshot(collection(db, 'users'), (snapshot) => {
+                    state.allUsers = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    if(state.isInitialized && window.location.hash === '#users') renderUsersView();
+                });
+            }
+        }
+
+        // --- NAVEGACIÓN Y RENDERIZADO DE VISTAS ---
+        function navigateTo(page) {
+            const pageTitle = document.getElementById('page-title');
+            document.getElementById('search-input').parentElement.parentElement.classList.add('hidden');
+
+            switch (page) {
+                case 'dashboard':
+                    pageTitle.textContent = 'Dashboard';
+                    renderDashboardView();
+                    break;
+                case 'inventory':
+                    pageTitle.textContent = 'Inventario';
+                    document.getElementById('search-input').parentElement.parentElement.classList.remove('hidden');
+                    renderInventoryView();
+                    break;
+                case 'active-loans':
+                    pageTitle.textContent = 'Préstamos Activos';
+                    renderActiveLoansView();
+                    break;
+                case 'history':
+                    pageTitle.textContent = 'Historial';
+                    renderHistoryView();
+                    break;
+                case 'reports':
+                    pageTitle.textContent = 'Reportes';
+                    renderReportsView();
+                    break;
+                case 'shopping-list':
+                    pageTitle.textContent = 'Lista de Compras';
+                    renderShoppingListView();
+                    break;
+                case 'users':
+                    if (state.userRole === 'admin') {
+                        pageTitle.textContent = 'Gestión de Usuarios';
+                        renderUsersView();
+                    } else { window.location.hash = 'dashboard'; }
+                    break;
+                case 'settings':
+                    if (state.userRole === 'admin') {
+                        pageTitle.textContent = 'Ajustes';
+                        renderSettingsView();
+                    } else { window.location.hash = 'dashboard'; }
+                    break;
+                default:
+                    window.location.hash = 'dashboard';
+            }
+            updateActiveNavLink(page);
+            lucide.createIcons();
+        }
+
+        function updateActiveNavLink(page) {
+            document.querySelectorAll('#main-nav .nav-link').forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === `#${page}`) {
+                    link.classList.add('active');
+                }
+            });
+        }
+
+        // --- VISTAS ---
+        function renderDashboardView() {
+            const mainContent = document.getElementById('main-content');
+            mainContent.innerHTML = `
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="themed-card p-6 rounded-lg shadow-md col-span-1 md:col-span-2 lg:col-span-1">
+                        <h3 class="text-lg font-semibold mb-4">Top 10 Consumibles Más Utilizados</h3>
+                        <canvas id="topConsumablesChart"></canvas>
+                    </div>
+                    <div class="themed-card p-6 rounded-lg shadow-md">
+                        <h3 class="text-lg font-semibold mb-4">Top 10 Herramientas Reportadas</h3>
+                        <canvas id="topReportedChart"></canvas>
+                    </div>
+                    <div class="themed-card p-6 rounded-lg shadow-md">
+                        <h3 class="text-lg font-semibold mb-4">Top 10 Empleados con Más Préstamos</h3>
+                        <canvas id="topEmployeesChart"></canvas>
+                    </div>
+                </div>
+            `;
+            generateCharts();
+        }
+
+        function renderInventoryView() {
+            const mainContent = document.getElementById('main-content');
+            
+            const filteredInventory = state.inventory
+                .filter(item => state.activeCategory === 'Todas' || item.category === state.activeCategory)
+                .filter(item => item.description.toLowerCase().includes(state.searchTerm.toLowerCase()));
+
+            const totalPages = Math.ceil(filteredInventory.length / state.itemsPerPage);
+            state.currentPage = Math.min(state.currentPage, totalPages) || 1;
+            const paginatedInventory = filteredInventory.slice((state.currentPage - 1) * state.itemsPerPage, state.currentPage * state.itemsPerPage);
+
+            const isAdmin = state.userRole === 'admin';
+
+            mainContent.innerHTML = `
+                <div class="flex flex-col md:flex-row">
+                    <div class="w-full md:w-1/5 md:mr-6 mb-6 md:mb-0">
+                        <div class="themed-card p-4 rounded-lg shadow-md">
+                            <h3 class="font-semibold mb-3">Categorías</h3>
+                            <ul id="category-list" class="space-y-2">
+                                ${state.categories.map(cat => `
+                                    <li>
+                                        <a href="#" class="category-filter block break-words ${state.activeCategory === cat ? 'font-bold text-indigo-600' : 'hover:text-indigo-600'}" data-category="${cat}">${cat}</a>
+                                    </li>
+                                `).join('')}
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="w-full md:w-4/5">
+                        <div class="flex justify-end mb-4">
+                            ${isAdmin ? `<button id="new-item-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded flex items-center space-x-2"><i data-lucide="plus"></i><span>Nuevo Artículo</span></button>` : ''}
+                        </div>
+                        <div class="themed-card rounded-lg shadow-md overflow-x-auto">
+                            <table class="min-w-full themed-divide divide-y">
+                                <thead class="themed-table-header">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium themed-text-light uppercase tracking-wider">Descripción</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium themed-text-light uppercase tracking-wider">Categoría</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium themed-text-light uppercase tracking-wider">Tipo</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium themed-text-light uppercase tracking-wider">Stock</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium themed-text-light uppercase tracking-wider">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="inventory-table-body" class="themed-table-body themed-divide divide-y">
+                                    ${paginatedInventory.length > 0 ? paginatedInventory.map(item => `
+                                        <tr class="${item.type === 'Consumible' && item.stock < item.minStock ? 'low-stock' : ''}">
+                                            <td class="px-6 py-4 whitespace-nowrap">${item.description}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap">${item.category}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap">${item.type}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                ${item.stock} ${item.unit}
+                                                ${item.type === 'Consumible' ? `<span class="text-xs themed-text-light ml-1">(Min: ${item.minStock})</span>` : ''}
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                                <button class="action-btn text-green-600 hover:text-green-500" data-action="entry" data-id="${item.id}" title="Registrar Entrada"><i data-lucide="plus-circle"></i></button>
+                                                <button class="action-btn text-blue-600 hover:text-blue-500 ml-2" data-action="checkout" data-id="${item.id}" title="${item.type === 'Consumible' ? 'Registrar Salida' : 'Registrar Préstamo'}"><i data-lucide="log-out"></i></button>
+                                                <button class="action-btn text-yellow-500 hover:text-yellow-400 ml-2" data-action="add-to-cart" data-id="${item.id}" title="Añadir a Lista de Compras"><i data-lucide="shopping-cart"></i></button>
+                                                ${isAdmin ? `
+                                                    <button class="action-btn text-purple-600 hover:text-purple-500 ml-2" data-action="edit" data-id="${item.id}" title="Editar Artículo"><i data-lucide="pencil"></i></button>
+                                                    <button class="action-btn text-red-600 hover:text-red-500 ml-2" data-action="delete" data-id="${item.id}" title="Eliminar Artículo"><i data-lucide="trash-2"></i></button>
+                                                ` : ''}
+                                            </td>
+                                        </tr>
+                                    `).join('') : `<tr><td colspan="5" class="text-center py-10 themed-text-light">No se encontraron artículos.</td></tr>`}
+                                </tbody>
+                            </table>
+                            <div id="paginator" class="px-6 py-3 border-t themed-border">${generatePaginator(totalPages)}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            if (isAdmin) {
+                document.getElementById('new-item-btn').addEventListener('click', showNewItemModal);
+            }
+            lucide.createIcons();
+        }
+
+        function renderActiveLoansView() {
+            const mainContent = document.getElementById('main-content');
+            mainContent.innerHTML = `
+                <div class="themed-card rounded-lg shadow-md overflow-x-auto">
+                    <table class="min-w-full themed-divide divide-y">
+                        <thead class="themed-table-header">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium themed-text-light uppercase tracking-wider">Artículo</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium themed-text-light uppercase tracking-wider">Prestado a</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium themed-text-light uppercase tracking-wider">Fecha de Préstamo</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium themed-text-light uppercase tracking-wider">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody class="themed-table-body themed-divide divide-y">
+                            ${state.activeLoans.length > 0 ? state.activeLoans.map(loan => `
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap">${loan.itemDescription}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">${loan.borrower}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">${new Date(loan.loanedAt.seconds * 1000).toLocaleString()}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                                        <button class="return-btn bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-3 rounded" data-loan-id="${loan.id}" data-item-id="${loan.itemId}">Devolución</button>
+                                        <button class="report-loss-btn bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-3 rounded" data-loan-id="${loan.id}" data-item-id="${loan.itemId}">Pérdida</button>
+                                    </td>
+                                </tr>
+                            `).join('') : `<tr><td colspan="4" class="text-center py-10 themed-text-light">No hay préstamos activos.</td></tr>`}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        function renderHistoryView() {
+            const mainContent = document.getElementById('main-content');
+            mainContent.innerHTML = `
+                <div class="themed-card rounded-lg shadow-md">
+                    <div class="p-4">
+                        <nav class="-mb-px flex space-x-8 overflow-x-auto" aria-label="Tabs">
+                            <a href="#" class="tab-link whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm" data-type="salidas">Salidas</a>
+                            <a href="#" class="tab-link whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm" data-type="prestamos">Préstamos</a>
+                            <a href="#" class="tab-link whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm" data-type="devoluciones">Devoluciones</a>
+                            <a href="#" class="tab-link whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm" data-type="bajas">Bajas</a>
+                            <a href="#" class="tab-link whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm" data-type="entradas">Entradas</a>
+                        </nav>
+                    </div>
+                    <div id="history-content" class="p-4"></div>
+                </div>
+            `;
+            renderHistoryTab('salidas');
+        }
+
+        function renderHistoryTab(tabType) {
+            document.querySelectorAll('.tab-link').forEach(tab => {
+                const isSelected = tab.dataset.type === tabType;
+                tab.classList.toggle('border-indigo-500', isSelected);
+                tab.classList.toggle('text-indigo-600', isSelected);
+                tab.classList.toggle('border-transparent', !isSelected);
+                tab.classList.toggle('themed-text-light', !isSelected);
+            });
+
+            const content = document.getElementById('history-content');
+            const typeMap = {
+                salidas: ['Salida', 'Intercambio'], prestamos: ['Préstamo'],
+                devoluciones: ['Devolución'], bajas: ['Baja', 'Eliminado'], entradas: ['Entrada', 'Creación']
+            };
+            const data = state.transactions
+                .filter(t => typeMap[tabType].includes(t.type))
+                .sort((a,b) => b.timestamp.seconds - a.timestamp.seconds);
+            
+            const headers = ['Fecha', 'Tipo', 'Artículo', 'Cantidad', 'Responsable', 'Notas'];
+
+            content.innerHTML = `
+                <div class="overflow-x-auto">
+                    <table class="min-w-full themed-divide divide-y">
+                        <thead class="themed-table-header">
+                            <tr>${headers.map(h => `<th class="px-6 py-3 text-left text-xs font-medium themed-text-light uppercase tracking-wider">${h}</th>`).join('')}</tr>
+                        </thead>
+                        <tbody class="themed-table-body themed-divide divide-y">
+                            ${data.length > 0 ? data.map(t => `
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap">${new Date(t.timestamp?.seconds * 1000).toLocaleString()}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">${t.type}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">${t.itemDescription}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">${t.quantity}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">${(t.supplier || t.user || t.borrower) || 'N/A'}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">${t.notes || ''}</td>
+                                </tr>
+                            `).join('') : `<tr><td colspan="${headers.length}" class="text-center py-10 themed-text-light">No hay registros.</td></tr>`}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+
+        function renderReportsView() {
+            const mainContent = document.getElementById('main-content');
+            mainContent.innerHTML = `
+                <div class="themed-card p-6 rounded-lg shadow-md">
+                    <h2 class="text-xl font-semibold mb-4">Exportar Reportes</h2>
+                    <p class="themed-text-light mb-6">Selecciona un reporte para previsualizar y descargar.</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <button data-type="inventory" class="report-btn bg-indigo-600 text-white font-bold py-3 px-4 rounded hover:bg-indigo-700 flex items-center justify-center space-x-2"><i data-lucide="archive"></i><span>Inventario Completo</span></button>
+                        <button data-type="loans" class="report-btn bg-indigo-600 text-white font-bold py-3 px-4 rounded hover:bg-indigo-700 flex items-center justify-center space-x-2"><i data-lucide="arrow-right-left"></i><span>Préstamos Activos</span></button>
+                        <button data-type="salidas" class="report-btn bg-green-600 text-white font-bold py-3 px-4 rounded hover:bg-green-700 flex items-center justify-center space-x-2"><i data-lucide="log-out"></i><span>Historial de Salidas</span></button>
+                        <button data-type="prestamos" class="report-btn bg-blue-600 text-white font-bold py-3 px-4 rounded hover:bg-blue-700 flex items-center justify-center space-x-2"><i data-lucide="arrow-right-left"></i><span>Historial de Préstamos</span></button>
+                        <button data-type="devoluciones" class="report-btn bg-purple-600 text-white font-bold py-3 px-4 rounded hover:bg-purple-700 flex items-center justify-center space-x-2"><i data-lucide="log-in"></i><span>Historial de Devoluciones</span></button>
+                    </div>
+                </div>
+            `;
+            lucide.createIcons();
+        }
+
+        function renderShoppingListView() {
+            const mainContent = document.getElementById('main-content');
+            mainContent.innerHTML = `
+                <div class="themed-card p-6 rounded-lg shadow-md">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-xl font-semibold">Lista de Compras</h2>
+                        <button id="generate-pdf-btn" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded flex items-center space-x-2 ${state.shoppingList.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}" ${state.shoppingList.length === 0 ? 'disabled' : ''}>
+                            <i data-lucide="file-down"></i><span>Generar PDF</span>
+                        </button>
+                    </div>
+                    <ul id="shopping-list-items" class="themed-divide divide-y">
+                        ${state.shoppingList.length > 0 ? state.shoppingList.map(item => `
+                            <li class="py-3 flex justify-between items-center">
+                                <span><span class="font-bold text-indigo-600 dark:text-indigo-400">${item.quantity} x</span> ${item.description}</span>
+                                <button class="remove-from-cart-btn text-red-500 hover:text-red-700" data-id="${item.id}"><i data-lucide="x-circle"></i></button>
+                            </li>
+                        `).join('') : `<li class="py-10 text-center themed-text-light">La lista de compras está vacía.</li>`}
+                    </ul>
+                </div>
+            `;
+            lucide.createIcons();
+        }
+
+        function renderUsersView() {
+            const mainContent = document.getElementById('main-content');
+            mainContent.innerHTML = `
+                <div class="themed-card rounded-lg shadow-md overflow-x-auto">
+                    <table class="min-w-full themed-divide divide-y">
+                        <thead class="themed-table-header">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium themed-text-light uppercase tracking-wider">Email</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium themed-text-light uppercase tracking-wider">Rol</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium themed-text-light uppercase tracking-wider">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody class="themed-table-body themed-divide divide-y">
+                            ${state.allUsers.map(user => `
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap">${user.email}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">${user.role}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                        ${state.currentUser.uid !== user.id ? `
+                                            <select class="role-selector themed-input border rounded-md" data-uid="${user.id}">
+                                                <option value="operator" ${user.role === 'operator' ? 'selected' : ''}>Operador</option>
+                                                <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Admin</option>
+                                            </select>
+                                        ` : '<span class="themed-text-light">(Tú)</span>'}
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            
+            document.querySelectorAll('.role-selector').forEach(selector => {
+                selector.addEventListener('change', async (e) => {
+                    const newRole = e.target.value;
+                    const uid = e.target.dataset.uid;
+                    try {
+                        await updateDoc(doc(db, 'users', uid), { role: newRole });
+                        showNotification('Rol de usuario actualizado.', 'success');
+                    } catch (error) {
+                        showNotification('Error al actualizar el rol.', 'error');
+                    }
+                });
+            });
+        }
+        
+        function renderSettingsView() {
+            const mainContent = document.getElementById('main-content');
+            mainContent.innerHTML = `
+            <div class="max-w-6xl mx-auto space-y-8">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <!-- Left Column: General & Categories -->
+                    <div class="lg:col-span-1 space-y-8">
+                        <div class="themed-card p-6 rounded-lg shadow-md">
+                             <h2 class="text-xl font-semibold mb-6 flex items-center"><i data-lucide="sliders-horizontal" class="mr-2"></i>Ajustes Generales</h2>
+                            <div class="space-y-4">
+                                <div>
+                                    <label for="items-per-page" class="block text-sm font-medium themed-text-light mb-1">Artículos por página</label>
+                                    <input type="number" id="items-per-page" value="${state.settings.itemsPerPage || 10}" min="5" max="50" step="5" class="themed-input w-full border rounded-md px-3 py-2">
+                                </div>
+                                <div>
+                                    <label for="default-unit" class="block text-sm font-medium themed-text-light mb-1">Unidad por defecto (Nuevos Items)</label>
+                                    <input type="text" id="default-unit" value="${state.settings.defaultUnit || 'pza'}" class="themed-input w-full border rounded-md px-3 py-2">
+                                </div>
+                                 <div>
+                                    <label for="default-min-stock" class="block text-sm font-medium themed-text-light mb-1">Stock Mínimo por defecto (Nuevos Items)</label>
+                                    <input type="number" id="default-min-stock" value="${state.settings.defaultMinStock || 5}" min="0" class="themed-input w-full border rounded-md px-3 py-2">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="themed-card p-6 rounded-lg shadow-md">
+                            <h2 class="text-xl font-semibold mb-6 flex items-center"><i data-lucide="bell" class="mr-2"></i>Notificaciones</h2>
+                             <div class="space-y-4">
+                                <div class="flex items-center justify-between">
+                                    <label for="low-stock-notifications" class="block text-sm font-medium themed-text-light">Alertas de Stock Bajo</label>
+                                    <label class="switch">
+                                        <input type="checkbox" id="low-stock-notifications" ${state.settings.lowStockNotifications ? 'checked' : ''}>
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                                <div>
+                                    <label for="notification-emails" class="block text-sm font-medium themed-text-light mb-1">Correos para notificaciones</label>
+                                    <textarea id="notification-emails" rows="3" class="themed-input w-full border rounded-md px-3 py-2" placeholder="separar correos por coma">${state.settings.notificationEmails || ''}</textarea>
+                                </div>
+                            </div>
+                        </div>
+                         <div class="themed-card p-6 rounded-lg shadow-md text-right">
+                             <button id="save-settings-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-lg w-full flex items-center justify-center space-x-2"><i data-lucide="save"></i><span>Guardar Todos los Ajustes</span></button>
+                        </div>
+                    </div>
+                    
+                    <!-- Right Column: Categories & Data -->
+                    <div class="lg:col-span-2 space-y-8">
+                         <div class="themed-card p-6 rounded-lg shadow-md">
+                            <h2 class="text-xl font-semibold mb-6 flex items-center"><i data-lucide="layout-list" class="mr-2"></i>Gestionar Categorías</h2>
+                            <div class="mb-4">
+                                <label for="new-category-name" class="block text-sm font-medium themed-text-light mb-1">Añadir Nueva Categoría</label>
+                                <div class="flex space-x-2">
+                                     <input type="text" id="new-category-name" placeholder="Nombre de la categoría" class="themed-input flex-grow border rounded-md px-3 py-2">
+                                     <button id="add-category-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold p-2 rounded"><i data-lucide="plus"></i></button>
+                                </div>
+                            </div>
+                             <div id="category-management-list" class="space-y-2 max-h-64 overflow-y-auto">
+                                ${state.categories.filter(c => c !== 'Todas').map(cat => `
+                                    <div class="flex items-center justify-between p-2 rounded themed-border border">
+                                        <span class="category-name">${cat}</span>
+                                        <div class="space-x-2">
+                                            <button class="rename-category-btn text-blue-500 hover:text-blue-400" data-category="${cat}"><i data-lucide="pencil"></i></button>
+                                            <button class="delete-category-btn text-red-500 hover:text-red-400" data-category="${cat}"><i data-lucide="trash-2"></i></button>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+
+                         <div class="themed-card p-6 rounded-lg shadow-md">
+                            <h2 class="text-xl font-semibold mb-6 flex items-center"><i data-lucide="database-zap" class="mr-2"></i>Acciones Masivas</h2>
+                            <div class="space-y-4">
+                                <div>
+                                    <label for="bulk-category-select" class="block text-sm font-medium themed-text-light mb-1">Cambiar tipo de categoría completa</label>
+                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-2 items-center">
+                                        <select id="bulk-category-select" class="themed-input border rounded-md px-3 py-2">
+                                            ${state.categories.filter(c => c !== 'Todas').map(cat => `<option value="${cat}">${cat}</option>`).join('')}
+                                        </select>
+                                        <select id="bulk-type-select" class="themed-input border rounded-md px-3 py-2">
+                                            <option value="Consumible">a Consumible</option>
+                                            <option value="Retornable">a Retornable</option>
+                                        </select>
+                                        <button id="bulk-update-type-btn" class="bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 px-4 rounded">Actualizar</button>
+                                    </div>
+                                    <p class="text-xs themed-text-light mt-2">Esta acción cambiará el tipo de *todos* los artículos en la categoría seleccionada.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            `;
+            lucide.createIcons();
+        }
+
+        // --- LÓGICA DE EVENTOS ---
+        function setupStaticEventListeners() {
+            document.getElementById('login-button').addEventListener('click', async () => {
+                const email = document.getElementById('email').value;
+                const password = document.getElementById('password').value;
+                document.getElementById('auth-error-message').classList.add('hidden');
+                try {
+                    await signInWithEmailAndPassword(auth, email, password);
+                } catch (error) {
+                    displayAuthError(error.message);
+                }
+            });
+
+            document.getElementById('logout-button').addEventListener('click', () => { signOut(auth); });
+            
+            document.getElementById('main-nav').addEventListener('click', (e) => {
+                const navLink = e.target.closest('.nav-link');
+                if (navLink) {
+                    e.preventDefault();
+                    window.location.hash = navLink.getAttribute('href').substring(1);
+                }
+            });
+            
+            document.getElementById('dark-mode-toggle').addEventListener('click', (e) => {
+                e.preventDefault();
+                document.documentElement.classList.toggle('dark');
+                localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+                updateDarkModeToggle();
+            });
+
+            window.addEventListener('hashchange', () => {
+                const page = window.location.hash.substring(1) || 'dashboard';
+                if(state.isInitialized) navigateTo(page);
+            });
+
+            document.getElementById('menu-button').addEventListener('click', () => {
+                document.getElementById('sidebar').classList.toggle('-translate-x-full');
+            });
+
+            document.getElementById('search-input').addEventListener('input', (e) => {
+                state.searchTerm = e.target.value;
+                state.currentPage = 1;
+                if(window.location.hash === '#inventory' || window.location.hash === '') renderInventoryView();
+            });
+            
+            document.body.addEventListener('click', (e) => {
+                if (!state.isInitialized) return;
+                const target = e.target;
+
+                // Settings Page Events
+                if (window.location.hash === '#settings') {
+                    if (target.closest('#save-settings-btn')) { handleSaveSettings(); return; }
+                    if (target.closest('#add-category-btn')) { handleAddCategory(); return; }
+                    if (target.closest('#bulk-update-type-btn')) { handleBulkUpdateCategoryType(); return; }
+                    const renameBtn = target.closest('.rename-category-btn');
+                    if (renameBtn) { handleRenameCategory(renameBtn.dataset.category); return; }
+                    const deleteBtn = target.closest('.delete-category-btn');
+                    if (deleteBtn) { handleDeleteCategory(deleteBtn.dataset.category); return; }
+                }
+                
+                const categoryFilter = target.closest('.category-filter');
+                if (categoryFilter) { e.preventDefault(); state.activeCategory = categoryFilter.dataset.category; state.currentPage = 1; renderInventoryView(); return; }
+
+                const pageLink = target.closest('.page-link');
+                if (pageLink) { e.preventDefault(); const page = parseInt(pageLink.dataset.page, 10); if (page) { state.currentPage = page; renderInventoryView(); } return; }
+
+                const actionBtn = target.closest('.action-btn');
+                if (actionBtn) { handleInventoryAction(actionBtn.dataset.action, actionBtn.dataset.id); return; }
+
+                const returnBtn = target.closest('.return-btn');
+                if (returnBtn) { handleReturnLoan(returnBtn.dataset.loanId, returnBtn.dataset.itemId); return; }
+                
+                const reportLossBtn = target.closest('.report-loss-btn');
+                if(reportLossBtn) { handleReportLoanLoss(reportLossBtn.dataset.loanId, reportLossBtn.dataset.itemId); return; }
+
+                const tabLink = target.closest('.tab-link');
+                if (tabLink) { e.preventDefault(); renderHistoryTab(tabLink.dataset.type); return; }
+
+                const reportBtn = target.closest('.report-btn');
+                if (reportBtn) { previewReport(reportBtn.dataset.type); return; }
+
+                const removeFromCartBtn = target.closest('.remove-from-cart-btn');
+                if (removeFromCartBtn) { removeFromShoppingList(removeFromCartBtn.dataset.id); return; }
+                
+                if (target.id === 'generate-pdf-btn') { generateShoppingListPDF(); return; }
+            });
+        }
+        
+        // --- MANEJO DE ACCIONES ---
+        function handleInventoryAction(action, id) {
+            const item = state.inventory.find(i => i.id === id);
+            if (!item) return;
+            switch (action) {
+                case 'entry': showEntryModal(item); break;
+                case 'checkout':
+                    if (item.type === 'Consumible') showCheckoutModal(item);
+                    else showLoanModal(item);
+                    break;
+                case 'edit': showEditItemModal(item); break;
+                case 'delete': handleDeleteItem(item); break;
+                case 'add-to-cart': showAddToCartModal(item); break;
+            }
+        }
+
+        async function handleDeleteItem(item) {
+            showConfirmationModal(`¿Estás seguro de que quieres eliminar "${item.description}"? Esta acción no se puede deshacer.`, async () => {
+                try {
+                    await deleteDoc(doc(db, 'inventory', item.id));
+                    await addDoc(collection(db, 'transactions'), {
+                        itemDescription: item.description, type: 'Eliminado', quantity: item.stock,
+                        timestamp: serverTimestamp(), user: state.currentUser.email, notes: 'Artículo eliminado del sistema'
+                    });
+                    showNotification('Artículo eliminado correctamente.', 'success');
+                } catch (error) {
+                    showNotification('Error al eliminar el artículo.', 'error');
+                }
+            });
+        }
+
+        async function handleReturnLoan(loanId, itemId) {
+            const itemRef = doc(db, 'inventory', itemId);
+            const loanRef = doc(db, 'loans', loanId);
+            try {
+                const itemDoc = await getDoc(itemRef);
+                if (!itemDoc.exists()) throw new Error("Item not found");
+                const batch = writeBatch(db);
+                batch.update(itemRef, { stock: itemDoc.data().stock + 1 });
+                batch.update(loanRef, { returnedAt: serverTimestamp() });
+                const transactionRef = doc(collection(db, 'transactions'));
+                batch.set(transactionRef, {
+                    itemId: itemId, itemDescription: itemDoc.data().description, type: 'Devolución',
+                    quantity: 1, borrower: (await getDoc(loanRef)).data().borrower,
+                    timestamp: serverTimestamp(), user: state.currentUser.email
+                });
+                await batch.commit();
+                showNotification('Devolución registrada.', 'success');
+            } catch (error) {
+                showNotification('Error al registrar la devolución.', 'error');
+            }
+        }
+        async function handleReportLoanLoss(loanId, itemId) {
+            const loan = state.activeLoans.find(l => l.id === loanId);
+            const item = state.inventory.find(i => i.id === itemId);
+            if (!loan || !item) return;
+            showReportLossModal(loan, item);
+        }
+
+        // --- LÓGICA DE MODALES ---
+        function showModal(title, content, maxWidth = 'max-w-2xl') {
+            const modalContainer = document.getElementById('modal-container');
+            modalContainer.innerHTML = `
+                <div id="app-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-40">
+                    <div class="relative top-20 mx-auto p-5 border w-full ${maxWidth} shadow-lg rounded-md themed-card themed-border">
+                        <div class="flex justify-between items-center pb-3 border-b themed-border">
+                            <h3 class="text-2xl font-bold">${title}</h3>
+                            <button id="close-modal-btn"><i data-lucide="x" class="h-6 w-6"></i></button>
+                        </div>
+                        <div class="mt-3">${content}</div>
+                    </div>
+                </div>`;
+            lucide.createIcons();
+            document.getElementById('close-modal-btn').addEventListener('click', closeModal);
+            document.getElementById('app-modal').addEventListener('click', (e) => { if (e.target.id === 'app-modal') closeModal(); });
+        }
+        function closeModal() { document.getElementById('modal-container').innerHTML = ''; }
+
+        function showConfirmationModal(message, onConfirm) {
+            const content = `
+                <p class="themed-text-light mb-6">${message}</p>
+                <div class="flex justify-end space-x-4">
+                    <button id="confirm-cancel" class="bg-gray-300 dark:bg-gray-600 hover:bg-gray-400 text-black dark:text-white font-bold py-2 px-4 rounded">Cancelar</button>
+                    <button id="confirm-accept" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">Confirmar</button>
+                </div>`;
+            showModal('Confirmación Requerida', content, 'max-w-md');
+            document.getElementById('confirm-accept').addEventListener('click', () => { onConfirm(); closeModal(); });
+            document.getElementById('confirm-cancel').addEventListener('click', closeModal);
+        }
+
+        function showEntryModal(item) {
+            const content = `
+                <p class="mb-4"><strong>Artículo:</strong> ${item.description}</p>
+                <form id="entry-form">
+                    <div class="mb-4">
+                        <label for="quantity" class="block text-sm font-medium themed-text-light">Cantidad</label>
+                        <input type="number" id="quantity" name="quantity" min="1" required class="themed-input mt-1 block w-full px-3 py-2 border rounded-md shadow-sm">
+                    </div>
+                    <div class="mb-4">
+                        <label for="supplier" class="block text-sm font-medium themed-text-light">Proveedor (Opcional)</label>
+                        <input type="text" id="supplier" name="supplier" class="themed-input mt-1 block w-full px-3 py-2 border rounded-md shadow-sm">
+                    </div>
+                    <div class="mb-4">
+                        <label for="notes" class="block text-sm font-medium themed-text-light">Notas (Opcional)</label>
+                        <textarea id="notes" name="notes" rows="2" class="themed-input mt-1 block w-full px-3 py-2 border rounded-md shadow-sm"></textarea>
+                    </div>
+                    <div class="flex justify-end">
+                        <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded">Registrar Entrada</button>
+                    </div>
+                </form>`;
+            showModal('Registrar Entrada', content, 'max-w-md');
+            document.getElementById('entry-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const { quantity, supplier, notes } = e.target.elements;
+                const itemRef = doc(db, 'inventory', item.id);
+                await updateDoc(itemRef, { stock: item.stock + parseInt(quantity.value) });
+                await addDoc(collection(db, 'transactions'), {
+                    itemId: item.id, itemDescription: item.description, type: 'Entrada', quantity: parseInt(quantity.value),
+                    supplier: supplier.value, notes: notes.value, timestamp: serverTimestamp(), user: state.currentUser.email
+                });
+                showNotification('Entrada registrada.', 'success');
+                closeModal();
+            });
+        }
+        function showCheckoutModal(item) {
+            const isEndmill = item.category.toLowerCase().includes('endmill');
+            const content = `
+                <p class="mb-4"><strong>Artículo:</strong> ${item.description}</p>
+                <form id="checkout-form">
+                    <div class="mb-4">
+                        <label for="quantity" class="block text-sm font-medium themed-text-light">Cantidad</label>
+                        <input type="number" id="quantity" name="quantity" min="1" max="${item.stock}" required class="themed-input mt-1 block w-full px-3 py-2 border rounded-md shadow-sm">
+                    </div>
+                    <div class="mb-4">
+                        <label for="user" class="block text-sm font-medium themed-text-light">Nombre de quien retira</label>
+                        <input type="text" id="user" name="user" required class="themed-input mt-1 block w-full px-3 py-2 border rounded-md shadow-sm">
+                    </div>
+                    ${isEndmill ? `
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium themed-text-light">¿Devolvió pieza rota?</label>
+                        <div class="mt-2 space-x-4">
+                            <label><input type="radio" name="exchange" value="yes" class="form-radio"> Sí (Intercambio)</label>
+                            <label><input type="radio" name="exchange" value="no" class="form-radio" checked> No (Salida)</label>
+                        </div>
+                    </div>` : ''}
+                    <div class="flex justify-end">
+                        <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded">Registrar Salida</button>
+                    </div>
+                </form>`;
+            showModal('Registrar Salida de Consumible', content, 'max-w-md');
+            document.getElementById('checkout-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const { quantity, user, exchange } = e.target.elements;
+                const isExchange = isEndmill && exchange.value === 'yes';
+                const itemRef = doc(db, 'inventory', item.id);
+                if (!isExchange) {
+                    await updateDoc(itemRef, { stock: item.stock - parseInt(quantity.value) });
+                }
+                await addDoc(collection(db, 'transactions'), {
+                    itemId: item.id, itemDescription: item.description, type: isExchange ? 'Intercambio' : 'Salida',
+                    quantity: parseInt(quantity.value), user: user.value, timestamp: serverTimestamp()
+                });
+                showNotification('Salida registrada.', 'success');
+                closeModal();
+            });
+        }
+        function showLoanModal(item) {
+            const content = `
+                <p class="mb-4"><strong>Artículo:</strong> ${item.description}</p>
+                <form id="loan-form">
+                    <div class="mb-4">
+                        <label for="borrower" class="block text-sm font-medium themed-text-light">Nombre de quien solicita</label>
+                        <input type="text" id="borrower" name="borrower" required class="themed-input mt-1 block w-full px-3 py-2 border rounded-md shadow-sm">
+                    </div>
+                    <div class="flex justify-end"><button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded">Registrar Préstamo</button></div>
+                </form>`;
+            showModal('Registrar Préstamo de Herramienta', content, 'max-w-md');
+            document.getElementById('loan-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const borrower = e.target.borrower.value;
+                const batch = writeBatch(db);
+                batch.update(doc(db, 'inventory', item.id), { stock: item.stock - 1 });
+                batch.set(doc(collection(db, 'loans')), {
+                    itemId: item.id, itemDescription: item.description, borrower: borrower,
+                    loanedAt: serverTimestamp(), returnedAt: null
+                });
+                batch.set(doc(collection(db, 'transactions')), {
+                    itemId: item.id, itemDescription: item.description, type: 'Préstamo',
+                    quantity: 1, borrower: borrower, timestamp: serverTimestamp()
+                });
+                await batch.commit();
+                showNotification('Préstamo registrado.', 'success');
+                closeModal();
+            });
+        }
+        
+        function showReportLossModal(loan, item) {
+            const content = `
+                <p class="mb-2"><strong>Artículo:</strong> ${item.description}</p>
+                <p class="mb-4"><strong>Prestado a:</strong> ${loan.borrower}</p>
+                <p class="text-sm text-red-600 mb-4">Esta acción cerrará el préstamo y registrará el artículo como baja por pérdida.</p>
+                <form id="report-loss-form">
+                    <div class="mb-4">
+                        <label for="reason" class="block text-sm font-medium themed-text-light">Motivo de Pérdida</label>
+                        <input type="text" id="reason" name="reason" value="Perdido durante préstamo" required class="themed-input mt-1 block w-full px-3 py-2 border rounded-md shadow-sm">
+                    </div>
+                    <div class="flex justify-end"><button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">Confirmar Pérdida</button></div>
+                </form>`;
+            showModal('Reportar Herramienta Perdida', content, 'max-w-md');
+            document.getElementById('report-loss-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const reason = e.target.reason.value;
+                const batch = writeBatch(db);
+                batch.update(doc(db, 'loans', loan.id), { returnedAt: serverTimestamp(), status: 'lost' });
+                batch.set(doc(collection(db, 'transactions')), {
+                    itemId: item.id, itemDescription: item.description, type: 'Baja', quantity: 1,
+                    notes: `Pérdida por ${loan.borrower}. Motivo: ${reason}`,
+                    timestamp: serverTimestamp(), user: state.currentUser.email
+                });
+                await batch.commit();
+                showNotification('Pérdida registrada.', 'success');
+                closeModal();
+            });
+        }
+        function showAddToCartModal(item) {
+            const content = `
+                <p class="mb-4"><strong>Artículo:</strong> ${item.description}</p>
+                <form id="add-to-cart-form">
+                    <div class="mb-4">
+                        <label for="quantity" class="block text-sm font-medium themed-text-light">Cantidad</label>
+                        <input type="number" id="quantity" name="quantity" min="1" value="1" required class="themed-input mt-1 block w-full px-3 py-2 border rounded-md shadow-sm">
+                    </div>
+                    <div class="flex justify-end"><button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded">Añadir a la Lista</button></div>
+                </form>`;
+            showModal('Añadir a Lista de Compras', content, 'max-w-md');
+            document.getElementById('add-to-cart-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const quantity = parseInt(e.target.quantity.value);
+                await addToShoppingList(item, quantity);
+                closeModal();
+            });
+        }
+        
+        function getCategoryOptions(selectedCategory) {
+            return state.categories
+                .filter(c => c !== 'Todas')
+                .map(cat => `<option value="${cat}" ${cat === selectedCategory ? 'selected' : ''}>${cat}</option>`)
+                .join('');
+        }
+
+        function showEditItemModal(item) {
+            const isConsumable = item.type === 'Consumible';
+            const content = `
+                <form id="edit-item-form">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="md:col-span-2">
+                            <label for="description" class="block text-sm font-medium themed-text-light">Descripción</label>
+                            <input type="text" id="description" value="${item.description}" required class="themed-input mt-1 block w-full px-3 py-2 border rounded-md shadow-sm">
+                        </div>
+                        <div>
+                            <label for="category" class="block text-sm font-medium themed-text-light">Categoría</label>
+                            <select id="category" class="themed-input mt-1 block w-full px-3 py-2 border rounded-md shadow-sm">${getCategoryOptions(item.category)}</select>
+                        </div>
+                        <div>
+                            <label for="type" class="block text-sm font-medium themed-text-light">Tipo</label>
+                            <select id="type" class="themed-input mt-1 block w-full px-3 py-2 border rounded-md shadow-sm">
+                                <option value="Consumible" ${isConsumable ? 'selected' : ''}>Consumible</option>
+                                <option value="Retornable" ${!isConsumable ? 'selected' : ''}>Retornable</option>
+                            </select>
+                        </div>
+                        <div id="min-stock-container" class="${isConsumable ? '' : 'hidden'}">
+                            <label for="minStock" class="block text-sm font-medium themed-text-light">Stock Mínimo</label>
+                            <input type="number" id="minStock" value="${item.minStock || 0}" min="0" class="themed-input mt-1 block w-full px-3 py-2 border rounded-md shadow-sm">
+                        </div>
+                         <div>
+                            <label for="unit" class="block text-sm font-medium themed-text-light">Unidad</label>
+                            <input type="text" id="unit" value="${item.unit || 'pza'}" required class="themed-input mt-1 block w-full px-3 py-2 border rounded-md shadow-sm">
+                        </div>
+                    </div>
+                    <div class="flex justify-end mt-6">
+                        <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded">Guardar Cambios</button>
+                    </div>
+                </form>
+            `;
+            showModal('Editar Artículo', content);
+            const typeSelect = document.getElementById('type');
+            const minStockContainer = document.getElementById('min-stock-container');
+            typeSelect.addEventListener('change', (e) => {
+                minStockContainer.classList.toggle('hidden', e.target.value !== 'Consumible');
+            });
+            document.getElementById('edit-item-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const { description, category, type, minStock, unit } = e.target.elements;
+                const updatedData = {
+                    description: description.value,
+                    category: category.value,
+                    type: type.value,
+                    unit: unit.value,
+                    minStock: type.value === 'Consumible' ? parseInt(minStock.value) : 0,
+                };
+                await updateDoc(doc(db, 'inventory', item.id), updatedData);
+                showNotification('Artículo actualizado.', 'success');
+                closeModal();
+            });
+        }
+
+        function showNewItemModal() {
+             const content = `
+                <form id="new-item-form">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="md:col-span-2">
+                            <label for="description" class="block text-sm font-medium themed-text-light">Descripción</label>
+                            <input type="text" id="description" required class="themed-input mt-1 block w-full px-3 py-2 border rounded-md shadow-sm">
+                        </div>
+                        <div>
+                            <label for="category" class="block text-sm font-medium themed-text-light">Categoría</label>
+                            <select id="category" class="themed-input mt-1 block w-full px-3 py-2 border rounded-md shadow-sm">${getCategoryOptions('')}</select>
+                        </div>
+                        <div>
+                            <label for="type" class="block text-sm font-medium themed-text-light">Tipo</label>
+                            <select id="type" class="themed-input mt-1 block w-full px-3 py-2 border rounded-md shadow-sm">
+                                <option value="Consumible" selected>Consumible</option>
+                                <option value="Retornable">Retornable</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="stock" class="block text-sm font-medium themed-text-light">Stock Inicial</label>
+                            <input type="number" id="stock" value="0" min="0" required class="themed-input mt-1 block w-full px-3 py-2 border rounded-md shadow-sm">
+                        </div>
+                        <div id="min-stock-container">
+                            <label for="minStock" class="block text-sm font-medium themed-text-light">Stock Mínimo</label>
+                            <input type="number" id="minStock" value="${state.settings.defaultMinStock || 5}" min="0" class="themed-input mt-1 block w-full px-3 py-2 border rounded-md shadow-sm">
+                        </div>
+                         <div>
+                            <label for="unit" class="block text-sm font-medium themed-text-light">Unidad</label>
+                            <input type="text" id="unit" value="${state.settings.defaultUnit || 'pza'}" required class="themed-input mt-1 block w-full px-3 py-2 border rounded-md shadow-sm">
+                        </div>
+                    </div>
+                    <div class="flex justify-end mt-6">
+                        <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded">Crear Artículo</button>
+                    </div>
+                </form>
+            `;
+            showModal('Crear Nuevo Artículo', content);
+            const typeSelect = document.getElementById('type');
+            const minStockContainer = document.getElementById('min-stock-container');
+            typeSelect.addEventListener('change', (e) => {
+                minStockContainer.classList.toggle('hidden', e.target.value !== 'Consumible');
+            });
+
+            document.getElementById('new-item-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const { description, category, type, minStock, unit, stock } = e.target.elements;
+                const newItem = {
+                    description: description.value,
+                    category: category.value,
+                    type: type.value,
+                    unit: unit.value,
+                    stock: parseInt(stock.value),
+                    minStock: type.value === 'Consumible' ? parseInt(minStock.value) : 0,
+                };
+                try {
+                    const docRef = await addDoc(collection(db, 'inventory'), newItem);
+                    await addDoc(collection(db, 'transactions'), {
+                        itemId: docRef.id, itemDescription: newItem.description, type: 'Creación', quantity: newItem.stock,
+                        timestamp: serverTimestamp(), user: state.currentUser.email, notes: 'Artículo nuevo creado'
+                    });
+                    showNotification('Artículo creado con éxito.', 'success');
+                    closeModal();
+                } catch(error) {
+                    showNotification('Error al crear el artículo.', 'error');
+                }
+            });
+        }
+
+        // --- LÓGICA DE AJUSTES ---
+        async function handleSaveSettings() {
+            const itemsPerPage = parseInt(document.getElementById('items-per-page').value, 10);
+            const defaultUnit = document.getElementById('default-unit').value;
+            const defaultMinStock = parseInt(document.getElementById('default-min-stock').value, 10);
+            const lowStockNotifications = document.getElementById('low-stock-notifications').checked;
+            const notificationEmails = document.getElementById('notification-emails').value;
+
+            if (itemsPerPage < 5 || itemsPerPage > 50) {
+                 showNotification('Artículos por página debe estar entre 5 y 50.', 'error');
+                 return;
+            }
+
+            const newSettings = {
+                itemsPerPage,
+                defaultUnit,
+                defaultMinStock,
+                lowStockNotifications,
+                notificationEmails,
+            };
+
+            try {
+                await setDoc(doc(db, 'settings', 'global'), newSettings, { merge: true });
+                state.settings = { ...state.settings, ...newSettings };
+                state.itemsPerPage = newSettings.itemsPerPage;
+                showNotification('Ajustes guardados con éxito.', 'success');
+                // Re-render relevant views if needed
+                if (window.location.hash === '#inventory') renderInventoryView();
+
+            } catch (error) {
+                showNotification('Error al guardar los ajustes.', 'error');
+                console.error("Error saving settings: ", error);
+            }
+        }
+        
+        async function handleAddCategory() {
+            const input = document.getElementById('new-category-name');
+            const newCategory = input.value.trim();
+            if (!newCategory) {
+                showNotification('El nombre de la categoría no puede estar vacío.', 'error');
+                return;
+            }
+            if (state.categories.includes(newCategory)) {
+                showNotification('Esa categoría ya existe.', 'info');
+                return;
+            }
+            
+            const updatedCategories = [...state.categories.filter(c => c !== 'Todas'), newCategory].sort();
+            
+            try {
+                await setDoc(doc(db, 'settings', 'global'), { categories: updatedCategories }, { merge: true });
+                input.value = '';
+                showNotification('Categoría añadida.', 'success');
+            } catch (error) {
+                showNotification('Error al añadir la categoría.', 'error');
+            }
+        }
+
+        async function handleRenameCategory(oldName) {
+            const newName = prompt(`Renombrar categoría "${oldName}":`, oldName);
+            if (!newName || newName.trim() === '' || newName === oldName) return;
+            if (state.categories.includes(newName)) {
+                showNotification('Ya existe una categoría con ese nombre.', 'error');
+                return;
+            }
+
+            showConfirmationModal(`¿Seguro que quieres renombrar "${oldName}" a "${newName}"? Esto actualizará todos los artículos de esta categoría.`, async () => {
+                const batch = writeBatch(db);
+                const itemsToUpdate = state.inventory.filter(item => item.category === oldName);
+                itemsToUpdate.forEach(item => {
+                    batch.update(doc(db, 'inventory', item.id), { category: newName });
+                });
+                
+                const updatedCategories = state.categories.map(c => c === oldName ? newName : c).sort();
+                batch.set(doc(db, 'settings', 'global'), { categories: updatedCategories.filter(c => c !== 'Todas')}, { merge: true });
+
+                try {
+                    await batch.commit();
+                    showNotification('Categoría renombrada con éxito.', 'success');
+                } catch (error) {
+                    showNotification('Error al renombrar la categoría.', 'error');
+                }
+            });
+        }
+
+        async function handleDeleteCategory(categoryName) {
+            const itemsInCategory = state.inventory.filter(item => item.category === categoryName).length;
+            if (itemsInCategory > 0) {
+                showNotification(`No se puede eliminar. Hay ${itemsInCategory} artículos en esta categoría.`, 'error');
+                return;
+            }
+            showConfirmationModal(`¿Seguro que quieres eliminar la categoría "${categoryName}"?`, async () => {
+                const updatedCategories = state.categories.filter(c => c !== categoryName && c !== 'Todas');
+                try {
+                    await setDoc(doc(db, 'settings', 'global'), { categories: updatedCategories }, { merge: true });
+                    showNotification('Categoría eliminada.', 'success');
+                } catch (error) {
+                    showNotification('Error al eliminar la categoría.', 'error');
+                }
+            });
+        }
+
+        async function handleBulkUpdateCategoryType() {
+            const categoryToUpdate = document.getElementById('bulk-category-select').value;
+            const newType = document.getElementById('bulk-type-select').value;
+
+            if (!categoryToUpdate) {
+                showNotification('Por favor, selecciona una categoría.', 'error');
+                return;
+            }
+
+            const message = `¿Estás seguro de que quieres cambiar todos los artículos en la categoría "${categoryToUpdate}" al tipo "${newType}"? Esta acción es irreversible.`;
+
+            showConfirmationModal(message, async () => {
+                const itemsToUpdate = state.inventory.filter(item => item.category === categoryToUpdate);
+                if (itemsToUpdate.length === 0) {
+                    showNotification('No hay artículos en esta categoría para actualizar.', 'info');
+                    return;
+                }
+
+                const batch = writeBatch(db);
+                itemsToUpdate.forEach(item => {
+                    const itemRef = doc(db, 'inventory', item.id);
+                    batch.update(itemRef, { type: newType });
+                });
+
+                try {
+                    await batch.commit();
+                    showNotification(`Se actualizaron ${itemsToUpdate.length} artículos en la categoría "${categoryToUpdate}".`, 'success');
+                } catch (error) {
+                    showNotification('Ocurrió un error al actualizar los artículos.', 'error');
+                    console.error("Error during bulk category type update:", error);
+                }
+            });
+        }
+
+        // --- LÓGICA DE UTILIDADES ---
+        function generatePaginator(totalPages) {
+            if (totalPages <= 1) return '';
+            let pages = '';
+            for (let i = 1; i <= totalPages; i++) {
+                pages += `<a href="#" class="page-link px-3 py-1 rounded ${i === state.currentPage ? 'bg-indigo-600 text-white' : 'hover:bg-gray-200 dark:hover:bg-gray-700'}" data-page="${i}">${i}</a>`;
+            }
+            return `<div class="flex items-center justify-center space-x-1 flex-wrap">${pages}</div>`;
+        }
+        function showNotification(message, type = 'info') {
+            const container = document.getElementById('notification-container');
+            const id = `notif-${Date.now()}`;
+            const colors = { info: 'bg-blue-500', success: 'bg-green-500', error: 'bg-red-500' };
+            const notif = document.createElement('div');
+            notif.id = id;
+            notif.className = `text-white px-6 py-4 border-0 rounded relative mb-4 ${colors[type]} pop-animation`;
+            notif.innerHTML = `<span class="inline-block align-middle mr-8">${message}</span>`;
+            container.appendChild(notif);
+            setTimeout(() => { notif.remove(); }, 3000);
+        }
+        async function addToShoppingList(item, quantity) {
+            if (quantity <= 0) { showNotification('La cantidad debe ser mayor a cero.', 'error'); return; }
+            if (state.shoppingList.find(i => i.itemId === item.id)) {
+                showNotification(`${item.description} ya está en la lista.`, 'info');
+                return;
+            }
+            await addDoc(collection(db, 'shoppingList'), {
+                itemId: item.id, description: item.description, quantity: quantity
+            });
+            showNotification(`${quantity} x ${item.description} añadido(s).`, 'success');
+        }
+        async function removeFromShoppingList(docId) {
+            await deleteDoc(doc(db, 'shoppingList', docId));
+            showNotification('Artículo eliminado de la lista.', 'success');
+        }
+        function updateShoppingListCount() {
+            const countEl = document.getElementById('shopping-list-count');
+            const count = state.shoppingList.length;
+            countEl.textContent = count;
+            countEl.classList.toggle('hidden', count === 0);
+        }
+        function generateShoppingListPDF() {
+            if (state.shoppingList.length === 0) return;
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            doc.setFontSize(22);
+            doc.text("Lista de Compras", 20, 20);
+            doc.setFontSize(12);
+            doc.text(`Fecha: ${new Date().toLocaleDateString()}`, 20, 30);
+            let y = 40;
+            doc.setFontSize(10);
+            state.shoppingList.forEach((item, index) => {
+                if (index === 0) y += 10;
+                const textLines = doc.splitTextToSize(`${item.quantity} x ${item.description}`, 160);
+                doc.text(textLines, 25, y);
+                y += (textLines.length * 5) + 3;
+                if (y > 280) { doc.addPage(); y = 20; }
+            });
+            doc.save("lista_de_compras.pdf");
+        }
+        function generateCharts() {
+            const consumableUsage = state.transactions.filter(t => t.type === 'Salida').reduce((acc, t) => {
+                acc[t.itemDescription] = (acc[t.itemDescription] || 0) + t.quantity; return acc; }, {});
+            const topConsumables = Object.entries(consumableUsage).sort(([,a],[,b]) => b-a).slice(0, 10);
+            new Chart(document.getElementById('topConsumablesChart'), {
+                type: 'bar', data: { labels: topConsumables.map(item => item[0]), datasets: [{ label: 'Cantidad', data: topConsumables.map(item => item[1]), backgroundColor: 'rgba(79, 70, 229, 0.8)' }] },
+                options: { indexAxis: 'y', responsive: true }
+            });
+            const reportedItems = state.transactions.filter(t => t.type === 'Baja').reduce((acc, t) => {
+                acc[t.itemDescription] = (acc[t.itemDescription] || 0) + t.quantity; return acc; }, {});
+            const topReported = Object.entries(reportedItems).sort(([,a],[,b]) => b-a).slice(0, 10);
+            new Chart(document.getElementById('topReportedChart'), {
+                type: 'doughnut', data: { labels: topReported.map(item => item[0]), datasets: [{ data: topReported.map(item => item[1]), backgroundColor: ['#ef4444', '#f97316', '#eab308', '#84cc16', '#22c55e', '#14b8a6', '#06b6d4', '#3b82f6', '#8b5cf6', '#d946ef'] }] },
+                options: { responsive: true }
+            });
+            const employeeLoans = state.transactions.filter(t => t.type === 'Préstamo').reduce((acc, t) => {
+                if(t.borrower) acc[t.borrower] = (acc[t.borrower] || 0) + 1; return acc; }, {});
+            const topEmployees = Object.entries(employeeLoans).sort(([,a],[,b]) => b-a).slice(0, 10);
+            new Chart(document.getElementById('topEmployeesChart'), {
+                type: 'bar', data: { labels: topEmployees.map(item => item[0]), datasets: [{ label: 'Nº de Préstamos', data: topEmployees.map(item => item[1]), backgroundColor: 'rgba(20, 184, 166, 0.8)' }] },
+                options: { responsive: true }
+            });
+        }
+        function previewReport(type) {
+            let data, headers, title;
+            const typeMap = { salidas: ['Salida', 'Intercambio'], prestamos: ['Préstamo'], devoluciones: ['Devolución'] };
+            switch (type) {
+                case 'inventory':
+                    title = "Inventario Completo"; headers = ['Descripcion', 'Categoria', 'Tipo', 'Stock', 'Unidad'];
+                    data = state.inventory.map(i => [i.description, i.category, i.type, i.stock, i.unit]);
+                    break;
+                case 'loans':
+                    title = "Prestamos Activos"; headers = ['Articulo', 'Prestado a', 'Fecha'];
+                    data = state.activeLoans.map(l => [l.itemDescription, l.borrower, new Date(l.loanedAt.seconds * 1000).toLocaleString()]);
+                    break;
+                default:
+                    title = `Historial de ${type}`; headers = ['Fecha', 'Tipo', 'Articulo', 'Cantidad', 'Responsable', 'Notas'];
+                    data = state.transactions.filter(t => typeMap[type].includes(t.type)).sort((a,b) => b.timestamp.seconds - a.timestamp.seconds)
+                        .map(t => [new Date(t.timestamp.seconds * 1000).toLocaleString(), t.type, t.itemDescription, t.quantity, t.user || t.borrower || 'N/A', t.notes || '']);
+            }
+            showReportPreviewModal(title, headers, data, type);
+        }
+        function showReportPreviewModal(title, headers, data, type) {
+            let tableHTML = data.length > 0 ? `
+                <div class="max-h-96 overflow-y-auto border themed-border rounded-md">
+                    <table class="min-w-full themed-divide divide-y">
+                        <thead class="themed-table-header sticky top-0"><tr>${headers.map(h => `<th class="px-4 py-2 text-left text-xs font-medium themed-text-light uppercase tracking-wider">${h}</th>`).join('')}</tr></thead>
+                        <tbody class="themed-table-body themed-divide divide-y">${data.map(row => `<tr>${row.map(cell => `<td class="px-4 py-2 whitespace-nowrap text-sm">${String(cell).replace(/"/g, '')}</td>`).join('')}</tr>`).join('')}</tbody>
+                    </table>
+                </div>` : `<p class="themed-text-light text-center py-8">No hay datos para mostrar.</p>`;
+
+            showModal(`Previsualizacion: ${title}`, `
+                ${tableHTML}
+                <div class="flex justify-end mt-4"><button id="download-csv-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded" ${data.length === 0 ? 'disabled' : ''}>Descargar CSV</button></div>
+            `);
+            if(data.length > 0) {
+                document.getElementById('download-csv-btn').addEventListener('click', () => { exportToCSV(type, headers, data); closeModal(); });
+            }
+        }
+        function exportToCSV(type, headers, data) {
+            const filename = `${type}_${new Date().toISOString().slice(0,10)}.csv`;
+            let csvContent = "data:text/csv;charset=utf-8," + [headers.join(','), ...data.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))].join('\n');
+            const link = document.createElement("a");
+            link.setAttribute("href", encodeURI(csvContent));
+            link.setAttribute("download", filename);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+        }
+        function updateDarkModeToggle() {
+            const toggle = document.getElementById('dark-mode-toggle');
+            if (document.documentElement.classList.contains('dark')) {
+                toggle.innerHTML = `<i data-lucide="sun"></i><span>Modo Claro</span>`;
+            } else {
+                toggle.innerHTML = `<i data-lucide="moon"></i><span>Modo Oscuro</span>`;
+            }
+            lucide.createIcons();
+        }
+        
+        function getFullInventoryList() {
+            return [
+                { description: 'Endmill Carburo - FLAT 2 FILOS .015" x 1-1/2"', category: 'Endmill Carburo', type: 'Consumible', stock: 10, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo - FLAT 4 FILOS 1/32 x 1-1/2"', category: 'Endmill Carburo', type: 'Consumible', stock: 0, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo - FLAT 4 FILOS 3/64 x 1-1/2"', category: 'Endmill Carburo', type: 'Consumible', stock: 10, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo - FLAT 4 FILOS 1/16 x 1-1/2"', category: 'Endmill Carburo', type: 'Consumible', stock: 15, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo - FLAT 4 FILOS 5/64 x 1-1/2"', category: 'Endmill Carburo', type: 'Consumible', stock: 10, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo - FLAT 4 FILOS 3/32 x 1-1/2"', category: 'Endmill Carburo', type: 'Consumible', stock: 15, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo - FLAT 4 FILOS 7/64 x 1-1/2"', category: 'Endmill Carburo', type: 'Consumible', stock: 10, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo - FLAT 4 FILOS 1/8 x 1-1/2"', category: 'Endmill Carburo', type: 'Consumible', stock: 20, minStock: 10, unit: 'pza' },
+                { description: 'Endmill Carburo - FLAT 4 FILOS 5/32 x 2"', category: 'Endmill Carburo', type: 'Consumible', stock: 5, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo - FLAT 4 FILOS 3/16 x 2"', category: 'Endmill Carburo', type: 'Consumible', stock: 15, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo - FLAT 4 FILOS 7/32 x 2-1/2"', category: 'Endmill Carburo', type: 'Consumible', stock: 5, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo - FLAT 4 FILOS 1/4 x 2-1/2"', category: 'Endmill Carburo', type: 'Consumible', stock: 20, minStock: 10, unit: 'pza' },
+                { description: 'Endmill Carburo - FLAT 4 FILOS 9/32 x 2-1/2"', category: 'Endmill Carburo', type: 'Consumible', stock: 0, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo - FLAT 4 FILOS 5/16 x 2-1/2"', category: 'Endmill Carburo', type: 'Consumible', stock: 5, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo - FLAT 4 FILOS 3/8 x 2-1/2"', category: 'Endmill Carburo', type: 'Consumible', stock: 20, minStock: 10, unit: 'pza' },
+                { description: 'Endmill Carburo - FLAT 4 FILOS 7/16 x 2-3/4"', category: 'Endmill Carburo', type: 'Consumible', stock: 0, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo - FLAT 4 FILOS 1/2 x 3"', category: 'Endmill Carburo', type: 'Consumible', stock: 20, minStock: 10, unit: 'pza' },
+                { description: 'Endmill Carburo - FLAT 4 FILOS 1/2 TIN 1 X 3"', category: 'Endmill Carburo', type: 'Consumible', stock: 0, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo - FLAT 4 FILOS 5/8 x 3-1/2"', category: 'Endmill Carburo', type: 'Consumible', stock: 5, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo - FLAT 4 FILOS 3/4 x 4"', category: 'Endmill Carburo', type: 'Consumible', stock: 5, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo - FLAT 4 FILOS 1 x 4"', category: 'Endmill Carburo', type: 'Consumible', stock: 0, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo - BALL 4 FILOS 1/16 x 1-1/2"', category: 'Endmill Carburo', type: 'Consumible', stock: 10, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo - BALL 4 FILOS 3/32 x 1-1/2"', category: 'Endmill Carburo', type: 'Consumible', stock: 10, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo - BALL 4 FILOS 1/8\'\' x 1-1/2"', category: 'Endmill Carburo', type: 'Consumible', stock: 15, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo - BALL 4 FILOS 3/16 x 2"', category: 'Endmill Carburo', type: 'Consumible', stock: 15, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo - BALL 4 FILOS 1/4 x 2-1/2"', category: 'Endmill Carburo', type: 'Consumible', stock: 20, minStock: 10, unit: 'pza' },
+                { description: 'Endmill Carburo - BALL 4 FILOS 9/32 x 2-1/2"', category: 'Endmill Carburo', type: 'Consumible', stock: 0, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo - BALL 4 FILOS 5/16 x 2-1/2"', category: 'Endmill Carburo', type: 'Consumible', stock: 10, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo - BALL 4 FILOS 3/8 x 2-1/2"', category: 'Endmill Carburo', type: 'Consumible', stock: 15, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo - BALL 4 FILOS 1/2 x 3"', category: 'Endmill Carburo', type: 'Consumible', stock: 0, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo - BALL 4 FILOS 3/4 x 4"', category: 'Endmill Carburo', type: 'Consumible', stock: 0, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo - LARGO FLAT 4 FILOS 1/8 X 3"', category: 'Endmill Carburo', type: 'Consumible', stock: 10, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo - LARGO FLAT 4 FILOS 3/16 X 3"', category: 'Endmill Carburo', type: 'Consumible', stock: 10, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo - LARGO FLAT 4 FILOS 1/4 X 3"', category: 'Endmill Carburo', type: 'Consumible', stock: 10, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo - LARGO FLAT 4 FILOS 5/16 X 3" TIN', category: 'Endmill Carburo', type: 'Consumible', stock: 10, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo - EXTRA LARGO FLAT 4 FILOS 1/8 X 4"', category: 'Endmill Carburo', type: 'Consumible', stock: 10, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo - EXTRA LARGO FLAT 4 FILOS 1/4 X 4\'\'', category: 'Endmill Carburo', type: 'Consumible', stock: 15, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo - EXTRA LARGO FLAT 4 FILOS 3/8 X 4\'\'', category: 'Endmill Carburo', type: 'Consumible', stock: 15, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo - EXTRA LARGO FLAT 4 FILOS 5/16 X 4\'\'', category: 'Endmill Carburo', type: 'Consumible', stock: 15, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo - EXTRA LARGO FLAT 4 FILOS 5/8 X 4\'\'', category: 'Endmill Carburo', type: 'Consumible', stock: 5, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo - LARGO BOLA 4 FILOS 1/8 X 3\'\'', category: 'Endmill Carburo', type: 'Consumible', stock: 10, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo - LARGO BOLA 4 FILOS 3/16 x 3\'\'', category: 'Endmill Carburo', type: 'Consumible', stock: 10, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo - LARGO BOLA 4 FILOS 5/16 x 3\'\'', category: 'Endmill Carburo', type: 'Consumible', stock: 10, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo - LARGO BOLA 4 FILOS 1/4 X 3\'\'', category: 'Endmill Carburo', type: 'Consumible', stock: 5, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo - EXTRA LARGO BOLA 4 FILOS 1/8 X 4"', category: 'Endmill Carburo', type: 'Consumible', stock: 10, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo - EXTRA LARGO BOLA 4 FILOS 1/4 X 4\'\' TIN', category: 'Endmill Carburo', type: 'Consumible', stock: 5, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo - EXTRA LARGO BOLA 4 FILOS 1/4 X 4\'\'', category: 'Endmill Carburo', type: 'Consumible', stock: 5, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo - EXTRA LARGO BOLA 4 FILOS 3/8 X 4\'\'', category: 'Endmill Carburo', type: 'Consumible', stock: 10, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo - EXTRA LARGO BOLA 4 FILOS 3/16 X 4\'\'', category: 'Endmill Carburo', type: 'Consumible', stock: 10, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo - EXTRA LARGO BOLA 4 FILOS 5/16 X 4\'\'', category: 'Endmill Carburo', type: 'Consumible', stock: 10, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo - RUPA CARBURO 3/16 X 2" AlTiN', category: 'Endmill Carburo', type: 'Consumible', stock: 10, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo - RUPA CARBURO 1/4 X 2-1/2" AlTiN', category: 'Endmill Carburo', type: 'Consumible', stock: 10, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo - RUPA CARBURO 3/8 X 2-1/2" AlTiN', category: 'Endmill Carburo', type: 'Consumible', stock: 15, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo - RUPA CARBURO 1/2 X 3" AlTiN', category: 'Endmill Carburo', type: 'Consumible', stock: 15, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo - FLAT 4 FILOS 15MM', category: 'Endmill Carburo', type: 'Consumible', stock: 0, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo China - FLAT 2 FILOS .015" x 1-1/2"', category: 'Endmill Carburo China', type: 'Consumible', stock: 10, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo China - FLAT 4 FILOS 1/32 x 1-1/2"', category: 'Endmill Carburo China', type: 'Consumible', stock: 0, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo China - FLAT 4 FILOS 3/64 x 1-1/2"', category: 'Endmill Carburo China', type: 'Consumible', stock: 10, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo China - FLAT 4 FILOS 1/16 x 1-1/2"', category: 'Endmill Carburo China', type: 'Consumible', stock: 15, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo China - FLAT 4 FILOS 5/64 x 1-1/2"', category: 'Endmill Carburo China', type: 'Consumible', stock: 10, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo China - FLAT 4 FILOS 3/32 x 1-1/2"', category: 'Endmill Carburo China', type: 'Consumible', stock: 15, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo China - FLAT 4 FILOS 7/64 x 1-1/2"', category: 'Endmill Carburo China', type: 'Consumible', stock: 10, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo China - FLAT 4 FILOS 1/8 x 1-1/2"', category: 'Endmill Carburo China', type: 'Consumible', stock: 20, minStock: 10, unit: 'pza' },
+                { description: 'Endmill Carburo China - FLAT 4 FILOS 5/32 x 2"', category: 'Endmill Carburo China', type: 'Consumible', stock: 5, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo China - FLAT 4 FILOS 3/16 x 2"', category: 'Endmill Carburo China', type: 'Consumible', stock: 15, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo China - FLAT 4 FILOS 7/32 x 2-1/2"', category: 'Endmill Carburo China', type: 'Consumible', stock: 5, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo China - FLAT 4 FILOS 1/4 x 2-1/2"', category: 'Endmill Carburo China', type: 'Consumible', stock: 20, minStock: 10, unit: 'pza' },
+                { description: 'Endmill Carburo China - FLAT 4 FILOS 9/32 x 2-1/2"', category: 'Endmill Carburo China', type: 'Consumible', stock: 0, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo China - FLAT 4 FILOS 5/16 x 2-1/2"', category: 'Endmill Carburo China', type: 'Consumible', stock: 5, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo China - FLAT 4 FILOS 3/8 x 2-1/2"', category: 'Endmill Carburo China', type: 'Consumible', stock: 20, minStock: 10, unit: 'pza' },
+                { description: 'Endmill Carburo China - FLAT 4 FILOS 7/16 x 2-3/4"', category: 'Endmill Carburo China', type: 'Consumible', stock: 0, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo China - FLAT 4 FILOS 1/2 x 3"', category: 'Endmill Carburo China', type: 'Consumible', stock: 20, minStock: 10, unit: 'pza' },
+                { description: 'Endmill Carburo China - FLAT 4 FILOS 1/2 TIN 1 X 3"', category: 'Endmill Carburo China', type: 'Consumible', stock: 0, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo China - FLAT 4 FILOS 5/8 x 3-1/2"', category: 'Endmill Carburo China', type: 'Consumible', stock: 5, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo China - FLAT 4 FILOS 3/4 x 4"', category: 'Endmill Carburo China', type: 'Consumible', stock: 5, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo China - FLAT 4 FILOS 1 x 4"', category: 'Endmill Carburo China', type: 'Consumible', stock: 0, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo China - BALL 4 FILOS 1/16 x 1-1/2"', category: 'Endmill Carburo China', type: 'Consumible', stock: 10, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo China - BALL 4 FILOS 3/32 x 1-1/2"', category: 'Endmill Carburo China', type: 'Consumible', stock: 10, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo China - BALL 4 FILOS 1/8\'\' x 1-1/2"', category: 'Endmill Carburo China', type: 'Consumible', stock: 15, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo China - BALL 4 FILOS 3/16 x 2"', category: 'Endmill Carburo China', type: 'Consumible', stock: 15, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo China - BALL 4 FILOS 1/4 x 2-1/2"', category: 'Endmill Carburo China', type: 'Consumible', stock: 20, minStock: 10, unit: 'pza' },
+                { description: 'Endmill Carburo China - BALL 4 FILOS 9/32 x 2-1/2"', category: 'Endmill Carburo China', type: 'Consumible', stock: 0, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo China - BALL 4 FILOS 5/16 x 2-1/2"', category: 'Endmill Carburo China', type: 'Consumible', stock: 10, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo China - BALL 4 FILOS 3/8 x 2-1/2"', category: 'Endmill Carburo China', type: 'Consumible', stock: 15, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo China - BALL 4 FILOS 1/2 x 3"', category: 'Endmill Carburo China', type: 'Consumible', stock: 0, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo China - BALL 4 FILOS 3/4 x 4"', category: 'Endmill Carburo China', type: 'Consumible', stock: 0, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo China - LARGO FLAT 4 FILOS 1/8 X 3"', category: 'Endmill Carburo China', type: 'Consumible', stock: 10, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo China - LARGO FLAT 4 FILOS 3/16 X 3"', category: 'Endmill Carburo China', type: 'Consumible', stock: 10, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo China - LARGO FLAT 4 FILOS 1/4 X 3"', category: 'Endmill Carburo China', type: 'Consumible', stock: 10, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo China - LARGO FLAT 4 FILOS 5/16 X 3" TIN', category: 'Endmill Carburo China', type: 'Consumible', stock: 10, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo China - EXTRA LARGO FLAT 4 FILOS 1/8 X 4"', category: 'Endmill Carburo China', type: 'Consumible', stock: 10, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo China - EXTRA LARGO FLAT 4 FILOS 1/4 X 4\'\'', category: 'Endmill Carburo China', type: 'Consumible', stock: 15, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo China - EXTRA LARGO FLAT 4 FILOS 3/8 X 4\'\'', category: 'Endmill Carburo China', type: 'Consumible', stock: 15, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo China - EXTRA LARGO FLAT 4 FILOS 5/16 X 4\'\'', category: 'Endmill Carburo China', type: 'Consumible', stock: 15, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo China - EXTRA LARGO FLAT 4 FILOS 5/8 X 4\'\'', category: 'Endmill Carburo China', type: 'Consumible', stock: 5, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo China - LARGO BOLA 4 FILOS 1/8 X 3\'\'', category: 'Endmill Carburo China', type: 'Consumible', stock: 10, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo China - LARGO BOLA 4 FILOS 3/16 x 3\'\'', category: 'Endmill Carburo China', type: 'Consumible', stock: 10, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo China - LARGO BOLA 4 FILOS 5/16 x 3\'\'', category: 'Endmill Carburo China', type: 'Consumible', stock: 10, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo China - LARGO BOLA 4 FILOS 1/4 X 3\'\'', category: 'Endmill Carburo China', type: 'Consumible', stock: 5, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo China - EXTRA LARGO BOLA 4 FILOS 1/8 X 4"', category: 'Endmill Carburo China', type: 'Consumible', stock: 10, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo China - EXTRA LARGO BOLA 4 FILOS 1/4 X 4\'\' TIN', category: 'Endmill Carburo China', type: 'Consumible', stock: 5, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo China - EXTRA LARGO BOLA 4 FILOS 1/4 X 4\'\'', category: 'Endmill Carburo China', type: 'Consumible', stock: 5, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo China - EXTRA LARGO BOLA 4 FILOS 3/8 X 4\'\'', category: 'Endmill Carburo China', type: 'Consumible', stock: 10, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo China - EXTRA LARGO BOLA 4 FILOS 3/16 X 4\'\'', category: 'Endmill Carburo China', type: 'Consumible', stock: 10, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo China - EXTRA LARGO BOLA 4 FILOS 5/16 X 4\'\'', category: 'Endmill Carburo China', type: 'Consumible', stock: 10, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo China - RUPA CARBURO 3/16 X 2" AlTiN', category: 'Endmill Carburo China', type: 'Consumible', stock: 10, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo China - RUPA CARBURO 1/4 X 2-1/2" AlTiN', category: 'Endmill Carburo China', type: 'Consumible', stock: 10, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo China - RUPA CARBURO 3/8 X 2-1/2" AlTiN', category: 'Endmill Carburo China', type: 'Consumible', stock: 15, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo China - RUPA CARBURO 1/2 X 3" AlTiN', category: 'Endmill Carburo China', type: 'Consumible', stock: 15, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Carburo China - FLAT 4 FILOS 15MM', category: 'Endmill Carburo China', type: 'Consumible', stock: 0, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Cobalto - 1/32 X 2-1/4\'\' 2 FILOS', category: 'Endmill Cobalto', type: 'Consumible', stock: 0, minStock: 2, unit: 'pza' },
+                { description: 'Endmill Cobalto - 3/64 2 FILOS', category: 'Endmill Cobalto', type: 'Consumible', stock: 0, minStock: 2, unit: 'pza' },
+                { description: 'Endmill Cobalto - 1/16 X 3/16 4 FILOS', category: 'Endmill Cobalto', type: 'Consumible', stock: 10, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Cobalto - 5/64 X 15/64 4 FILOS', category: 'Endmill Cobalto', type: 'Consumible', stock: 0, minStock: 2, unit: 'pza' },
+                { description: 'Endmill Cobalto - 3/32 X 9/32 4 FILOS', category: 'Endmill Cobalto', type: 'Consumible', stock: 0, minStock: 2, unit: 'pza' },
+                { description: 'Endmill Cobalto - 7/64 X 5/16 4 FILOS', category: 'Endmill Cobalto', type: 'Consumible', stock: 0, minStock: 2, unit: 'pza' },
+                { description: 'Endmill Cobalto - 1/8 X 3/8 4 FILOS', category: 'Endmill Cobalto', type: 'Consumible', stock: 5, minStock: 3, unit: 'pza' },
+                { description: 'Endmill Cobalto - 9/64 4 FILOS', category: 'Endmill Cobalto', type: 'Consumible', stock: 0, minStock: 2, unit: 'pza' },
+                { description: 'Endmill Cobalto - 5/32 X 3/8 4 FILOS', category: 'Endmill Cobalto', type: 'Consumible', stock: 0, minStock: 2, unit: 'pza' },
+                { description: 'Endmill Cobalto - 3/16 X 3/8 4 FILOS', category: 'Endmill Cobalto', type: 'Consumible', stock: 0, minStock: 2, unit: 'pza' },
+                { description: 'Endmill Cobalto - 7/32 X 3/8 4 FILOS', category: 'Endmill Cobalto', type: 'Consumible', stock: 0, minStock: 2, unit: 'pza' },
+                { description: 'Endmill Cobalto - 1/4 X 3-3/8 4 FILOS', category: 'Endmill Cobalto', type: 'Consumible', stock: 0, minStock: 2, unit: 'pza' },
+                { description: 'Endmill Cobalto - 5/16 X 3/8 4 FILOS', category: 'Endmill Cobalto', type: 'Consumible', stock: 10, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Cobalto - 3/8 X 3/8 4 FILOS', category: 'Endmill Cobalto', type: 'Consumible', stock: 8, minStock: 4, unit: 'pza' },
+                { description: 'Endmill Cobalto - 7/16 X 1/2 4 FILOS', category: 'Endmill Cobalto', type: 'Consumible', stock: 0, minStock: 2, unit: 'pza' },
+                { description: 'Endmill Cobalto - 1/2 DOBLE 4 FILOS', category: 'Endmill Cobalto', type: 'Consumible', stock: 10, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Cobalto - 5/8 X 5/8 4 FILOS', category: 'Endmill Cobalto', type: 'Consumible', stock: 10, minStock: 5, unit: 'pza' },
+                { description: 'Endmill Cobalto - 3/4 X 5-5/8\'\' 4 FILOS DOBLE', category: 'Endmill Cobalto', type: 'Consumible', stock: 5, minStock: 3, unit: 'pza' },
+                { description: 'Endmill Cobalto - 1/4 X 3-1/8 2 FILOS DOBLE', category: 'Endmill Cobalto', type: 'Consumible', stock: 0, minStock: 2, unit: 'pza' },
+                { description: 'Endmill Cobalto - 3/8\'\' 2 FILOS DOBLE', category: 'Endmill Cobalto', type: 'Consumible', stock: 0, minStock: 2, unit: 'pza' },
+                { description: 'Endmill Cobalto - 1/2 X 4\'\' 4 FILOS SENCILLO', category: 'Endmill Cobalto', type: 'Consumible', stock: 0, minStock: 2, unit: 'pza' },
+                { description: 'Endmill Cobalto - 1/2 X 4\'\' 2 FILOS SENCILLO', category: 'Endmill Cobalto', type: 'Consumible', stock: 0, minStock: 2, unit: 'pza' },
+                { description: 'Endmill Cobalto - 1/2 X 3-3/4 2 FILOS SENCILLO', category: 'Endmill Cobalto', type: 'Consumible', stock: 0, minStock: 2, unit: 'pza' },
+                { description: 'Endmill Cobalto - 3/4 X 3-3/4\'\' 4 FILOS SENCILLO', category: 'Endmill Cobalto', type: 'Consumible', stock: 0, minStock: 2, unit: 'pza' },
+                { description: 'Endmill Cobalto - 1/4 2 FILOS SENCILLO', category: 'Endmill Cobalto', type: 'Consumible', stock: 0, minStock: 2, unit: 'pza' },
+                { description: 'Endmill Cobalto - 1/16 X 2-1/4 DOBLE 4 FILOS', category: 'Endmill Cobalto', type: 'Consumible', stock: 0, minStock: 2, unit: 'pza' },
+                { description: 'Endmill Cobalto - 1/8 X 3-1/16 DOBLE 4 FILOS', category: 'Endmill Cobalto', type: 'Consumible', stock: 0, minStock: 2, unit: 'pza' },
+                { description: 'Endmill Cobalto - 5/16 X 3-1/2 DOBLE 4 FILOS', category: 'Endmill Cobalto', type: 'Consumible', stock: 0, minStock: 2, unit: 'pza' },
+                { description: 'Endmill Cobalto - 3/8 X 3-1/2 DOBLE 4 FILOS', category: 'Endmill Cobalto', type: 'Consumible', stock: 0, minStock: 2, unit: 'pza' },
+                { description: 'Endmill Cobalto - 1/2 x 4-1/8 DOBLE 4 FILOS', category: 'Endmill Cobalto', type: 'Consumible', stock: 0, minStock: 2, unit: 'pza' },
+                { description: 'Endmill Cobalto - 5/8 X5" DOBLE 4 FILOS', category: 'Endmill Cobalto', type: 'Consumible', stock: 0, minStock: 2, unit: 'pza' },
+                { description: 'Broca HSS Numérica - #1', category: 'Brocas HSS Numéricas', type: 'Consumible', stock: 0, minStock: 5, unit: 'pza' },
+                { description: 'Broca HSS Numérica - #2', category: 'Brocas HSS Numéricas', type: 'Consumible', stock: 0, minStock: 5, unit: 'pza' },
+                { description: 'Broca HSS Numérica - #3', category: 'Brocas HSS Numéricas', type: 'Consumible', stock: 0, minStock: 5, unit: 'pza' },
+                { description: 'Broca HSS Numérica - #4', category: 'Brocas HSS Numéricas', type: 'Consumible', stock: 0, minStock: 5, unit: 'pza' },
+                { description: 'Broca HSS Numérica - #5', category: 'Brocas HSS Numéricas', type: 'Consumible', stock: 0, minStock: 5, unit: 'pza' },
+                { description: 'Broca HSS Numérica - #6', category: 'Brocas HSS Numéricas', type: 'Consumible', stock: 0, minStock: 5, unit: 'pza' },
+                { description: 'Broca HSS Numérica - #7', category: 'Brocas HSS Numéricas', type: 'Consumible', stock: 5, minStock: 5, unit: 'pza' },
+                { description: 'Broca HSS Numérica - #8', category: 'Brocas HSS Numéricas', type: 'Consumible', stock: 3, minStock: 5, unit: 'pza' },
+                { description: 'Broca HSS Numérica - #9', category: 'Brocas HSS Numéricas', type: 'Consumible', stock: 0, minStock: 5, unit: 'pza' },
+                { description: 'Broca HSS Numérica - #10', category: 'Brocas HSS Numéricas', type: 'Consumible', stock: 4, minStock: 5, unit: 'pza' },
+                { description: 'Broca HSS Numérica - #11', category: 'Brocas HSS Numéricas', type: 'Consumible', stock: 0, minStock: 5, unit: 'pza' },
+                { description: 'Broca HSS Numérica - #12', category: 'Brocas HSS Numéricas', type: 'Consumible', stock: 0, minStock: 5, unit: 'pza' },
+                { description: 'Broca HSS Numérica - #13', category: 'Brocas HSS Numéricas', type: 'Consumible', stock: 0, minStock: 5, unit: 'pza' },
+                { description: 'Broca HSS Numérica - #14', category: 'Brocas HSS Numéricas', type: 'Consumible', stock: 5, minStock: 5, unit: 'pza' },
+                { description: 'Broca HSS Numérica - #15', category: 'Brocas HSS Numéricas', type: 'Consumible', stock: 3, minStock: 5, unit: 'pza' },
+                { description: 'Broca HSS Numérica - #16', category: 'Brocas HSS Numéricas', type: 'Consumible', stock: 0, minStock: 5, unit: 'pza' },
+                { description: 'Broca HSS Numérica - #17', category: 'Brocas HSS Numéricas', type: 'Consumible', stock: 0, minStock: 5, unit: 'pza' },
+                { description: 'Broca HSS Numérica - #18', category: 'Brocas HSS Numéricas', type: 'Consumible', stock: 0, minStock: 5, unit: 'pza' },
+                { description: 'Broca HSS Numérica - #19', category: 'Brocas HSS Numéricas', type: 'Consumible', stock: 0, minStock: 5, unit: 'pza' },
+                { description: 'Broca HSS Numérica - #20', category: 'Brocas HSS Numéricas', type: 'Consumible', stock: 4, minStock: 5, unit: 'pza' },
+                { description: 'Broca HSS Numérica - #21', category: 'Brocas HSS Numéricas', type: 'Consumible', stock: 5, minStock: 5, unit: 'pza' },
+                { description: 'Broca HSS Numérica - #22', category: 'Brocas HSS Numéricas', type: 'Consumible', stock: 0, minStock: 5, unit: 'pza' },
+                { description: 'Broca HSS Numérica - #23', category: 'Brocas HSS Numéricas', type: 'Consumible', stock: 0, minStock: 5, unit: 'pza' },
+                { description: 'Broca HSS Numérica - #24', category: 'Brocas HSS Numéricas', type: 'Consumible', stock: 0, minStock: 5, unit: 'pza' },
+                { description: 'Broca HSS Numérica - #25', category: 'Brocas HSS Numéricas', type: 'Consumible', stock: 4, minStock: 5, unit: 'pza' },
+                { description: 'Broca HSS Numérica - #26', category: 'Brocas HSS Numéricas', type: 'Consumible', stock: 0, minStock: 5, unit: 'pza' },
+                { description: 'Broca HSS Numérica - #27', category: 'Brocas HSS Numéricas', type: 'Consumible', stock: 2, minStock: 5, unit: 'pza' },
+                { description: 'Broca HSS Numérica - #28', category: 'Brocas HSS Numéricas', type: 'Consumible', stock: 0, minStock: 5, unit: 'pza' },
+                { description: 'Broca HSS Numérica - #29', category: 'Brocas HSS Numéricas', type: 'Consumible', stock: 0, minStock: 5, unit: 'pza' },
+                { description: 'Broca HSS Numérica - #30', category: 'Brocas HSS Numéricas', type: 'Consumible', stock: 0, minStock: 5, unit: 'pza' },
+                { description: 'Broca HSS Numérica - #31', category: 'Brocas HSS Numéricas', type: 'Consumible', stock: 0, minStock: 5, unit: 'pza' },
+                { description: 'Broca HSS Numérica - #32', category: 'Brocas HSS Numéricas', type: 'Consumible', stock: 0, minStock: 5, unit: 'pza' },
+                { description: 'Broca HSS Numérica - #33', category: 'Brocas HSS Numéricas', type: 'Consumible', stock: 0, minStock: 5, unit: 'pza' },
+                { description: 'Broca HSS Numérica - #34', category: 'Brocas HSS Numéricas', type: 'Consumible', stock: 5, minStock: 5, unit: 'pza' },
+                { description: 'Broca HSS Numérica - #35', category: 'Brocas HSS Numéricas', type: 'Consumible', stock: 0, minStock: 5, unit: 'pza' },
+                { description: 'Broca HSS Numérica - #36', category: 'Brocas HSS Numéricas', type: 'Consumible', stock: 5, minStock: 5, unit: 'pza' },
+                { description: 'Broca HSS Numérica - #37', category: 'Brocas HSS Numéricas', type: 'Consumible', stock: 5, minStock: 5, unit: 'pza' },
+                { description: 'Broca HSS Numérica - #38', category: 'Brocas HSS Numéricas', type: 'Consumible', stock: 0, minStock: 5, unit: 'pza' },
+                { description: 'Broca HSS Numérica - #39', category: 'Brocas HSS Numéricas', type: 'Consumible', stock: 5, minStock: 5, unit: 'pza' },
+                { description: 'Broca HSS Numérica - #40', category: 'Brocas HSS Numéricas', type: 'Consumible', stock: 0, minStock: 5, unit: 'pza' },
+                { description: 'Broca HSS Numérica - #41', category: 'Brocas HSS Numéricas', type: 'Consumible', stock: 4, minStock: 5, unit: 'pza' },
+                { description: 'Broca HSS Numérica - #42', category: 'Brocas HSS Numéricas', type: 'Consumible', stock: 3, minStock: 5, unit: 'pza' },
+                { description: 'Broca HSS Numérica - #43', category: 'Brocas HSS Numéricas', type: 'Consumible', stock: 0, minStock: 5, unit: 'pza' },
+                { description: 'Broca HSS Numérica - #44', category: 'Brocas HSS Numéricas', type: 'Consumible', stock: 3, minStock: 5, unit: 'pza' },
+                { description: 'Broca HSS Numérica - #45', category: 'Brocas HSS Numéricas', type: 'Consumible', stock: 0, minStock: 5, unit: 'pza' },
+                { description: 'Broca HSS Numérica - #46', category: 'Brocas HSS Numéricas', type: 'Consumible', stock: 4, minStock: 5, unit: 'pza' },
+                { description: 'Broca HSS Numérica - #47', category: 'Brocas HSS Numéricas', type: 'Consumible', stock: 5, minStock: 5, unit: 'pza' },
+                { description: 'Broca HSS Numérica - #48', category: 'Brocas HSS Numéricas', type: 'Consumible', stock: 5, minStock: 5, unit: 'pza' },
+                { description: 'Broca HSS Numérica - #49', category: 'Brocas HSS Numéricas', type: 'Consumible', stock: 0, minStock: 5, unit: 'pza' },
+                { description: 'Broca HSS Numérica - #50', category: 'Brocas HSS Numéricas', type: 'Consumible', stock: 5, minStock: 5, unit: 'pza' },
+                { description: 'Broca HSS Numérica - #51', category: 'Brocas HSS Numéricas', type: 'Consumible', stock: 0, minStock: 5, unit: 'pza' },
+                { description: 'Broca HSS Numérica - #52', category: 'Brocas HSS Numéricas', type: 'Consumible', stock: 0, minStock: 5, unit: 'pza' },
+                { description: 'Broca HSS Numérica - #53', category: 'Brocas HSS Numéricas', type: 'Consumible', stock: 4, minStock: 5, unit: 'pza' },
+                { description: 'Broca HSS Numérica - #54', category: 'Brocas HSS Numéricas', type: 'Consumible', stock: 0, minStock: 5, unit: 'pza' },
+                { description: 'Broca HSS Numérica - #55', category: 'Brocas HSS Numéricas', type: 'Consumible', stock: 0, minStock: 5, unit: 'pza' },
+                { description: 'Broca HSS Numérica - #56', category: 'Brocas HSS Numéricas', type: 'Consumible', stock: 0, minStock: 5, unit: 'pza' },
+                { description: 'Broca HSS Numérica - #57', category: 'Brocas HSS Numéricas', type: 'Consumible', stock: 0, minStock: 5, unit: 'pza' },
+                { description: 'Broca HSS Numérica - #58', category: 'Brocas HSS Numéricas', type: 'Consumible', stock: 0, minStock: 5, unit: 'pza' },
+                { description: 'Broca HSS Numérica - #59', category: 'Brocas HSS Numéricas', type: 'Consumible', stock: 0, minStock: 5, unit: 'pza' },
+                { description: 'Broca HSS Numérica - #60', category: 'Brocas HSS Numéricas', type: 'Consumible', stock: 0, minStock: 5, unit: 'pza' },
+                { description: 'Llave Allen - .050', category: 'Llaves Allen', type: 'Retornable', stock: 0, unit: 'pza' },
+                { description: 'Llave Allen - 1.5', category: 'Llaves Allen', type: 'Retornable', stock: 5, unit: 'pza' },
+                { description: 'Llave Allen - 2 MM', category: 'Llaves Allen', type: 'Retornable', stock: 0, unit: 'pza' },
+                { description: 'Llave Allen - 2.5 MM', category: 'Llaves Allen', type: 'Retornable', stock: 0, unit: 'pza' },
+                { description: 'Llave Allen - 3 MM', category: 'Llaves Allen', type: 'Retornable', stock: 0, unit: 'pza' },
+                { description: 'Llave Allen - 4 MM', category: 'Llaves Allen', type: 'Retornable', stock: 0, unit: 'pza' },
+                { description: 'Llave Allen - 5 MM', category: 'Llaves Allen', type: 'Retornable', stock: 0, unit: 'pza' },
+                { description: 'Llave Allen - 6 MM', category: 'Llaves Allen', type: 'Retornable', stock: 10, unit: 'pza' },
+                { description: 'Llave Allen - 1/16"', category: 'Llaves Allen', type: 'Retornable', stock: 0, unit: 'pza' },
+                { description: 'Llave Allen - 5/64"', category: 'Llaves Allen', type: 'Retornable', stock: 10, unit: 'pza' },
+                { description: 'Llave Allen - 3/32"', category: 'Llaves Allen', type: 'Retornable', stock: 0, unit: 'pza' },
+                { description: 'Llave Allen - 7/64"', category: 'Llaves Allen', type: 'Retornable', stock: 5, unit: 'pza' },
+                { description: 'Llave Allen - 1/8"', category: 'Llaves Allen', type: 'Retornable', stock: 10, unit: 'pza' },
+                { description: 'Llave Allen - 9/64"', category: 'Llaves Allen', type: 'Retornable', stock: 3, unit: 'pza' },
+                { description: 'Llave Allen - 5/32"', category: 'Llaves Allen', type: 'Retornable', stock: 5, unit: 'pza' },
+                { description: 'Llave Allen - 3/16"', category: 'Llaves Allen', type: 'Retornable', stock: 5, unit: 'pza' },
+                { description: 'Llave Allen - 7/32"', category: 'Llaves Allen', type: 'Retornable', stock: 0, unit: 'pza' },
+                { description: 'Llave Allen - 1/4"', category: 'Llaves Allen', type: 'Retornable', stock: 5, unit: 'pza' },
+                { description: 'Llave Allen - 5/16"', category: 'Llaves Allen', type: 'Retornable', stock: 0, unit: 'pza' },
+                { description: 'Rima Numérica - No. 60', category: 'Rimas Numéricas', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Numérica - No. 59', category: 'Rimas Numéricas', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Numérica - No. 58', category: 'Rimas Numéricas', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Numérica - No. 57', category: 'Rimas Numéricas', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Numérica - No. 56', category: 'Rimas Numéricas', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Numérica - No. 55', category: 'Rimas Numéricas', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Numérica - No. 54', category: 'Rimas Numéricas', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Numérica - No. 53', category: 'Rimas Numéricas', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Numérica - No. 52', category: 'Rimas Numéricas', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Numérica - No. 51', category: 'Rimas Numéricas', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Numérica - No. 50', category: 'Rimas Numéricas', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Numérica - No. 49', category: 'Rimas Numéricas', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Numérica - No. 48', category: 'Rimas Numéricas', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Numérica - No. 47', category: 'Rimas Numéricas', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Numérica - No. 46', category: 'Rimas Numéricas', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Numérica - No. 45', category: 'Rimas Numéricas', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Numérica - No. 44', category: 'Rimas Numéricas', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Numérica - No. 43', category: 'Rimas Numéricas', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Numérica - No. 42', category: 'Rimas Numéricas', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Numérica - No. 41', category: 'Rimas Numéricas', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Numérica - No. 40', category: 'Rimas Numéricas', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Numérica - No. 39', category: 'Rimas Numéricas', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Numérica - No. 38', category: 'Rimas Numéricas', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Numérica - No. 37', category: 'Rimas Numéricas', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Numérica - No. 36', category: 'Rimas Numéricas', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Numérica - No. 35', category: 'Rimas Numéricas', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Numérica - No. 34', category: 'Rimas Numéricas', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Numérica - No. 33', category: 'Rimas Numéricas', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Numérica - No. 32', category: 'Rimas Numéricas', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Numérica - No. 31', category: 'Rimas Numéricas', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Numérica - No. 30', category: 'Rimas Numéricas', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Numérica - No. 29', category: 'Rimas Numéricas', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Numérica - No. 28', category: 'Rimas Numéricas', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Numérica - No. 27', category: 'Rimas Numéricas', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Numérica - No. 26', category: 'Rimas Numéricas', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Numérica - No. 25', category: 'Rimas Numéricas', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Numérica - No. 24', category: 'Rimas Numéricas', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Numérica - No. 23', category: 'Rimas Numéricas', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Numérica - No. 22', category: 'Rimas Numéricas', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Numérica - No. 21', category: 'Rimas Numéricas', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Numérica - No. 20', category: 'Rimas Numéricas', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Numérica - No. 19', category: 'Rimas Numéricas', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Numérica - No. 18', category: 'Rimas Numéricas', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Numérica - No. 17', category: 'Rimas Numéricas', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Numérica - No. 16', category: 'Rimas Numéricas', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Numérica - No. 15', category: 'Rimas Numéricas', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Numérica - No. 14', category: 'Rimas Numéricas', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Numérica - No. 13', category: 'Rimas Numéricas', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Numérica - No. 12', category: 'Rimas Numéricas', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Numérica - No. 11', category: 'Rimas Numéricas', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Numérica - No. 10', category: 'Rimas Numéricas', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Numérica - No. 9', category: 'Rimas Numéricas', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Numérica - No. 8', category: 'Rimas Numéricas', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Numérica - No. 7', category: 'Rimas Numéricas', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Numérica - No. 2', category: 'Rimas Numéricas', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Numérica - No. 1', category: 'Rimas Numéricas', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Milimétrica - 1 MM', category: 'Rimas Milimétricas', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Milimétrica - 2 MM', category: 'Rimas Milimétricas', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Milimétrica - 3 MM', category: 'Rimas Milimétricas', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Milimétrica - 4 MM', category: 'Rimas Milimétricas', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Milimétrica - 5 MM', category: 'Rimas Milimétricas', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Milimétrica - 6 MM', category: 'Rimas Milimétricas', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Milimétrica - 7 MM', category: 'Rimas Milimétricas', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Milimétrica - 8 MM', category: 'Rimas Milimétricas', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Milimétrica - 9 MM', category: 'Rimas Milimétricas', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Milimétrica - 10 MM', category: 'Rimas Milimétricas', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Milimétrica - 11 MM', category: 'Rimas Milimétricas', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Milimétrica - 12 MM', category: 'Rimas Milimétricas', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Milimétrica - 13 MM', category: 'Rimas Milimétricas', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Over/Under - 0.501', category: 'Rimas Over/Under', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Over/Under - 0.499', category: 'Rimas Over/Under', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Over/Under - 0.4385', category: 'Rimas Over/Under', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Over/Under - 0.4365', category: 'Rimas Over/Under', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Over/Under - 0.376', category: 'Rimas Over/Under', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Over/Under - 0.374', category: 'Rimas Over/Under', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Over/Under - 0.3135', category: 'Rimas Over/Under', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Over/Under - 0.3115', category: 'Rimas Over/Under', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Over/Under - 0.251', category: 'Rimas Over/Under', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Over/Under - 0.249', category: 'Rimas Over/Under', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Over/Under - 0.1865', category: 'Rimas Over/Under', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Over/Under - 0.1885', category: 'Rimas Over/Under', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Over/Under - 0.126', category: 'Rimas Over/Under', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Over/Under - 0.124', category: 'Rimas Over/Under', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Over/Under - 1 MM OVER', category: 'Rimas Over/Under', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Over/Under - 2 MM OVER', category: 'Rimas Over/Under', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Over/Under - 3 MM OVER', category: 'Rimas Over/Under', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Over/Under - 4 MM OVER', category: 'Rimas Over/Under', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Over/Under - 5 MM OVER', category: 'Rimas Over/Under', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Over/Under - 6 MM OVER', category: 'Rimas Over/Under', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Over/Under - 7 MM OVER', category: 'Rimas Over/Under', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Over/Under - 8 MM OVER', category: 'Rimas Over/Under', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Over/Under - 9 MM OVER', category: 'Rimas Over/Under', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Over/Under - 10 MM OVER', category: 'Rimas Over/Under', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Over/Under - 11 MM OVER', category: 'Rimas Over/Under', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Over/Under - 12 MM OVER', category: 'Rimas Over/Under', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Over/Under - 13 MM OVER', category: 'Rimas Over/Under', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Over/Under - 1 MM UNDER', category: 'Rimas Over/Under', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Over/Under - 2 MM UNDER', category: 'Rimas Over/Under', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Over/Under - 3 MM UNDER', category: 'Rimas Over/Under', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Over/Under - 4 MM UNDER', category: 'Rimas Over/Under', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Over/Under - 5 MM UNDER', category: 'Rimas Over/Under', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Over/Under - 6 MM UNDER', category: 'Rimas Over/Under', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Over/Under - 7 MM UNDER', category: 'Rimas Over/Under', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Over/Under - 8 MM UNDER', category: 'Rimas Over/Under', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Over/Under - 9 MM UNDER', category: 'Rimas Over/Under', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Over/Under - 10 MM UNDER', category: 'Rimas Over/Under', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Over/Under - 11 MM UNDER', category: 'Rimas Over/Under', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Over/Under - 12 MM UNDER', category: 'Rimas Over/Under', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Over/Under - 13 MM UNDER', category: 'Rimas Over/Under', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Over/Under - P', category: 'Rimas Over/Under', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Over/Under - O', category: 'Rimas Over/Under', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Rima Over/Under - 5/16"', category: 'Rimas Over/Under', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Caja de Cartón - 8 cm x 8 cm x 44 cm', category: 'Cajas de Cartón', type: 'Consumible', stock: 0, minStock: 10, unit: 'pza' },
+                { description: 'Caja de Cartón - 20 cm x 20 cm x 46 cm', category: 'Cajas de Cartón', type: 'Consumible', stock: 0, minStock: 10, unit: 'pza' },
+                { description: 'Caja de Cartón - 8 cm x 14 cm x 16 cm', category: 'Cajas de Cartón', type: 'Consumible', stock: 0, minStock: 10, unit: 'pza' },
+                { description: 'Caja de Cartón - 30 cm x 35 cm x 50 cm', category: 'Cajas de Cartón', type: 'Consumible', stock: 0, minStock: 10, unit: 'pza' },
+                { description: 'Caja de Cartón - 8" x 8" x 18"', category: 'Cajas de Cartón', type: 'Consumible', stock: 0, minStock: 10, unit: 'pza' },
+                { description: 'Caja de Cartón - 4" x 6" x 9"', category: 'Cajas de Cartón', type: 'Consumible', stock: 0, minStock: 10, unit: 'pza' },
+                { description: 'Caja de Cartón - 5" x 8" x 5"', category: 'Cajas de Cartón', type: 'Consumible', stock: 0, minStock: 10, unit: 'pza' },
+                { description: 'Caja de Cartón - 12 x 20 x 12', category: 'Cajas de Cartón', type: 'Consumible', stock: 0, minStock: 10, unit: 'pza' },
+                { description: 'McMaster - Misiles ', category: 'McMaster', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'McMaster - Ball plunger llave plana (corto) 1/4-20"', category: 'McMaster', type: 'Consumible', stock: 10, minStock: 5, unit: 'pza' },
+                { description: 'McMaster - Ball plunger llave plana (corto) 1/2-13"', category: 'McMaster', type: 'Consumible', stock: 10, minStock: 5, unit: 'pza' },
+                { description: 'McMaster - Ball plunger llave allen (corto) 8-32"', category: 'McMaster', type: 'Consumible', stock: 8, minStock: 4, unit: 'pza' },
+                { description: 'McMaster - Track roller (balero con tornillo) 1/2 x 3/16"', category: 'McMaster', type: 'Consumible', stock: 1, minStock: 2, unit: 'pza' },
+                { description: 'McMaster - Track roller (balero con tornillo) 1/2 x 5/16"', category: 'McMaster', type: 'Consumible', stock: 5, minStock: 3, unit: 'pza' },
+                { description: 'McMaster - Helicoil 1/4-20"', category: 'McMaster', type: 'Consumible', stock: 0, minStock: 10, unit: 'pza' },
+                { description: 'McMaster - Helicoil 3/8-16"', category: 'McMaster', type: 'Consumible', stock: 0, minStock: 10, unit: 'pza' },
+                { description: 'McMaster - Candado exterior (100 pzas) 1/2"', category: 'McMaster', type: 'Consumible', stock: 0, minStock: 1, unit: 'caja' },
+                { description: 'McMaster - Candado exterior (100 pzas) 5/8"', category: 'McMaster', type: 'Consumible', stock: 0, minStock: 1, unit: 'caja' },
+                { description: 'McMaster - Perilla (mariposa) 1/4-20"', category: 'McMaster', type: 'Consumible', stock: 0, minStock: 5, unit: 'pza' },
+                { description: 'McMaster - Manija 5/16-18"', category: 'McMaster', type: 'Consumible', stock: 0, minStock: 5, unit: 'pza' },
+                { description: 'Shars - Collet ER32 9/32"', category: 'Shars', type: 'Retornable', stock: 0, unit: 'pza' },
+                { description: 'Accesorio - Punta diamante', category: 'Accesorios', type: 'Retornable', stock: 0, unit: 'pza' },
+                { description: 'Accesorio - INDICADOR DE PRUEBA DE CONFIGURACION RAPIDA DE 0,03"', category: 'Accesorios', type: 'Retornable', stock: 0, unit: 'pza' },
+                { description: 'Machuelo - 2-56"', category: 'Machuelos', type: 'Consumible', stock: 0, minStock: 2, unit: 'pza' },
+                { description: 'Machuelo - 4-40"', category: 'Machuelos', type: 'Consumible', stock: 16, minStock: 5, unit: 'pza' },
+                { description: 'Machuelo - 4-48"', category: 'Machuelos', type: 'Consumible', stock: 0, minStock: 2, unit: 'pza' },
+                { description: 'Machuelo - 5-40"', category: 'Machuelos', type: 'Consumible', stock: 5, minStock: 3, unit: 'pza' },
+                { description: 'Machuelo - 6-32"', category: 'Machuelos', type: 'Consumible', stock: 4, minStock: 3, unit: 'pza' },
+                { description: 'Machuelo - 6-40"', category: 'Machuelos', type: 'Consumible', stock: 0, minStock: 2, unit: 'pza' },
+                { description: 'Machuelo - 8-32"', category: 'Machuelos', type: 'Consumible', stock: 18, minStock: 5, unit: 'pza' },
+                { description: 'Machuelo - 8-40"', category: 'Machuelos', type: 'Consumible', stock: 0, minStock: 2, unit: 'pza' },
+                { description: 'Machuelo - 10-24"', category: 'Machuelos', type: 'Consumible', stock: 4, minStock: 3, unit: 'pza' },
+                { description: 'Machuelo - 10-32"', category: 'Machuelos', type: 'Consumible', stock: 10, minStock: 5, unit: 'pza' },
+                { description: 'Machuelo - 1/8"', category: 'Machuelos', type: 'Consumible', stock: 0, minStock: 2, unit: 'pza' },
+                { description: 'Machuelo - 1/4"', category: 'Machuelos', type: 'Consumible', stock: 0, minStock: 2, unit: 'pza' },
+                { description: 'Machuelo - 1/4-20"', category: 'Machuelos', type: 'Consumible', stock: 20, minStock: 10, unit: 'pza' },
+                { description: 'Machuelo - 1/4-28"', category: 'Machuelos', type: 'Consumible', stock: 9, minStock: 5, unit: 'pza' },
+                { description: 'Machuelo - 5/16-18"', category: 'Machuelos', type: 'Consumible', stock: 10, minStock: 5, unit: 'pza' },
+                { description: 'Machuelo - 5/16-24"', category: 'Machuelos', type: 'Consumible', stock: 24, minStock: 10, unit: 'pza' },
+                { description: 'Machuelo - 3/8-16"', category: 'Machuelos', type: 'Consumible', stock: 5, minStock: 3, unit: 'pza' },
+                { description: 'Machuelo - 3/8-24"', category: 'Machuelos', type: 'Consumible', stock: 31, minStock: 10, unit: 'pza' },
+                { description: 'Machuelo - 7/16-14"', category: 'Machuelos', type: 'Consumible', stock: 3, minStock: 2, unit: 'pza' },
+                { description: 'Machuelo - 7/16-20"', category: 'Machuelos', type: 'Consumible', stock: 12, minStock: 5, unit: 'pza' },
+                { description: 'Machuelo - 1/2-13"', category: 'Machuelos', type: 'Consumible', stock: 8, minStock: 4, unit: 'pza' },
+                { description: 'Machuelo - 1/2-20"', category: 'Machuelos', type: 'Consumible', stock: 21, minStock: 10, unit: 'pza' },
+                { description: 'Machuelo - 5/8-11"', category: 'Machuelos', type: 'Consumible', stock: 1, minStock: 2, unit: 'pza' },
+                { description: 'Machuelo - 5/8-18"', category: 'Machuelos', type: 'Consumible', stock: 1, minStock: 2, unit: 'pza' },
+                { description: 'Machuelo - 3/4-10"', category: 'Machuelos', type: 'Consumible', stock: 1, minStock: 2, unit: 'pza' },
+                { description: 'Machuelo - 3/4-16"', category: 'Machuelos', type: 'Consumible', stock: 1, minStock: 2, unit: 'pza' },
+                { description: 'Machuelo - 7/8-9"', category: 'Machuelos', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Machuelo - 7/8-14"', category: 'Machuelos', type: 'Consumible', stock: 1, minStock: 2, unit: 'pza' },
+                { description: 'Machuelo - 1-8"', category: 'Machuelos', type: 'Consumible', stock: 6, minStock: 3, unit: 'pza' },
+                { description: 'Machuelo - 1-12"', category: 'Machuelos', type: 'Consumible', stock: 1, minStock: 2, unit: 'pza' },
+                { description: 'Machuelo - 1-14"', category: 'Machuelos', type: 'Consumible', stock: 1, minStock: 2, unit: 'pza' },
+                { description: 'Machuelo - 1-1/4-7"', category: 'Machuelos', type: 'Consumible', stock: 1, minStock: 2, unit: 'pza' },
+                { description: 'Machuelo - M3 X .50', category: 'Machuelos', type: 'Consumible', stock: 0, minStock: 2, unit: 'pza' },
+                { description: 'Machuelo - M4 X .70', category: 'Machuelos', type: 'Consumible', stock: 0, minStock: 2, unit: 'pza' },
+                { description: 'Machuelo - M5 X .80', category: 'Machuelos', type: 'Consumible', stock: 0, minStock: 2, unit: 'pza' },
+                { description: 'Machuelo - M5 X .50', category: 'Machuelos', type: 'Consumible', stock: 0, minStock: 2, unit: 'pza' },
+                { description: 'Machuelo - M8 X 1.25', category: 'Machuelos', type: 'Consumible', stock: 0, minStock: 2, unit: 'pza' },
+                { description: 'Machuelo - M10 x 1.5', category: 'Machuelos', type: 'Consumible', stock: 0, minStock: 2, unit: 'pza' },
+                { description: 'Machuelo - M14 X 1.5', category: 'Machuelos', type: 'Consumible', stock: 0, minStock: 2, unit: 'pza' },
+                { description: 'Machuelo - M20 X 1.5', category: 'Machuelos', type: 'Consumible', stock: 0, minStock: 2, unit: 'pza' },
+                { description: 'Machuelo - M20 x2.5', category: 'Machuelos', type: 'Consumible', stock: 0, minStock: 2, unit: 'pza' },
+                { description: 'Machuelo - M7 X 1', category: 'Machuelos', type: 'Consumible', stock: 0, minStock: 2, unit: 'pza' },
+                { description: 'Líquido - Aceite para guias y correderas PEMTAC #2', category: 'Líquidos', type: 'Consumible', stock: 1, minStock: 0, unit: 'bidón' },
+                { description: 'Líquido - Aceite Synsol 7000', category: 'Líquidos', type: 'Consumible', stock: 1, minStock: 0, unit: 'bidón' },
+                { description: 'Líquido - Aceite hidraulico #32 MH-150', category: 'Líquidos', type: 'Consumible', stock: 1, minStock: 0, unit: 'bidón' },
+                { description: 'Líquido - MXL Aceite soluble especial #4 (mexicana)', category: 'Líquidos', type: 'Consumible', stock: 1, minStock: 0, unit: 'bidón' },
+                { description: 'Líquido - Aceite para engranes industrial gear 150', category: 'Líquidos', type: 'Consumible', stock: 1, minStock: 0, unit: 'bidón' },
+                { description: 'Líquido - Desengrasante bioverde', category: 'Líquidos', type: 'Consumible', stock: 1, minStock: 0, unit: 'bidón' },
+                { description: 'Líquido - Sanox-W inhibidor de corrosion', category: 'Líquidos', type: 'Consumible', stock: 1, minStock: 0, unit: 'bidón' },
+                { description: 'Líquido - Aceite para compresor Sullube SULLAIR', category: 'Líquidos', type: 'Consumible', stock: 1, minStock: 0, unit: 'bidón' },
+                { description: 'Broca HSS Fraccional - 1/16"', category: 'Brocas HSS Fraccionales', type: 'Consumible', stock: 0, minStock: 5, unit: 'pza' },
+                { description: 'Broca HSS Fraccional - 5/64"', category: 'Brocas HSS Fraccionales', type: 'Consumible', stock: 0, minStock: 5, unit: 'pza' },
+                { description: 'Broca HSS Fraccional - 3/32"', category: 'Brocas HSS Fraccionales', type: 'Consumible', stock: 3, minStock: 5, unit: 'pza' },
+                { description: 'Broca HSS Fraccional - 9/64"', category: 'Brocas HSS Fraccionales', type: 'Consumible', stock: 0, minStock: 5, unit: 'pza' },
+                { description: 'Broca HSS Fraccional - 5/32"', category: 'Brocas HSS Fraccionales', type: 'Consumible', stock: 0, minStock: 5, unit: 'pza' },
+                { description: 'Broca HSS Fraccional - 11/64"', category: 'Brocas HSS Fraccionales', type: 'Consumible', stock: 0, minStock: 5, unit: 'pza' },
+                { description: 'Broca HSS Fraccional - 13/64"', category: 'Brocas HSS Fraccionales', type: 'Consumible', stock: 0, minStock: 5, unit: 'pza' },
+                { description: 'Broca HSS Fraccional - 7/32"', category: 'Brocas HSS Fraccionales', type: 'Consumible', stock: 0, minStock: 5, unit: 'pza' },
+                { description: 'Broca HSS Fraccional - 15/64"', category: 'Brocas HSS Fraccionales', type: 'Consumible', stock: 0, minStock: 5, unit: 'pza' },
+                { description: 'Broca HSS Fraccional - 1/4"', category: 'Brocas HSS Fraccionales', type: 'Consumible', stock: 0, minStock: 5, unit: 'pza' },
+                { description: 'Broca HSS Fraccional - 23/64"', category: 'Brocas HSS Fraccionales', type: 'Consumible', stock: 0, minStock: 5, unit: 'pza' },
+                { description: 'Broca HSS Fraccional - 31/64"', category: 'Brocas HSS Fraccionales', type: 'Consumible', stock: 0, minStock: 5, unit: 'pza' },
+                { description: 'Broca HSS Fraccional - 1/2"', category: 'Brocas HSS Fraccionales', type: 'Consumible', stock: 0, minStock: 5, unit: 'pza' },
+                { description: 'Broca HSS Fraccional - 7/64"', category: 'Brocas HSS Fraccionales', type: 'Consumible', stock: 0, minStock: 5, unit: 'pza' },
+                { description: 'Broca HSS Fraccional - 7/16"', category: 'Brocas HSS Fraccionales', type: 'Consumible', stock: 3, minStock: 5, unit: 'pza' },
+                { description: 'Broca HSS Fraccional - 5/16"', category: 'Brocas HSS Fraccionales', type: 'Consumible', stock: 0, minStock: 5, unit: 'pza' },
+                { description: 'Broca HSS Fraccional - 13/32"', category: 'Brocas HSS Fraccionales', type: 'Consumible', stock: 5, minStock: 5, unit: 'pza' },
+                { description: 'Broca HSS Fraccional - 29/64"', category: 'Brocas HSS Fraccionales', type: 'Consumible', stock: 0, minStock: 5, unit: 'pza' },
+                { description: 'Broca HSS Fraccional - 25/64"', category: 'Brocas HSS Fraccionales', type: 'Consumible', stock: 0, minStock: 5, unit: 'pza' },
+                { description: 'Broca HSS Fraccional - 17/64"', category: 'Brocas HSS Fraccionales', type: 'Consumible', stock: 2, minStock: 5, unit: 'pza' },
+                { description: 'Broca HSS Fraccional - 19/34"', category: 'Brocas HSS Fraccionales', type: 'Consumible', stock: 5, minStock: 5, unit: 'pza' },
+                { description: 'Broca de Centro HSS - #1', category: 'Brocas de Centro HSS', type: 'Consumible', stock: 0, minStock: 3, unit: 'pza' },
+                { description: 'Broca de Centro HSS - #2', category: 'Brocas de Centro HSS', type: 'Consumible', stock: 0, minStock: 3, unit: 'pza' },
+                { description: 'Broca de Centro HSS - #3', category: 'Brocas de Centro HSS', type: 'Consumible', stock: 0, minStock: 3, unit: 'pza' },
+                { description: 'Broca de Centro HSS - #4', category: 'Brocas de Centro HSS', type: 'Consumible', stock: 0, minStock: 3, unit: 'pza' },
+                { description: 'Broca de Centro HSS - #5', category: 'Brocas de Centro HSS', type: 'Consumible', stock: 0, minStock: 3, unit: 'pza' },
+                { description: 'Broca de Centro HSS - #2 X 5"', category: 'Brocas de Centro HSS', type: 'Consumible', stock: 0, minStock: 3, unit: 'pza' },
+                { description: 'Broca de Centro HSS - #3 X 5"', category: 'Brocas de Centro HSS', type: 'Consumible', stock: 0, minStock: 3, unit: 'pza' },
+                { description: 'Broca de Centro HSS - #4 X 5"', category: 'Brocas de Centro HSS', type: 'Consumible', stock: 0, minStock: 3, unit: 'pza' },
+                { description: 'Buril Carburo - Derecho 1/4"', category: 'Buriles Carburo', type: 'Consumible', stock: 0, minStock: 2, unit: 'pza' },
+                { description: 'Buril Carburo - Derecho 3/8"', category: 'Buriles Carburo', type: 'Consumible', stock: 0, minStock: 2, unit: 'pza' },
+                { description: 'Buril Carburo - Derecho 1/2"', category: 'Buriles Carburo', type: 'Consumible', stock: 3, minStock: 2, unit: 'pza' },
+                { description: 'Buril Carburo - Izquierdo 1/4"', category: 'Buriles Carburo', type: 'Consumible', stock: 0, minStock: 2, unit: 'pza' },
+                { description: 'Buril Carburo - Izquierdo 3/8"', category: 'Buriles Carburo', type: 'Consumible', stock: 0, minStock: 2, unit: 'pza' },
+                { description: 'Buril Carburo - Izquierdo 1/2"', category: 'Buriles Carburo', type: 'Consumible', stock: 3, minStock: 2, unit: 'pza' },
+                { description: 'Avellanador 82° - 3/8" 1 FILO', category: 'Avellanadores', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Avellanador 82° - 1/2" 1 FILO', category: 'Avellanadores', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Avellanador 82° - 5/8" 1 FILO', category: 'Avellanadores', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Avellanador 82° - 3/4" 1 FILO', category: 'Avellanadores', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Avellanador 82° - 1" 1 FILO', category: 'Avellanadores', type: 'Consumible', stock: 0, minStock: 1, unit: 'pza' },
+                { description: 'Broca HSS Letra - A', category: 'Brocas HSS Letra', type: 'Consumible', stock: 0, minStock: 2, unit: 'pza' },
+                { description: 'Broca HSS Letra - C', category: 'Brocas HSS Letra', type: 'Consumible', stock: 0, minStock: 2, unit: 'pza' },
+                { description: 'Broca HSS Letra - D', category: 'Brocas HSS Letra', type: 'Consumible', stock: 0, minStock: 2, unit: 'pza' },
+                { description: 'Broca HSS Letra - F', category: 'Brocas HSS Letra', type: 'Consumible', stock: 0, minStock: 2, unit: 'pza' },
+                { description: 'Broca HSS Letra - E', category: 'Brocas HSS Letra', type: 'Consumible', stock: 0, minStock: 2, unit: 'pza' },
+                { description: 'Broca HSS Letra - G', category: 'Brocas HSS Letra', type: 'Consumible', stock: 0, minStock: 2, unit: 'pza' },
+                { description: 'Broca HSS Letra - Q', category: 'Brocas HSS Letra', type: 'Consumible', stock: 0, minStock: 2, unit: 'pza' },
+                { description: 'Broca HSS Letra - R', category: 'Brocas HSS Letra', type: 'Consumible', stock: 0, minStock: 2, unit: 'pza' },
+                { description: 'Broca HSS Letra - P', category: 'Brocas HSS Letra', type: 'Consumible', stock: 0, minStock: 2, unit: 'pza' },
+                { description: 'Broca HSS Letra - T', category: 'Brocas HSS Letra', type: 'Consumible', stock: 0, minStock: 2, unit: 'pza' },
+                { description: 'Broca HSS Letra - Z', category: 'Brocas HSS Letra', type: 'Consumible', stock: 0, minStock: 2, unit: 'pza' },
+                { description: 'Boquilla R8 - 3/4"', category: 'Boquillas R8', type: 'Retornable', stock: 0, unit: 'pza' },
+                { description: 'Boquilla R8 - 5/8"', category: 'Boquillas R8', type: 'Retornable', stock: 0, unit: 'pza' },
+                { description: 'Boquilla R8 - 1/2"', category: 'Boquillas R8', type: 'Retornable', stock: 0, unit: 'pza' },
+                { description: 'Boquilla R8 - 3/8"', category: 'Boquillas R8', type: 'Retornable', stock: 0, unit: 'pza' },
+                { description: 'Boquilla R8 - 5/16"', category: 'Boquillas R8', type: 'Retornable', stock: 0, unit: 'pza' },
+                { description: 'Boquilla R8 - 1/4"', category: 'Boquillas R8', type: 'Retornable', stock: 0, unit: 'pza' },
+                { description: 'Boquilla R8 - 3/16"', category: 'Boquillas R8', type: 'Retornable', stock: 0, unit: 'pza' },
+                { description: 'Boquilla R8 - 5/32"', category: 'Boquillas R8', type: 'Retornable', stock: 0, unit: 'pza' },
+                { description: 'Boquilla R8 - 1/8"', category: 'Boquillas R8', type: 'Retornable', stock: 0, unit: 'pza' },
+                { description: 'Boquilla R8 - 3/32"', category: 'Boquillas R8', type: 'Retornable', stock: 0, unit: 'pza' },
+                { description: 'Boquilla R8 - 1/16"', category: 'Boquillas R8', type: 'Retornable', stock: 0, unit: 'pza' },
+                { description: 'Imán Neodimio - 2mm X 1mm', category: 'Imanes Neodimio', type: 'Consumible', stock: 5, minStock: 10, unit: 'pza' },
+                { description: 'Imán Neodimio - .118 X .197', category: 'Imanes Neodimio', type: 'Consumible', stock: 0, minStock: 10, unit: 'pza' },
+                { description: 'Imán Neodimio - .157 x .157', category: 'Imanes Neodimio', type: 'Consumible', stock: 20, minStock: 10, unit: 'pza' },
+                { description: 'Imán Neodimio - 3/16 x 1/16"', category: 'Imanes Neodimio', type: 'Consumible', stock: 0, minStock: 10, unit: 'pza' },
+                { description: 'Imán Neodimio - 3/16 x 1/4"', category: 'Imanes Neodimio', type: 'Consumible', stock: 33, minStock: 10, unit: 'pza' },
+                { description: 'Imán Neodimio - 1/8 X 1/8', category: 'Imanes Neodimio', type: 'Consumible', stock: 0, minStock: 10, unit: 'pza' },
+                { description: 'Imán Neodimio - 1/8 X 1/4', category: 'Imanes Neodimio', type: 'Consumible', stock: 46, minStock: 10, unit: 'pza' },
+                { description: 'Imán Neodimio - 1/4 X 1/4', category: 'Imanes Neodimio', type: 'Consumible', stock: 18, minStock: 10, unit: 'pza' },
+                { description: 'Imán Neodimio - 3/8 X 1/4', category: 'Imanes Neodimio', type: 'Consumible', stock: 8, minStock: 10, unit: 'pza' },
+                { description: 'Imán Neodimio - 1/2 X 1/4', category: 'Imanes Neodimio', type: 'Consumible', stock: 3, minStock: 10, unit: 'pza' },
+                { description: 'Balero - Lineal 1/4"', category: 'Baleros', type: 'Consumible', stock: 0, minStock: 4, unit: 'pza' },
+                { description: 'Balero - Lineal 3/8"', category: 'Baleros', type: 'Consumible', stock: 12, minStock: 4, unit: 'pza' },
+                { description: 'Balero - Lineal 1/2"', category: 'Baleros', type: 'Consumible', stock: 12, minStock: 4, unit: 'pza' },
+                { description: 'Balero - Lineal 3/4"', category: 'Baleros', type: 'Consumible', stock: 4, minStock: 4, unit: 'pza' },
+                { description: 'Balero - R8Z', category: 'Baleros', type: 'Consumible', stock: 0, minStock: 4, unit: 'pza' },
+                { description: 'Balero - R4Z', category: 'Baleros', type: 'Consumible', stock: 0, minStock: 4, unit: 'pza' },
+            ];
+        }
+
+    </script>
+</body>
+</html>
+

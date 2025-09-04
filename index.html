@@ -22,6 +22,8 @@
     <!-- jsPDF for PDF Generation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
+    <!-- Google reCAPTCHA -->
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 
     <!-- PWA Manifest -->
     <link rel="manifest" href="manifest.json">
@@ -159,6 +161,10 @@
                     <div>
                         <input id="password" name="password" type="password" autocomplete="current-password" required class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm" placeholder="Contraseña">
                     </div>
+                </div>
+
+                <div class="flex justify-center my-4">
+                    <div class="g-recaptcha" data-sitekey="6Lel_b0rAAAAACnX8hN1WkEPO0bltj0mft6bM3NZ"></div>
                 </div>
 
                 <div id="auth-error-message" class="text-red-500 text-sm text-center hidden"></div>
@@ -376,6 +382,9 @@
                 case "Firebase: Error (auth/invalid-credential).":
                     errorMessage.textContent = "Correo o contraseña incorrectos.";
                     break;
+                case "Por favor, complete el reCAPTCHA.":
+                     errorMessage.textContent = message;
+                     break;
                 default:
                     errorMessage.textContent = "Ocurrió un error. Inténtelo de nuevo.";
             }
@@ -877,6 +886,17 @@
                                     </div>
                                     <p class="text-xs themed-text-light mt-2">Esta acción cambiará el tipo de *todos* los artículos en la categoría seleccionada.</p>
                                 </div>
+                                 <div class="themed-border border-t pt-4 mt-4">
+                                    <label for="bulk-delete-category-select" class="block text-sm font-medium themed-text-light mb-1">Eliminar una categoría completa</label>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2 items-center">
+                                        <select id="bulk-delete-category-select" class="themed-input border rounded-md px-3 py-2">
+                                            <option value="" selected disabled>Seleccionar categoría...</option>
+                                            ${state.categories.filter(c => c !== 'Todas').map(cat => `<option value="${cat}">${cat}</option>`).join('')}
+                                        </select>
+                                        <button id="bulk-delete-category-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded flex items-center justify-center space-x-2"><i data-lucide="trash-2"></i><span>Eliminar Categoría</span></button>
+                                    </div>
+                                    <p class="text-xs themed-text-light mt-2 text-red-500 dark:text-red-400">¡Cuidado! Esta acción eliminará la categoría y *todos* los artículos que contiene de forma permanente.</p>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -891,11 +911,23 @@
             document.getElementById('login-button').addEventListener('click', async () => {
                 const email = document.getElementById('email').value;
                 const password = document.getElementById('password').value;
+                const recaptchaResponse = grecaptcha.getResponse();
+
                 document.getElementById('auth-error-message').classList.add('hidden');
+
+                if (recaptchaResponse.length === 0) {
+                    displayAuthError("Por favor, complete el reCAPTCHA.");
+                    return;
+                }
+
                 try {
+                    // NOTE: For a production app, you should send the `recaptchaResponse`
+                    // to your backend for verification with your secret key.
+                    // Since this is a client-side app, we'll proceed without server verification.
                     await signInWithEmailAndPassword(auth, email, password);
                 } catch (error) {
                     displayAuthError(error.message);
+                    grecaptcha.reset(); // Reset reCAPTCHA on login failure
                 }
             });
 
@@ -940,6 +972,15 @@
                     if (target.closest('#save-settings-btn')) { handleSaveSettings(); return; }
                     if (target.closest('#add-category-btn')) { handleAddCategory(); return; }
                     if (target.closest('#bulk-update-type-btn')) { handleBulkUpdateCategoryType(); return; }
+                    if (target.closest('#bulk-delete-category-btn')) {
+                        const categoryToDelete = document.getElementById('bulk-delete-category-select').value;
+                        if (categoryToDelete) {
+                            handleDeleteCategory(categoryToDelete);
+                        } else {
+                            showNotification('Por favor, selecciona una categoría para eliminar.', 'info');
+                        }
+                        return;
+                    }
                     const renameBtn = target.closest('.rename-category-btn');
                     if (renameBtn) { handleRenameCategory(renameBtn.dataset.category); return; }
                     const deleteBtn = target.closest('.delete-category-btn');
@@ -1435,21 +1476,49 @@
         }
 
         async function handleDeleteCategory(categoryName) {
-            const itemsInCategory = state.inventory.filter(item => item.category === categoryName).length;
-            if (itemsInCategory > 0) {
-                showNotification(`No se puede eliminar. Hay ${itemsInCategory} artículos en esta categoría.`, 'error');
-                return;
+            const itemsInCategory = state.inventory.filter(item => item.category === categoryName);
+            const itemsCount = itemsInCategory.length;
+
+            let confirmationMessage = `¿Seguro que quieres eliminar la categoría "${categoryName}"?`;
+            if (itemsCount > 0) {
+                confirmationMessage = `¿Seguro que quieres eliminar la categoría "${categoryName}"? Se eliminarán también los ${itemsCount} artículos que contiene. Esta acción no se puede deshacer.`;
             }
-            showConfirmationModal(`¿Seguro que quieres eliminar la categoría "${categoryName}"?`, async () => {
+
+            showConfirmationModal(confirmationMessage, async () => {
+                const batch = writeBatch(db);
+
+                // Delete all items in the category
+                itemsInCategory.forEach(item => {
+                    const itemRef = doc(db, 'inventory', item.id);
+                    batch.delete(itemRef);
+
+                    // Add a transaction log for each deleted item
+                    const transactionRef = doc(collection(db, 'transactions'));
+                    batch.set(transactionRef, {
+                        itemDescription: item.description,
+                        type: 'Eliminado',
+                        quantity: item.stock,
+                        timestamp: serverTimestamp(),
+                        user: state.currentUser.email,
+                        notes: `Artículo eliminado por borrado de categoría: ${categoryName}`
+                    });
+                });
+
+                // Delete the category from settings
                 const updatedCategories = state.categories.filter(c => c !== categoryName && c !== 'Todas');
+                const settingsRef = doc(db, 'settings', 'global');
+                batch.set(settingsRef, { categories: updatedCategories }, { merge: true });
+
                 try {
-                    await setDoc(doc(db, 'settings', 'global'), { categories: updatedCategories }, { merge: true });
-                    showNotification('Categoría eliminada.', 'success');
+                    await batch.commit();
+                    showNotification(`Categoría "${categoryName}" y sus artículos han sido eliminados.`, 'success');
                 } catch (error) {
-                    showNotification('Error al eliminar la categoría.', 'error');
+                    console.error("Error deleting category and its items:", error);
+                    showNotification('Error al eliminar la categoría y sus artículos.', 'error');
                 }
             });
         }
+
 
         async function handleBulkUpdateCategoryType() {
             const categoryToUpdate = document.getElementById('bulk-category-select').value;
@@ -2115,4 +2184,3 @@
     </script>
 </body>
 </html>
-

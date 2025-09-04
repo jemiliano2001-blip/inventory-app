@@ -312,6 +312,24 @@
                 notificationEmails: '',
                 defaultUnit: 'pza',
                 defaultMinStock: 5,
+                // Enhanced configuration options
+                autoReorderEnabled: false,
+                autoReorderThreshold: 0.2, // 20% of minStock
+                stockAlertDays: [1, 7, 30], // Days to show stock alerts
+                enableWorkflowApprovals: false,
+                approvalThreshold: 100, // Quantity threshold for approvals
+                dataRetentionDays: 365,
+                enableScheduledReports: false,
+                reportSchedule: 'weekly',
+                supplierManagement: true,
+                barcodeScanning: false,
+                sessionTimeout: 480, // 8 hours in minutes
+                enableAuditLog: true,
+                customValidations: {
+                    maxQuantityPerTransaction: 1000,
+                    requireNotesForLargeTransactions: true,
+                    preventNegativeStock: true
+                }
             }
         };
         
@@ -802,33 +820,143 @@
         function renderSettingsView() {
             const mainContent = document.getElementById('main-content');
             mainContent.innerHTML = `
-            <div class="max-w-6xl mx-auto space-y-8">
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <!-- Left Column: General & Categories -->
-                    <div class="lg:col-span-1 space-y-8">
-                        <div class="themed-card p-6 rounded-lg shadow-md">
-                             <h2 class="text-xl font-semibold mb-6 flex items-center"><i data-lucide="sliders-horizontal" class="mr-2"></i>Ajustes Generales</h2>
+            <div class="max-w-7xl mx-auto space-y-8">
+                <!-- Configuration Tabs -->
+                <div class="themed-card rounded-lg shadow-md">
+                    <div class="p-4">
+                        <nav class="-mb-px flex space-x-8 overflow-x-auto" aria-label="Settings Tabs">
+                            <a href="#" class="settings-tab-link whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm border-indigo-500 text-indigo-600" data-tab="general">General</a>
+                            <a href="#" class="settings-tab-link whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm border-transparent themed-text-light" data-tab="stock">Gestión de Stock</a>
+                            <a href="#" class="settings-tab-link whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm border-transparent themed-text-light" data-tab="notifications">Notificaciones</a>
+                            <a href="#" class="settings-tab-link whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm border-transparent themed-text-light" data-tab="workflow">Flujos de Trabajo</a>
+                            <a href="#" class="settings-tab-link whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm border-transparent themed-text-light" data-tab="data">Gestión de Datos</a>
+                            <a href="#" class="settings-tab-link whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm border-transparent themed-text-light" data-tab="categories">Categorías</a>
+                        </nav>
+                    </div>
+                    <div id="settings-tab-content" class="p-6"></div>
+                </div>
+                
+                <!-- Save Button -->
+                <div class="themed-card p-6 rounded-lg shadow-md text-center">
+                    <button id="save-settings-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-8 rounded-lg flex items-center justify-center space-x-2 mx-auto"><i data-lucide="save"></i><span>Guardar Todas las Configuraciones</span></button>
+                </div>
+            </div>
+            `;
+            renderSettingsTab('general');
+            lucide.createIcons();
+        }
+
+        function renderSettingsTab(tabName) {
+            // Update tab styling
+            document.querySelectorAll('.settings-tab-link').forEach(tab => {
+                const isSelected = tab.dataset.tab === tabName;
+                tab.classList.toggle('border-indigo-500', isSelected);
+                tab.classList.toggle('text-indigo-600', isSelected);
+                tab.classList.toggle('border-transparent', !isSelected);
+                tab.classList.toggle('themed-text-light', !isSelected);
+            });
+
+            const content = document.getElementById('settings-tab-content');
+            
+            switch(tabName) {
+                case 'general':
+                    content.innerHTML = `
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div class="space-y-4">
+                                <h3 class="text-lg font-semibold flex items-center"><i data-lucide="settings" class="mr-2"></i>Configuración General</h3>
                                 <div>
                                     <label for="items-per-page" class="block text-sm font-medium themed-text-light mb-1">Artículos por página</label>
                                     <input type="number" id="items-per-page" value="${state.settings.itemsPerPage || 10}" min="5" max="50" step="5" class="themed-input w-full border rounded-md px-3 py-2">
                                 </div>
                                 <div>
-                                    <label for="default-unit" class="block text-sm font-medium themed-text-light mb-1">Unidad por defecto (Nuevos Items)</label>
+                                    <label for="default-unit" class="block text-sm font-medium themed-text-light mb-1">Unidad por defecto</label>
                                     <input type="text" id="default-unit" value="${state.settings.defaultUnit || 'pza'}" class="themed-input w-full border rounded-md px-3 py-2">
                                 </div>
-                                 <div>
-                                    <label for="default-min-stock" class="block text-sm font-medium themed-text-light mb-1">Stock Mínimo por defecto (Nuevos Items)</label>
+                                <div>
+                                    <label for="default-min-stock" class="block text-sm font-medium themed-text-light mb-1">Stock mínimo por defecto</label>
                                     <input type="number" id="default-min-stock" value="${state.settings.defaultMinStock || 5}" min="0" class="themed-input w-full border rounded-md px-3 py-2">
                                 </div>
                             </div>
-                        </div>
-
-                        <div class="themed-card p-6 rounded-lg shadow-md">
-                            <h2 class="text-xl font-semibold mb-6 flex items-center"><i data-lucide="bell" class="mr-2"></i>Notificaciones</h2>
-                             <div class="space-y-4">
+                            <div class="space-y-4">
+                                <h3 class="text-lg font-semibold flex items-center"><i data-lucide="shield" class="mr-2"></i>Seguridad y Sesión</h3>
+                                <div>
+                                    <label for="session-timeout" class="block text-sm font-medium themed-text-light mb-1">Tiempo límite de sesión (minutos)</label>
+                                    <input type="number" id="session-timeout" value="${state.settings.sessionTimeout || 480}" min="30" max="1440" class="themed-input w-full border rounded-md px-3 py-2">
+                                </div>
                                 <div class="flex items-center justify-between">
-                                    <label for="low-stock-notifications" class="block text-sm font-medium themed-text-light">Alertas de Stock Bajo</label>
+                                    <label for="enable-audit-log" class="block text-sm font-medium themed-text-light">Registro de auditoría</label>
+                                    <label class="switch">
+                                        <input type="checkbox" id="enable-audit-log" ${state.settings.enableAuditLog ? 'checked' : ''}>
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <label for="barcode-scanning" class="block text-sm font-medium themed-text-light">Escaneo de códigos de barras</label>
+                                    <label class="switch">
+                                        <input type="checkbox" id="barcode-scanning" ${state.settings.barcodeScanning ? 'checked' : ''}>
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    break;
+                case 'stock':
+                    content.innerHTML = `
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="space-y-4">
+                                <h3 class="text-lg font-semibold flex items-center"><i data-lucide="package" class="mr-2"></i>Reabastecimiento Automático</h3>
+                                <div class="flex items-center justify-between">
+                                    <label for="auto-reorder-enabled" class="block text-sm font-medium themed-text-light">Habilitar reorden automático</label>
+                                    <label class="switch">
+                                        <input type="checkbox" id="auto-reorder-enabled" ${state.settings.autoReorderEnabled ? 'checked' : ''}>
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                                <div>
+                                    <label for="auto-reorder-threshold" class="block text-sm font-medium themed-text-light mb-1">Umbral de reorden (% del stock mínimo)</label>
+                                    <input type="number" id="auto-reorder-threshold" value="${(state.settings.autoReorderThreshold || 0.2) * 100}" min="10" max="100" step="5" class="themed-input w-full border rounded-md px-3 py-2">
+                                    <p class="text-xs themed-text-light mt-1">Sugerir reabastecimiento cuando el stock esté por debajo de este porcentaje del mínimo</p>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <label for="supplier-management" class="block text-sm font-medium themed-text-light">Gestión de proveedores</label>
+                                    <label class="switch">
+                                        <input type="checkbox" id="supplier-management" ${state.settings.supplierManagement ? 'checked' : ''}>
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="space-y-4">
+                                <h3 class="text-lg font-semibold flex items-center"><i data-lucide="alert-triangle" class="mr-2"></i>Validaciones de Stock</h3>
+                                <div>
+                                    <label for="max-quantity-transaction" class="block text-sm font-medium themed-text-light mb-1">Cantidad máxima por transacción</label>
+                                    <input type="number" id="max-quantity-transaction" value="${state.settings.customValidations?.maxQuantityPerTransaction || 1000}" min="1" class="themed-input w-full border rounded-md px-3 py-2">
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <label for="require-notes-large" class="block text-sm font-medium themed-text-light">Requerir notas en transacciones grandes</label>
+                                    <label class="switch">
+                                        <input type="checkbox" id="require-notes-large" ${state.settings.customValidations?.requireNotesForLargeTransactions ? 'checked' : ''}>
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <label for="prevent-negative-stock" class="block text-sm font-medium themed-text-light">Prevenir stock negativo</label>
+                                    <label class="switch">
+                                        <input type="checkbox" id="prevent-negative-stock" ${state.settings.customValidations?.preventNegativeStock ? 'checked' : ''}>
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    break;
+                case 'notifications':
+                    content.innerHTML = `
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="space-y-4">
+                                <h3 class="text-lg font-semibold flex items-center"><i data-lucide="bell" class="mr-2"></i>Alertas de Stock</h3>
+                                <div class="flex items-center justify-between">
+                                    <label for="low-stock-notifications" class="block text-sm font-medium themed-text-light">Alertas de stock bajo</label>
                                     <label class="switch">
                                         <input type="checkbox" id="low-stock-notifications" ${state.settings.lowStockNotifications ? 'checked' : ''}>
                                         <span class="slider"></span>
@@ -838,40 +966,124 @@
                                     <label for="notification-emails" class="block text-sm font-medium themed-text-light mb-1">Correos para notificaciones</label>
                                     <textarea id="notification-emails" rows="3" class="themed-input w-full border rounded-md px-3 py-2" placeholder="separar correos por coma">${state.settings.notificationEmails || ''}</textarea>
                                 </div>
-                            </div>
-                        </div>
-                         <div class="themed-card p-6 rounded-lg shadow-md text-right">
-                             <button id="save-settings-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-lg w-full flex items-center justify-center space-x-2"><i data-lucide="save"></i><span>Guardar Todos los Ajustes</span></button>
-                        </div>
-                    </div>
-                    
-                    <!-- Right Column: Categories & Data -->
-                    <div class="lg:col-span-2 space-y-8">
-                         <div class="themed-card p-6 rounded-lg shadow-md">
-                            <h2 class="text-xl font-semibold mb-6 flex items-center"><i data-lucide="layout-list" class="mr-2"></i>Gestionar Categorías</h2>
-                            <div class="mb-4">
-                                <label for="new-category-name" class="block text-sm font-medium themed-text-light mb-1">Añadir Nueva Categoría</label>
-                                <div class="flex space-x-2">
-                                     <input type="text" id="new-category-name" placeholder="Nombre de la categoría" class="themed-input flex-grow border rounded-md px-3 py-2">
-                                     <button id="add-category-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold p-2 rounded"><i data-lucide="plus"></i></button>
+                                <div>
+                                    <label for="stock-alert-days" class="block text-sm font-medium themed-text-light mb-1">Días para alertas de stock</label>
+                                    <input type="text" id="stock-alert-days" value="${(state.settings.stockAlertDays || [1, 7, 30]).join(', ')}" class="themed-input w-full border rounded-md px-3 py-2" placeholder="1, 7, 30">
+                                    <p class="text-xs themed-text-light mt-1">Mostrar alertas en estos intervalos (días)</p>
                                 </div>
                             </div>
-                             <div id="category-management-list" class="space-y-2 max-h-64 overflow-y-auto">
-                                ${state.categories.filter(c => c !== 'Todas').map(cat => `
-                                    <div class="flex items-center justify-between p-2 rounded themed-border border">
-                                        <span class="category-name">${cat}</span>
-                                        <div class="space-x-2">
-                                            <button class="rename-category-btn text-blue-500 hover:text-blue-400" data-category="${cat}"><i data-lucide="pencil"></i></button>
-                                            <button class="delete-category-btn text-red-500 hover:text-red-400" data-category="${cat}"><i data-lucide="trash-2"></i></button>
-                                        </div>
-                                    </div>
-                                `).join('')}
+                            <div class="space-y-4">
+                                <h3 class="text-lg font-semibold flex items-center"><i data-lucide="calendar" class="mr-2"></i>Reportes Programados</h3>
+                                <div class="flex items-center justify-between">
+                                    <label for="enable-scheduled-reports" class="block text-sm font-medium themed-text-light">Habilitar reportes automáticos</label>
+                                    <label class="switch">
+                                        <input type="checkbox" id="enable-scheduled-reports" ${state.settings.enableScheduledReports ? 'checked' : ''}>
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                                <div>
+                                    <label for="report-schedule" class="block text-sm font-medium themed-text-light mb-1">Frecuencia de reportes</label>
+                                    <select id="report-schedule" class="themed-input w-full border rounded-md px-3 py-2">
+                                        <option value="daily" ${state.settings.reportSchedule === 'daily' ? 'selected' : ''}>Diario</option>
+                                        <option value="weekly" ${state.settings.reportSchedule === 'weekly' ? 'selected' : ''}>Semanal</option>
+                                        <option value="monthly" ${state.settings.reportSchedule === 'monthly' ? 'selected' : ''}>Mensual</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
-
-                         <div class="themed-card p-6 rounded-lg shadow-md">
-                            <h2 class="text-xl font-semibold mb-6 flex items-center"><i data-lucide="database-zap" class="mr-2"></i>Acciones Masivas</h2>
+                    `;
+                    break;
+                case 'workflow':
+                    content.innerHTML = `
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div class="space-y-4">
+                                <h3 class="text-lg font-semibold flex items-center"><i data-lucide="workflow" class="mr-2"></i>Aprobaciones</h3>
+                                <div class="flex items-center justify-between">
+                                    <label for="enable-workflow-approvals" class="block text-sm font-medium themed-text-light">Requerir aprobaciones</label>
+                                    <label class="switch">
+                                        <input type="checkbox" id="enable-workflow-approvals" ${state.settings.enableWorkflowApprovals ? 'checked' : ''}>
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                                <div>
+                                    <label for="approval-threshold" class="block text-sm font-medium themed-text-light mb-1">Umbral para aprobación (cantidad)</label>
+                                    <input type="number" id="approval-threshold" value="${state.settings.approvalThreshold || 100}" min="1" class="themed-input w-full border rounded-md px-3 py-2">
+                                    <p class="text-xs themed-text-light mt-1">Transacciones superiores a esta cantidad requerirán aprobación</p>
+                                </div>
+                            </div>
+                            <div class="space-y-4">
+                                <h3 class="text-lg font-semibold flex items-center"><i data-lucide="database" class="mr-2"></i>Retención de Datos</h3>
+                                <div>
+                                    <label for="data-retention-days" class="block text-sm font-medium themed-text-light mb-1">Días de retención de historial</label>
+                                    <input type="number" id="data-retention-days" value="${state.settings.dataRetentionDays || 365}" min="30" max="2555" class="themed-input w-full border rounded-md px-3 py-2">
+                                    <p class="text-xs themed-text-light mt-1">Tiempo para mantener registros históricos antes del archivado automático</p>
+                                </div>
+                                <div class="mt-4">
+                                    <button id="archive-old-data-btn" class="bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 px-4 rounded flex items-center space-x-2">
+                                        <i data-lucide="archive"></i><span>Archivar Datos Antiguos</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    break;
+                case 'data':
+                    content.innerHTML = `
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="space-y-4">
+                                <h3 class="text-lg font-semibold flex items-center"><i data-lucide="upload" class="mr-2"></i>Importar Datos</h3>
+                                <div>
+                                    <label for="import-file" class="block text-sm font-medium themed-text-light mb-1">Importar inventario desde CSV</label>
+                                    <input type="file" id="import-file" accept=".csv" class="themed-input w-full border rounded-md px-3 py-2">
+                                    <p class="text-xs themed-text-light mt-1">Formato: descripción, categoría, tipo, stock, unidad, minStock</p>
+                                </div>
+                                <button id="import-data-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded flex items-center space-x-2">
+                                    <i data-lucide="upload"></i><span>Importar Datos</span>
+                                </button>
+                            </div>
+                            <div class="space-y-4">
+                                <h3 class="text-lg font-semibold flex items-center"><i data-lucide="download" class="mr-2"></i>Exportar y Respaldar</h3>
+                                <div class="space-y-2">
+                                    <button id="export-inventory-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded flex items-center justify-center space-x-2">
+                                        <i data-lucide="download"></i><span>Exportar Inventario Completo</span>
+                                    </button>
+                                    <button id="export-settings-btn" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded flex items-center justify-center space-x-2">
+                                        <i data-lucide="settings"></i><span>Respaldar Configuraciones</span>
+                                    </button>
+                                    <button id="export-full-backup-btn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded flex items-center justify-center space-x-2">
+                                        <i data-lucide="hard-drive"></i><span>Respaldo Completo</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    break;
+                case 'categories':
+                    content.innerHTML = `
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <div class="space-y-4">
+                                <h3 class="text-lg font-semibold flex items-center"><i data-lucide="layout-list" class="mr-2"></i>Gestionar Categorías</h3>
+                                <div>
+                                    <label for="new-category-name" class="block text-sm font-medium themed-text-light mb-1">Añadir Nueva Categoría</label>
+                                    <div class="flex space-x-2">
+                                         <input type="text" id="new-category-name" placeholder="Nombre de la categoría" class="themed-input flex-grow border rounded-md px-3 py-2">
+                                         <button id="add-category-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold p-2 rounded"><i data-lucide="plus"></i></button>
+                                    </div>
+                                </div>
+                                 <div id="category-management-list" class="space-y-2 max-h-64 overflow-y-auto">
+                                    ${state.categories.filter(c => c !== 'Todas').map(cat => `
+                                        <div class="flex items-center justify-between p-2 rounded themed-border border">
+                                            <span class="category-name">${cat}</span>
+                                            <div class="space-x-2">
+                                                <button class="rename-category-btn text-blue-500 hover:text-blue-400" data-category="${cat}"><i data-lucide="pencil"></i></button>
+                                                <button class="delete-category-btn text-red-500 hover:text-red-400" data-category="${cat}"><i data-lucide="trash-2"></i></button>
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                            <div class="space-y-4">
+                                <h3 class="text-lg font-semibold flex items-center"><i data-lucide="database-zap" class="mr-2"></i>Acciones Masivas</h3>
                                 <div>
                                     <label for="bulk-category-select" class="block text-sm font-medium themed-text-light mb-1">Cambiar tipo de categoría completa</label>
                                     <div class="grid grid-cols-1 md:grid-cols-3 gap-2 items-center">
@@ -899,12 +1111,13 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </div>
-            </div>
-            `;
+                    `;
+                    break;
+            }
             lucide.createIcons();
         }
+
+
 
         // --- LÓGICA DE EVENTOS ---
         function setupStaticEventListeners() {
@@ -981,6 +1194,15 @@
                         }
                         return;
                     }
+                    if (target.closest('#import-data-btn')) { handleImportData(); return; }
+                    if (target.closest('#export-inventory-btn')) { handleExportInventory(); return; }
+                    if (target.closest('#export-settings-btn')) { handleExportSettings(); return; }
+                    if (target.closest('#export-full-backup-btn')) { handleExportFullBackup(); return; }
+                    if (target.closest('#archive-old-data-btn')) { handleArchiveOldData(); return; }
+                    
+                    const settingsTab = target.closest('.settings-tab-link');
+                    if (settingsTab) { e.preventDefault(); renderSettingsTab(settingsTab.dataset.tab); return; }
+                    
                     const renameBtn = target.closest('.rename-category-btn');
                     if (renameBtn) { handleRenameCategory(renameBtn.dataset.category); return; }
                     const deleteBtn = target.closest('.delete-category-btn');
@@ -1141,12 +1363,17 @@
         }
         function showCheckoutModal(item) {
             const isEndmill = item.category.toLowerCase().includes('endmill');
+            const maxQuantity = Math.min(item.stock, state.settings.customValidations?.maxQuantityPerTransaction || 1000);
+            const requireNotes = state.settings.customValidations?.requireNotesForLargeTransactions;
+            const approvalThreshold = state.settings.approvalThreshold || 100;
+            
             const content = `
                 <p class="mb-4"><strong>Artículo:</strong> ${item.description}</p>
                 <form id="checkout-form">
                     <div class="mb-4">
                         <label for="quantity" class="block text-sm font-medium themed-text-light">Cantidad</label>
-                        <input type="number" id="quantity" name="quantity" min="1" max="${item.stock}" required class="themed-input mt-1 block w-full px-3 py-2 border rounded-md shadow-sm">
+                        <input type="number" id="quantity" name="quantity" min="1" max="${maxQuantity}" required class="themed-input mt-1 block w-full px-3 py-2 border rounded-md shadow-sm">
+                        <p class="text-xs themed-text-light mt-1">Máximo: ${maxQuantity} ${item.unit}</p>
                     </div>
                     <div class="mb-4">
                         <label for="user" class="block text-sm font-medium themed-text-light">Nombre de quien retira</label>
@@ -1160,22 +1387,63 @@
                             <label><input type="radio" name="exchange" value="no" class="form-radio" checked> No (Salida)</label>
                         </div>
                     </div>` : ''}
+                    <div class="mb-4" id="notes-container" ${requireNotes ? '' : 'style="display:none"'}>
+                        <label for="notes" class="block text-sm font-medium themed-text-light">Notas ${requireNotes ? '(Requerido para cantidades grandes)' : '(Opcional)'}</label>
+                        <textarea id="notes" name="notes" rows="2" class="themed-input mt-1 block w-full px-3 py-2 border rounded-md shadow-sm"></textarea>
+                    </div>
                     <div class="flex justify-end">
                         <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded">Registrar Salida</button>
                     </div>
                 </form>`;
             showModal('Registrar Salida de Consumible', content, 'max-w-md');
-            document.getElementById('checkout-form').addEventListener('submit', async (e) => {
+            
+            const form = document.getElementById('checkout-form');
+            const quantityInput = form.quantity;
+            const notesContainer = document.getElementById('notes-container');
+            const notesInput = form.notes;
+            
+            // Show/hide notes based on quantity
+            quantityInput.addEventListener('input', () => {
+                const qty = parseInt(quantityInput.value) || 0;
+                if (requireNotes && qty >= approvalThreshold) {
+                    notesContainer.style.display = 'block';
+                    notesInput.required = true;
+                } else if (!requireNotes) {
+                    notesContainer.style.display = 'none';
+                    notesInput.required = false;
+                }
+            });
+            
+            form.addEventListener('submit', async (e) => {
                 e.preventDefault();
-                const { quantity, user, exchange } = e.target.elements;
+                const { quantity, user, exchange, notes } = e.target.elements;
+                const qty = parseInt(quantity.value);
                 const isExchange = isEndmill && exchange.value === 'yes';
+                
+                // Validation
+                if (state.settings.customValidations?.preventNegativeStock && !isExchange && item.stock - qty < 0) {
+                    showNotification('No se puede tener stock negativo.', 'error');
+                    return;
+                }
+                
+                if (requireNotes && qty >= approvalThreshold && !notes.value.trim()) {
+                    showNotification('Se requieren notas para transacciones grandes.', 'error');
+                    return;
+                }
+                
+                if (state.settings.enableWorkflowApprovals && qty >= approvalThreshold) {
+                    showNotification('Esta transacción requiere aprobación del administrador.', 'info');
+                    // In a real implementation, this would create a pending approval record
+                    return;
+                }
+                
                 const itemRef = doc(db, 'inventory', item.id);
                 if (!isExchange) {
-                    await updateDoc(itemRef, { stock: item.stock - parseInt(quantity.value) });
+                    await updateDoc(itemRef, { stock: item.stock - qty });
                 }
                 await addDoc(collection(db, 'transactions'), {
                     itemId: item.id, itemDescription: item.description, type: isExchange ? 'Intercambio' : 'Salida',
-                    quantity: parseInt(quantity.value), user: user.value, timestamp: serverTimestamp()
+                    quantity: qty, user: user.value, notes: notes?.value || '', timestamp: serverTimestamp()
                 });
                 showNotification('Salida registrada.', 'success');
                 closeModal();
@@ -1392,12 +1660,36 @@
 
         // --- LÓGICA DE AJUSTES ---
         async function handleSaveSettings() {
-            const itemsPerPage = parseInt(document.getElementById('items-per-page').value, 10);
-            const defaultUnit = document.getElementById('default-unit').value;
-            const defaultMinStock = parseInt(document.getElementById('default-min-stock').value, 10);
-            const lowStockNotifications = document.getElementById('low-stock-notifications').checked;
-            const notificationEmails = document.getElementById('notification-emails').value;
+            // General settings
+            const itemsPerPage = parseInt(document.getElementById('items-per-page')?.value || state.settings.itemsPerPage, 10);
+            const defaultUnit = document.getElementById('default-unit')?.value || state.settings.defaultUnit;
+            const defaultMinStock = parseInt(document.getElementById('default-min-stock')?.value || state.settings.defaultMinStock, 10);
+            const sessionTimeout = parseInt(document.getElementById('session-timeout')?.value || state.settings.sessionTimeout, 10);
+            const enableAuditLog = document.getElementById('enable-audit-log')?.checked ?? state.settings.enableAuditLog;
+            const barcodeScanning = document.getElementById('barcode-scanning')?.checked ?? state.settings.barcodeScanning;
+            
+            // Stock management settings
+            const autoReorderEnabled = document.getElementById('auto-reorder-enabled')?.checked ?? state.settings.autoReorderEnabled;
+            const autoReorderThreshold = (parseInt(document.getElementById('auto-reorder-threshold')?.value || (state.settings.autoReorderThreshold * 100), 10)) / 100;
+            const supplierManagement = document.getElementById('supplier-management')?.checked ?? state.settings.supplierManagement;
+            const maxQuantityTransaction = parseInt(document.getElementById('max-quantity-transaction')?.value || state.settings.customValidations?.maxQuantityPerTransaction, 10);
+            const requireNotesLarge = document.getElementById('require-notes-large')?.checked ?? state.settings.customValidations?.requireNotesForLargeTransactions;
+            const preventNegativeStock = document.getElementById('prevent-negative-stock')?.checked ?? state.settings.customValidations?.preventNegativeStock;
+            
+            // Notification settings
+            const lowStockNotifications = document.getElementById('low-stock-notifications')?.checked ?? state.settings.lowStockNotifications;
+            const notificationEmails = document.getElementById('notification-emails')?.value || state.settings.notificationEmails;
+            const stockAlertDaysStr = document.getElementById('stock-alert-days')?.value || state.settings.stockAlertDays?.join(', ');
+            const stockAlertDays = stockAlertDaysStr.split(',').map(d => parseInt(d.trim(), 10)).filter(d => !isNaN(d));
+            const enableScheduledReports = document.getElementById('enable-scheduled-reports')?.checked ?? state.settings.enableScheduledReports;
+            const reportSchedule = document.getElementById('report-schedule')?.value || state.settings.reportSchedule;
+            
+            // Workflow settings
+            const enableWorkflowApprovals = document.getElementById('enable-workflow-approvals')?.checked ?? state.settings.enableWorkflowApprovals;
+            const approvalThreshold = parseInt(document.getElementById('approval-threshold')?.value || state.settings.approvalThreshold, 10);
+            const dataRetentionDays = parseInt(document.getElementById('data-retention-days')?.value || state.settings.dataRetentionDays, 10);
 
+            // Validation
             if (itemsPerPage < 5 || itemsPerPage > 50) {
                  showNotification('Artículos por página debe estar entre 5 y 50.', 'error');
                  return;
@@ -1407,8 +1699,25 @@
                 itemsPerPage,
                 defaultUnit,
                 defaultMinStock,
+                sessionTimeout,
+                enableAuditLog,
+                barcodeScanning,
+                autoReorderEnabled,
+                autoReorderThreshold,
+                supplierManagement,
                 lowStockNotifications,
                 notificationEmails,
+                stockAlertDays,
+                enableScheduledReports,
+                reportSchedule,
+                enableWorkflowApprovals,
+                approvalThreshold,
+                dataRetentionDays,
+                customValidations: {
+                    maxQuantityPerTransaction,
+                    requireNotesForLargeTransactions: requireNotesLarge,
+                    preventNegativeStock
+                }
             };
 
             try {
@@ -1550,6 +1859,183 @@
                 } catch (error) {
                     showNotification('Ocurrió un error al actualizar los artículos.', 'error');
                     console.error("Error during bulk category type update:", error);
+                }
+            });
+        }
+
+        // --- ENHANCED DATA MANAGEMENT FUNCTIONS ---
+        async function handleImportData() {
+            const fileInput = document.getElementById('import-file');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                showNotification('Por favor, selecciona un archivo CSV.', 'error');
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                try {
+                    const csv = e.target.result;
+                    const lines = csv.split('\n');
+                    const items = [];
+                    
+                    // Skip header line
+                    for (let i = 1; i < lines.length; i++) {
+                        const line = lines[i].trim();
+                        if (!line) continue;
+                        
+                        const [description, category, type, stock, unit, minStock] = line.split(',').map(s => s.trim().replace(/"/g, ''));
+                        
+                        if (description && category && type && stock && unit) {
+                            items.push({
+                                description,
+                                category,
+                                type,
+                                stock: parseInt(stock, 10) || 0,
+                                unit,
+                                minStock: parseInt(minStock, 10) || state.settings.defaultMinStock || 5,
+                                imageUrl: '',
+                                cost: 0
+                            });
+                        }
+                    }
+                    
+                    if (items.length === 0) {
+                        showNotification('No se encontraron datos válidos en el archivo.', 'error');
+                        return;
+                    }
+                    
+                    showConfirmationModal(`¿Importar ${items.length} artículos? Esta acción agregará nuevos items al inventario.`, async () => {
+                        const batch = writeBatch(db);
+                        let successCount = 0;
+                        
+                        items.forEach(item => {
+                            const docRef = doc(collection(db, 'inventory'));
+                            batch.set(docRef, item);
+                            
+                            // Add transaction log
+                            const transactionRef = doc(collection(db, 'transactions'));
+                            batch.set(transactionRef, {
+                                itemDescription: item.description,
+                                type: 'Creación',
+                                quantity: item.stock,
+                                timestamp: serverTimestamp(),
+                                user: state.currentUser.email,
+                                notes: 'Importado desde CSV'
+                            });
+                            successCount++;
+                        });
+                        
+                        try {
+                            await batch.commit();
+                            showNotification(`${successCount} artículos importados con éxito.`, 'success');
+                            fileInput.value = '';
+                        } catch (error) {
+                            showNotification('Error al importar los datos.', 'error');
+                            console.error('Import error:', error);
+                        }
+                    });
+                } catch (error) {
+                    showNotification('Error al procesar el archivo CSV.', 'error');
+                    console.error('CSV processing error:', error);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        async function handleExportInventory() {
+            const data = state.inventory.map(item => [
+                item.description,
+                item.category,
+                item.type,
+                item.stock,
+                item.unit,
+                item.minStock || 0
+            ]);
+            const headers = ['Descripción', 'Categoría', 'Tipo', 'Stock', 'Unidad', 'Stock Mínimo'];
+            exportToCSV('inventario_completo', headers, data);
+        }
+
+        async function handleExportSettings() {
+            const settingsJson = JSON.stringify(state.settings, null, 2);
+            const blob = new Blob([settingsJson], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `configuraciones_${new Date().toISOString().slice(0,10)}.json`;
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            URL.revokeObjectURL(url);
+            showNotification('Configuraciones exportadas.', 'success');
+        }
+
+        async function handleExportFullBackup() {
+            try {
+                const backup = {
+                    timestamp: new Date().toISOString(),
+                    settings: state.settings,
+                    categories: state.categories,
+                    inventory: state.inventory,
+                    transactions: state.transactions.slice(-1000), // Last 1000 transactions
+                    activeLoans: state.activeLoans,
+                    shoppingList: state.shoppingList
+                };
+                
+                const backupJson = JSON.stringify(backup, null, 2);
+                const blob = new Blob([backupJson], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `respaldo_completo_${new Date().toISOString().slice(0,10)}.json`;
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+                URL.revokeObjectURL(url);
+                showNotification('Respaldo completo creado.', 'success');
+            } catch (error) {
+                showNotification('Error al crear el respaldo.', 'error');
+                console.error('Backup error:', error);
+            }
+        }
+
+        async function handleArchiveOldData() {
+            const retentionDays = state.settings.dataRetentionDays || 365;
+            const cutoffDate = new Date();
+            cutoffDate.setDate(cutoffDate.getDate() - retentionDays);
+            
+            const oldTransactions = state.transactions.filter(t => 
+                t.timestamp && t.timestamp.toDate && t.timestamp.toDate() < cutoffDate
+            );
+            
+            if (oldTransactions.length === 0) {
+                showNotification('No hay datos antiguos para archivar.', 'info');
+                return;
+            }
+            
+            showConfirmationModal(`¿Archivar ${oldTransactions.length} transacciones anteriores a ${cutoffDate.toLocaleDateString()}?`, async () => {
+                try {
+                    // Create archive collection
+                    const archiveBatch = writeBatch(db);
+                    const deleteBatch = writeBatch(db);
+                    
+                    oldTransactions.forEach(transaction => {
+                        // Add to archive
+                        const archiveRef = doc(collection(db, 'archived_transactions'));
+                        archiveBatch.set(archiveRef, { ...transaction, archivedAt: serverTimestamp() });
+                        
+                        // Delete from main collection
+                        deleteBatch.delete(doc(db, 'transactions', transaction.id));
+                    });
+                    
+                    await archiveBatch.commit();
+                    await deleteBatch.commit();
+                    
+                    showNotification(`${oldTransactions.length} transacciones archivadas.`, 'success');
+                } catch (error) {
+                    showNotification('Error al archivar los datos.', 'error');
+                    console.error('Archive error:', error);
                 }
             });
         }

@@ -389,6 +389,11 @@
                         state.currentUser = user;
                         await fetchUserRole(user.uid);
                         
+                        // --- AÑADIDO PARA DEPURACIÓN ---
+                        // Este mensaje te ayudará a ver qué rol se está leyendo desde Firebase.
+                        console.log(`Rol de usuario detectado: '${state.userRole}'`);
+                        // --- FIN DE LA DEPURACIÓN ---
+                        
                         // Solo los administradores pueden leer y escribir la configuración global.
                         // Los operadores usarán la configuración por defecto.
                         if (state.userRole === 'admin') {

@@ -233,57 +233,57 @@
     <!-- Main App Structure (hidden by default) -->
     <div id="app-container" class="hidden h-screen w-full flex">
         <!-- Sidebar -->
-        <aside id="sidebar" class="themed-sidebar w-64 space-y-6 py-7 px-2 absolute inset-y-0 left-0 transform -translate-x-full md:relative md:translate-x-0 transition duration-200 ease-in-out z-30 flex flex-col">
+        <aside id="sidebar" class="themed-sidebar w-64 space-y-6 py-7 px-2 absolute inset-y-0 left-0 transform -translate-x-full md:relative md:translate-x-0 transition-all duration-300 ease-in-out z-30 flex flex-col">
             <div>
                 <a href="#" class="text-white flex items-center space-x-2 px-4">
                     <i data-lucide="boxes"></i>
-                    <span class="text-2xl font-extrabold">Inventario</span>
+                    <span class="text-2xl font-extrabold transition-opacity duration-300">Inventario</span>
                 </a>
 
                 <nav id="main-nav" class="mt-10">
                     <a href="#dashboard" class="nav-link flex items-center space-x-2 py-2.5 px-4 rounded transition duration-200 active">
                         <i data-lucide="layout-dashboard"></i>
-                        <span>Dashboard</span>
+                        <span class="transition-opacity duration-300">Dashboard</span>
                     </a>
                     <a href="#inventory" class="nav-link flex items-center space-x-2 py-2.5 px-4 rounded transition duration-200">
                         <i data-lucide="archive"></i>
-                        <span>Inventario</span>
+                        <span class="transition-opacity duration-300">Inventario</span>
                     </a>
                     <a href="#active-loans" class="nav-link flex items-center space-x-2 py-2.5 px-4 rounded transition duration-200">
                         <i data-lucide="arrow-right-left"></i>
-                        <span>Préstamos Activos</span>
+                        <span class="transition-opacity duration-300">Préstamos Activos</span>
                     </a>
                     <a href="#history" class="nav-link flex items-center space-x-2 py-2.5 px-4 rounded transition duration-200">
                         <i data-lucide="history"></i>
-                        <span>Historial</span>
+                        <span class="transition-opacity duration-300">Historial</span>
                     </a>
                     <a href="#reports" class="nav-link flex items-center space-x-2 py-2.5 px-4 rounded transition duration-200">
                         <i data-lucide="file-down"></i>
-                        <span>Reportes</span>
+                        <span class="transition-opacity duration-300">Reportes</span>
                     </a>
                     <a href="#shopping-list" class="nav-link flex items-center space-x-2 py-2.5 px-4 rounded transition duration-200 relative">
                         <i data-lucide="shopping-cart"></i>
-                        <span>Lista de Compras</span>
+                        <span class="transition-opacity duration-300">Lista de Compras</span>
                         <span id="shopping-list-count" class="absolute right-2 top-1/2 -translate-y-1/2 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center hidden">0</span>
                     </a>
                     <a href="#users" id="users-nav-link" class="nav-link flex items-center space-x-2 py-2.5 px-4 rounded transition duration-200 hidden">
                         <i data-lucide="users"></i>
-                        <span>Usuarios</span>
+                        <span class="transition-opacity duration-300">Usuarios</span>
                     </a>
                     <a href="#settings" id="settings-nav-link" class="nav-link flex items-center space-x-2 py-2.5 px-4 rounded transition duration-200 hidden">
                         <i data-lucide="settings"></i>
-                        <span>Ajustes</span>
+                        <span class="transition-opacity duration-300">Ajustes</span>
                     </a>
                 </nav>
             </div>
             <div class="mt-auto">
                  <a href="#" id="dark-mode-toggle" class="nav-link flex items-center space-x-2 py-2.5 px-4 rounded transition duration-200">
                     <i data-lucide="moon"></i>
-                    <span>Modo Oscuro</span>
+                    <span class="transition-opacity duration-300">Modo Oscuro</span>
                 </a>
                  <a href="#" id="logout-button" class="nav-link flex items-center space-x-2 py-2.5 px-4 rounded transition duration-200">
                     <i data-lucide="log-out"></i>
-                    <span>Cerrar Sesión</span>
+                    <span class="transition-opacity duration-300">Cerrar Sesión</span>
                 </a>
             </div>
         </aside>
@@ -486,13 +486,6 @@
                         state.currentUser = user;
                         await fetchUserRole(user.uid);
                         
-                        // --- AÑADIDO PARA DEPURACIÓN ---
-                        // Este mensaje te ayudará a ver qué rol se está leyendo desde Firebase.
-                        console.log(`Rol de usuario detectado: '${state.userRole}'`);
-                        // --- FIN DE LA DEPURACIÓN ---
-                        
-                        // Solo los administradores pueden leer y escribir la configuración global.
-                        // Los operadores usarán la configuración por defecto.
                         if (state.userRole === 'admin') {
                             await loadSettings();
                         }
@@ -500,6 +493,9 @@
                         if (!state.isInitialized) {
                             state.isInitialized = true;
                             initializeAppState();
+                        } else {
+                             // If re-authenticating, re-apply settings that affect UI
+                            applyInterfaceSettings();
                         }
                         
                         const isAdmin = state.userRole === 'admin';
@@ -518,7 +514,6 @@
                     loginScreen.classList.remove('hidden');
                     appContainer.classList.add('hidden');
                     document.getElementById('main-content').innerHTML = '';
-                    // Resetting state is important to clear data from the previous session
                     state = getInitialState();
                 }
             });
@@ -550,7 +545,7 @@
 
         function displayAuthError(errorCode) {
             const errorMessage = document.getElementById('auth-error-message');
-            let message = "Ocurrió un error. Inténtelo de nuevo."; // Default message
+            let message = "Ocurrió un error. Inténtelo de nuevo.";
 
             switch(errorCode) {
                 case "auth/user-not-found":
@@ -564,15 +559,16 @@
         }
 
         async function initializeAppState() {
+            applyInterfaceSettings();
             const page = window.location.hash.substring(1) || 'dashboard';
-            navigateTo(page); // Render initial page structure immediately
+            navigateTo(page); 
             await checkAndLoadInitialData();
             setupRealtimeListeners();
         }
 
         async function checkAndLoadInitialData() {
             const inventoryRef = collection(db, 'inventory');
-            const snapshot = await getDocs(query(inventoryRef)); // Use a simple query
+            const snapshot = await getDocs(query(inventoryRef));
             if (snapshot.empty) {
                 showNotification('Cargando inventario inicial...', 'info');
                 const initialInventory = getFullInventoryList(); 
@@ -593,14 +589,12 @@
         function setupRealtimeListeners() {
             const handleSnapshotError = (collectionName, error) => {
                 console.error(`Error fetching ${collectionName}:`, error);
-                // El mensaje de error de Firestore a menudo incluye un enlace para crear el índice que falta.
                 showNotification(`Error al cargar datos de ${collectionName}. Revisa la consola (F12) para más detalles.`, 'error');
             };
 
             onSnapshot(collection(db, 'inventory'), (snapshot) => {
                 state.inventory = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })).sort((a, b) => a.description.localeCompare(b.description));
                 
-                // Recalculate categories using the already synced settings state
                 const uniqueCategoriesFromInventory = [...new Set(state.inventory.map(item => item.category))];
                 const categoriesFromSettings = state.settings.categories || [];
                 state.categories = ['Todas', ...new Set([...uniqueCategoriesFromInventory, ...categoriesFromSettings])].sort();
@@ -636,20 +630,25 @@
             }, (error) => handleSnapshotError('lista de compras', error));
             
             if (state.userRole === 'admin') {
-                // ADDED: Real-time listener for settings, only for admins.
                 onSnapshot(doc(db, 'settings', 'global'), (docSnap) => {
                     if (docSnap.exists()) {
-                        state.settings = { ...getInitialState().settings, ...docSnap.data() };
+                        const newSettings = { ...getInitialState().settings, ...docSnap.data() };
+                        const oldSettings = state.settings;
+                        state.settings = newSettings;
                         state.itemsPerPage = state.settings.itemsPerPage || 10;
                         
-                        // Recalculate categories whenever settings change
+                        if(oldSettings.interfaceCustomization.compactSidebar !== newSettings.interfaceCustomization.compactSidebar) {
+                            applyInterfaceSettings();
+                        }
+                        
                         const uniqueCategoriesFromInventory = [...new Set(state.inventory.map(item => item.category))];
                         const categoriesFromSettings = state.settings.categories || [];
                         state.categories = ['Todas', ...new Set([...uniqueCategoriesFromInventory, ...categoriesFromSettings])].sort();
 
                         const currentPage = window.location.hash.substring(1);
-                        if (state.isInitialized && (currentPage === 'settings' || currentPage === 'inventory')) {
-                           navigateTo(currentPage, true);
+                        if (state.isInitialized) {
+                           if(currentPage === 'settings' || currentPage === 'inventory') navigateTo(currentPage, true);
+                           if(currentPage === 'dashboard') renderDashboardView();
                         }
                     }
                 }, (error) => handleSnapshotError('configuraciones', error));
@@ -722,27 +721,69 @@
                 }
             });
         }
+        
+        // --- IMPLEMENTACIÓN DE AJUSTES DE INTERFAZ ---
+        function applyInterfaceSettings() {
+            const sidebar = document.getElementById('sidebar');
+            if (!sidebar) return;
+            
+            const isCompact = state.settings.interfaceCustomization.compactSidebar;
+
+            sidebar.classList.toggle('w-64', !isCompact);
+            sidebar.classList.toggle('w-20', isCompact);
+
+            sidebar.querySelectorAll('span').forEach(el => {
+                el.classList.toggle('opacity-0', isCompact);
+                el.classList.toggle('hidden', isCompact);
+            });
+            sidebar.querySelectorAll('.nav-link').forEach(el => {
+                el.classList.toggle('justify-center', isCompact);
+            });
+        }
 
         // --- VISTAS ---
         function renderDashboardView() {
             const mainContent = document.getElementById('main-content');
-            mainContent.innerHTML = `
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            const { dashboardCustomization } = state.settings;
+            
+            let widgetsHTML = '';
+            
+            // Map settings to widgets. Using showStockOverview for Top Consumables, 
+            // showLowStockAlerts for Top Reported, and showRecentTransactions for Top Employees.
+            if (dashboardCustomization.showStockOverview) {
+                widgetsHTML += `
                     <div class="themed-card p-6 rounded-lg shadow-md col-span-1 md:col-span-2 lg:col-span-1">
                         <h3 class="text-lg font-semibold mb-4">Top 10 Consumibles Más Utilizados</h3>
                         <canvas id="topConsumablesChart"></canvas>
-                    </div>
+                    </div>`;
+            }
+            if (dashboardCustomization.showLowStockAlerts) {
+                 widgetsHTML += `
                     <div class="themed-card p-6 rounded-lg shadow-md">
                         <h3 class="text-lg font-semibold mb-4">Top 10 Herramientas Reportadas</h3>
                         <canvas id="topReportedChart"></canvas>
-                    </div>
+                    </div>`;
+            }
+            if (dashboardCustomization.showRecentTransactions) {
+                widgetsHTML += `
                     <div class="themed-card p-6 rounded-lg shadow-md">
                         <h3 class="text-lg font-semibold mb-4">Top 10 Empleados con Más Préstamos</h3>
                         <canvas id="topEmployeesChart"></canvas>
+                    </div>`;
+            }
+
+            if(widgetsHTML === ''){
+                mainContent.innerHTML = `
+                    <div class="themed-card p-10 rounded-lg shadow-md text-center">
+                        <i data-lucide="layout-dashboard" class="mx-auto h-12 w-12 themed-text-light"></i>
+                        <h3 class="text-lg font-semibold mt-4">El Panel de Control está vacío</h3>
+                        <p class="themed-text-light mt-2">Puedes habilitar widgets desde la <a href="#settings" class="text-indigo-600 dark:text-indigo-400 hover:underline">página de Ajustes</a> en la pestaña "Panel de Control".</p>
                     </div>
-                </div>
-            `;
-            generateCharts();
+                `;
+            } else {
+                 mainContent.innerHTML = `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">${widgetsHTML}</div>`;
+                 generateCharts();
+            }
         }
 
         function renderInventoryView() {
@@ -1376,7 +1417,7 @@
                                         <div class="flex items-center justify-between p-4 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-gray-600">
                                             <div>
                                                 <label for="show-stock-overview" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Resumen de stock</label>
-                                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Muestra widget con resumen general del inventario</p>
+                                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Muestra el gráfico de consumibles más utilizados</p>
                                             </div>
                                             <label class="switch">
                                                 <input type="checkbox" id="show-stock-overview" ${state.settings.dashboardCustomization?.showStockOverview ? 'checked' : ''}>
@@ -1386,7 +1427,7 @@
                                         <div class="flex items-center justify-between p-4 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-gray-600">
                                             <div>
                                                 <label for="show-recent-transactions" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Transacciones recientes</label>
-                                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Muestra widget con las últimas transacciones</p>
+                                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Muestra el gráfico de empleados con más préstamos</p>
                                             </div>
                                             <label class="switch">
                                                 <input type="checkbox" id="show-recent-transactions" ${state.settings.dashboardCustomization?.showRecentTransactions ? 'checked' : ''}>
@@ -1396,7 +1437,7 @@
                                         <div class="flex items-center justify-between p-4 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-gray-600">
                                             <div>
                                                 <label for="show-low-stock-alerts" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Alertas de stock bajo</label>
-                                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Muestra widget con productos con stock bajo</p>
+                                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Muestra el gráfico de herramientas más reportadas</p>
                                             </div>
                                             <label class="switch">
                                                 <input type="checkbox" id="show-low-stock-alerts" ${state.settings.dashboardCustomization?.showLowStockAlerts ? 'checked' : ''}>
@@ -1406,7 +1447,7 @@
                                         <div class="flex items-center justify-between p-4 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-gray-600">
                                             <div>
                                                 <label for="show-quick-actions" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Acciones rápidas</label>
-                                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Muestra widget con botones de acciones comunes</p>
+                                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Muestra widget con botones de acciones comunes (No implementado)</p>
                                             </div>
                                             <label class="switch">
                                                 <input type="checkbox" id="show-quick-actions" ${state.settings.dashboardCustomization?.showQuickActions ? 'checked' : ''}>
@@ -1943,7 +1984,7 @@
         }
 
         async function handleDeleteItem(item) {
-            showConfirmationModal(`¿Estás seguro de que quieres eliminar "${item.description}"? Esta acción no se puede deshacer.`, async () => {
+            const deleteLogic = async () => {
                 try {
                     await deleteDoc(doc(db, 'inventory', item.id));
                     await addDoc(collection(db, 'transactions'), {
@@ -1954,7 +1995,13 @@
                 } catch (error) {
                     showNotification('Error al eliminar el artículo.', 'error');
                 }
-            });
+            };
+
+            if (state.settings.operationalPreferences.confirmBeforeDelete) {
+                showConfirmationModal(`¿Estás seguro de que quieres eliminar "${item.description}"? Esta acción no se puede deshacer.`, deleteLogic);
+            } else {
+                deleteLogic();
+            }
         }
 
         async function handleReturnLoan(loanId, itemId) {
@@ -2511,11 +2558,8 @@
 
             try {
                 // Save the fully merged and updated settings object
-                await setDoc(doc(db, 'settings', 'global'), updatedSettings); // Using setDoc without merge is fine now as we have the full object
-                state.settings = updatedSettings; // Update local state with the saved version
-                state.itemsPerPage = updatedSettings.itemsPerPage;
+                await setDoc(doc(db, 'settings', 'global'), updatedSettings);
                 showNotification('Ajustes guardados con éxito.', 'success');
-                if (window.location.hash === '#inventory') renderInventoryView();
 
             } catch (error) {
                 showNotification('Error al guardar los ajustes.', 'error');
@@ -2895,27 +2939,38 @@
                 return;
             }
 
-            const consumableUsage = state.transactions.filter(t => t.type === 'Salida' || t.type === 'Intercambio').reduce((acc, t) => {
-                acc[t.itemDescription] = (acc[t.itemDescription] || 0) + t.quantity; return acc; }, {});
-            const topConsumables = Object.entries(consumableUsage).sort(([,a],[,b]) => b-a).slice(0, 10);
-            new Chart(document.getElementById('topConsumablesChart'), {
-                type: 'bar', data: { labels: topConsumables.map(item => item[0]), datasets: [{ label: 'Cantidad', data: topConsumables.map(item => item[1]), backgroundColor: 'rgba(79, 70, 229, 0.8)' }] },
-                options: { indexAxis: 'y', responsive: true }
-            });
-            const reportedItems = state.transactions.filter(t => t.type === 'Baja').reduce((acc, t) => {
-                acc[t.itemDescription] = (acc[t.itemDescription] || 0) + t.quantity; return acc; }, {});
-            const topReported = Object.entries(reportedItems).sort(([,a],[,b]) => b-a).slice(0, 10);
-            new Chart(document.getElementById('topReportedChart'), {
-                type: 'doughnut', data: { labels: topReported.map(item => item[0]), datasets: [{ data: topReported.map(item => item[1]), backgroundColor: ['#ef4444', '#f97316', '#eab308', '#84cc16', '#22c55e', '#14b8a6', '#06b6d4', '#3b82f6', '#8b5cf6', '#d946ef'] }] },
-                options: { responsive: true }
-            });
-            const employeeLoans = state.transactions.filter(t => t.type === 'Préstamo').reduce((acc, t) => {
-                if(t.borrower) acc[t.borrower] = (acc[t.borrower] || 0) + 1; return acc; }, {});
-            const topEmployees = Object.entries(employeeLoans).sort(([,a],[,b]) => b-a).slice(0, 10);
-            new Chart(document.getElementById('topEmployeesChart'), {
-                type: 'bar', data: { labels: topEmployees.map(item => item[0]), datasets: [{ label: 'Nº de Préstamos', data: topEmployees.map(item => item[1]), backgroundColor: 'rgba(20, 184, 166, 0.8)' }] },
-                options: { responsive: true }
-            });
+            const topConsumablesChartEl = document.getElementById('topConsumablesChart');
+            if (topConsumablesChartEl) {
+                const consumableUsage = state.transactions.filter(t => t.type === 'Salida' || t.type === 'Intercambio').reduce((acc, t) => {
+                    acc[t.itemDescription] = (acc[t.itemDescription] || 0) + t.quantity; return acc; }, {});
+                const topConsumables = Object.entries(consumableUsage).sort(([,a],[,b]) => b-a).slice(0, 10);
+                new Chart(topConsumablesChartEl, {
+                    type: 'bar', data: { labels: topConsumables.map(item => item[0]), datasets: [{ label: 'Cantidad', data: topConsumables.map(item => item[1]), backgroundColor: 'rgba(79, 70, 229, 0.8)' }] },
+                    options: { indexAxis: 'y', responsive: true }
+                });
+            }
+            
+            const topReportedChartEl = document.getElementById('topReportedChart');
+            if (topReportedChartEl) {
+                const reportedItems = state.transactions.filter(t => t.type === 'Baja').reduce((acc, t) => {
+                    acc[t.itemDescription] = (acc[t.itemDescription] || 0) + t.quantity; return acc; }, {});
+                const topReported = Object.entries(reportedItems).sort(([,a],[,b]) => b-a).slice(0, 10);
+                new Chart(topReportedChartEl, {
+                    type: 'doughnut', data: { labels: topReported.map(item => item[0]), datasets: [{ data: topReported.map(item => item[1]), backgroundColor: ['#ef4444', '#f97316', '#eab308', '#84cc16', '#22c55e', '#14b8a6', '#06b6d4', '#3b82f6', '#8b5cf6', '#d946ef'] }] },
+                    options: { responsive: true }
+                });
+            }
+
+            const topEmployeesChartEl = document.getElementById('topEmployeesChart');
+            if (topEmployeesChartEl) {
+                const employeeLoans = state.transactions.filter(t => t.type === 'Préstamo').reduce((acc, t) => {
+                    if(t.borrower) acc[t.borrower] = (acc[t.borrower] || 0) + 1; return acc; }, {});
+                const topEmployees = Object.entries(employeeLoans).sort(([,a],[,b]) => b-a).slice(0, 10);
+                new Chart(topEmployeesChartEl, {
+                    type: 'bar', data: { labels: topEmployees.map(item => item[0]), datasets: [{ label: 'Nº de Préstamos', data: topEmployees.map(item => item[1]), backgroundColor: 'rgba(20, 184, 166, 0.8)' }] },
+                    options: { responsive: true }
+                });
+            }
         }
         function previewReport(type) {
             let data, headers, title;
@@ -2966,9 +3021,9 @@
         function updateDarkModeToggle() {
             const toggle = document.getElementById('dark-mode-toggle');
             if (document.documentElement.classList.contains('dark')) {
-                toggle.innerHTML = `<i data-lucide="sun"></i><span>Modo Claro</span>`;
+                toggle.innerHTML = `<i data-lucide="sun"></i><span class="transition-opacity duration-300">Modo Claro</span>`;
             } else {
-                toggle.innerHTML = `<i data-lucide="moon"></i><span>Modo Oscuro</span>`;
+                toggle.innerHTML = `<i data-lucide="moon"></i><span class="transition-opacity duration-300">Modo Oscuro</span>`;
             }
             safeCreateIcons();
         }
@@ -2987,3 +3042,4 @@
     </script>
 </body>
 </html>
+

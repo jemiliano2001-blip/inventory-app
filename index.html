@@ -132,7 +132,66 @@
         .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px;}
         .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 4px; bottom: 4px; background-color: white; transition: .4s;  border-radius: 50%;}
         input:checked + .slider { background-color: #4f46e5; }
+        input:focus + .slider { box-shadow: 0 0 1px #4f46e5; }
         input:checked + .slider:before { transform: translateX(16px); }
+        html.dark .slider { background-color: #475569; }
+        html.dark input:checked + .slider { background-color: #6366f1; }
+        
+        /* Modern scrollbar styles */
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        
+        /* Enhanced focus styles */
+        .themed-input:focus, select:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+        }
+        
+        /* Gradient backgrounds for sections */
+        .gradient-bg {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(168, 85, 247, 0.1) 100%);
+        }
+        
+        /* Card hover effects */
+        .hover-lift {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .hover-lift:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        html.dark .hover-lift:hover {
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
+        
+        /* Loading animation */
+        .loading-spinner {
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Modern button styles */
+        .btn-modern {
+            position: relative;
+            overflow: hidden;
+            transform: translateZ(0);
+            transition: all 0.2s ease;
+        }
+        .btn-modern:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        .btn-modern:active {
+            transform: translateY(0);
+        }
 
     </style>
 </head>
@@ -339,6 +398,44 @@
                         maxQuantityPerTransaction: 1000,
                         requireNotesForLargeTransactions: true,
                         preventNegativeStock: true
+                    },
+                    // New operator-friendly settings
+                    displayPreferences: {
+                        tableDensity: 'comfortable', // compact, comfortable, spacious
+                        showColumnLines: true,
+                        enableRowHover: true,
+                        defaultView: 'table', // table, grid, list
+                        itemsPerRow: 4, // for grid view
+                        showStockBadges: true,
+                        enableQuickEdit: true
+                    },
+                    operationalPreferences: {
+                        enableKeyboardShortcuts: true,
+                        autoSaveChanges: false,
+                        confirmBeforeDelete: true,
+                        defaultTransactionType: 'Salida',
+                        showRecentItems: true,
+                        recentItemsCount: 10,
+                        enableBulkOperations: true,
+                        showAdvancedFilters: false
+                    },
+                    dashboardCustomization: {
+                        showStockOverview: true,
+                        showRecentTransactions: true,
+                        showLowStockAlerts: true,
+                        showQuickActions: true,
+                        chartType: 'bar', // bar, line, pie
+                        refreshInterval: 300, // seconds
+                        defaultDateRange: '30days'
+                    },
+                    interfaceCustomization: {
+                        compactSidebar: false,
+                        sidebarPosition: 'left', // left, right
+                        showBreadcrumbs: true,
+                        animationsEnabled: true,
+                        highContrastMode: false,
+                        fontSize: 'medium', // small, medium, large
+                        headerStyle: 'modern' // classic, modern, minimal
                     }
                 }
             };
@@ -910,25 +1007,56 @@
         function renderSettingsView() {
             const mainContent = document.getElementById('main-content');
             mainContent.innerHTML = `
-            <div class="max-w-7xl mx-auto space-y-8">
+            <div class="max-w-7xl mx-auto space-y-6">
+                <!-- Header -->
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h1 class="text-3xl font-bold themed-text">Configuración del Sistema</h1>
+                        <p class="text-lg themed-text-light mt-1">Personaliza la experiencia de la aplicación según tus preferencias</p>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <button id="reset-settings-btn" class="bg-gray-500 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded-lg flex items-center space-x-2">
+                            <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+                            <span>Restablecer</span>
+                        </button>
+                        <button id="save-settings-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-lg flex items-center space-x-2">
+                            <i data-lucide="save" class="w-4 h-4"></i>
+                            <span>Guardar Cambios</span>
+                        </button>
+                    </div>
+                </div>
+
                 <!-- Configuration Tabs -->
-                <div class="themed-card rounded-lg shadow-md">
-                    <div class="p-4">
-                        <nav class="-mb-px flex space-x-8 overflow-x-auto" aria-label="Settings Tabs">
-                            <a href="#" class="settings-tab-link whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm border-indigo-500 text-indigo-600" data-tab="general">General</a>
-                            <a href="#" class="settings-tab-link whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm border-transparent themed-text-light" data-tab="stock">Gestión de Stock</a>
-                            <a href="#" class="settings-tab-link whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm border-transparent themed-text-light" data-tab="notifications">Notificaciones</a>
-                            <a href="#" class="settings-tab-link whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm border-transparent themed-text-light" data-tab="workflow">Flujos de Trabajo</a>
-                            <a href="#" class="settings-tab-link whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm border-transparent themed-text-light" data-tab="data">Gestión de Datos</a>
-                            <a href="#" class="settings-tab-link whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm border-transparent themed-text-light" data-tab="categories">Categorías</a>
+                <div class="themed-card rounded-xl shadow-lg border border-opacity-20">
+                    <div class="border-b border-opacity-10 px-6 py-4">
+                        <nav class="flex space-x-8 overflow-x-auto scrollbar-hide" aria-label="Settings Tabs">
+                            <a href="#" class="settings-tab-link whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm border-indigo-500 text-indigo-600 transition-all duration-200" data-tab="general">
+                                <i data-lucide="settings" class="w-4 h-4 inline mr-2"></i>General
+                            </a>
+                            <a href="#" class="settings-tab-link whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm border-transparent themed-text-light hover:text-indigo-500 transition-all duration-200" data-tab="display">
+                                <i data-lucide="monitor" class="w-4 h-4 inline mr-2"></i>Visualización
+                            </a>
+                            <a href="#" class="settings-tab-link whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm border-transparent themed-text-light hover:text-indigo-500 transition-all duration-200" data-tab="operational">
+                                <i data-lucide="zap" class="w-4 h-4 inline mr-2"></i>Operacional
+                            </a>
+                            <a href="#" class="settings-tab-link whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm border-transparent themed-text-light hover:text-indigo-500 transition-all duration-200" data-tab="dashboard">
+                                <i data-lucide="layout-dashboard" class="w-4 h-4 inline mr-2"></i>Panel de Control
+                            </a>
+                            <a href="#" class="settings-tab-link whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm border-transparent themed-text-light hover:text-indigo-500 transition-all duration-200" data-tab="stock">
+                                <i data-lucide="package" class="w-4 h-4 inline mr-2"></i>Gestión de Stock
+                            </a>
+                            <a href="#" class="settings-tab-link whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm border-transparent themed-text-light hover:text-indigo-500 transition-all duration-200" data-tab="notifications">
+                                <i data-lucide="bell" class="w-4 h-4 inline mr-2"></i>Notificaciones
+                            </a>
+                            <a href="#" class="settings-tab-link whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm border-transparent themed-text-light hover:text-indigo-500 transition-all duration-200" data-tab="workflow">
+                                <i data-lucide="workflow" class="w-4 h-4 inline mr-2"></i>Flujos de Trabajo
+                            </a>
+                            <a href="#" class="settings-tab-link whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm border-transparent themed-text-light hover:text-indigo-500 transition-all duration-200" data-tab="categories">
+                                <i data-lucide="folder" class="w-4 h-4 inline mr-2"></i>Categorías
+                            </a>
                         </nav>
                     </div>
-                    <div id="settings-tab-content" class="p-6"></div>
-                </div>
-                
-                <!-- Save Button -->
-                <div class="themed-card p-6 rounded-lg shadow-md text-center">
-                    <button id="save-settings-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-8 rounded-lg flex items-center justify-center space-x-2 mx-auto"><i data-lucide="save"></i><span>Guardar Todas las Configuraciones</span></button>
+                    <div id="settings-tab-content" class="p-8"></div>
                 </div>
             </div>
             `;
@@ -951,41 +1079,377 @@
             switch(tabName) {
                 case 'general':
                     content.innerHTML = `
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div class="space-y-4">
-                                <h3 class="text-lg font-semibold flex items-center"><i data-lucide="settings" class="mr-2"></i>Configuración General</h3>
-                                <div>
-                                    <label for="items-per-page" class="block text-sm font-medium themed-text-light mb-1">Artículos por página</label>
-                                    <input type="number" id="items-per-page" value="${state.settings.itemsPerPage || 10}" min="5" max="50" step="5" class="themed-input w-full border rounded-md px-3 py-2">
+                        <div class="space-y-8">
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                                <!-- Basic Configuration -->
+                                <div class="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-slate-800 dark:to-slate-700 rounded-xl p-6 border border-blue-200 dark:border-slate-600">
+                                    <div class="flex items-center mb-4">
+                                        <div class="p-2 bg-indigo-100 dark:bg-indigo-900 rounded-lg mr-3">
+                                            <i data-lucide="settings" class="w-5 h-5 text-indigo-600 dark:text-indigo-400"></i>
+                                        </div>
+                                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Configuración Básica</h3>
+                                    </div>
+                                    <div class="space-y-4">
+                                        <div>
+                                            <label for="items-per-page" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Artículos por página</label>
+                                            <input type="number" id="items-per-page" value="${state.settings.itemsPerPage || 10}" min="5" max="50" step="5" class="themed-input w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors">
+                                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Controla cuántos elementos se muestran por página en las listas</p>
+                                        </div>
+                                        <div>
+                                            <label for="default-unit" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Unidad por defecto</label>
+                                            <input type="text" id="default-unit" value="${state.settings.defaultUnit || 'pza'}" class="themed-input w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors">
+                                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Unidad de medida que se asigna automáticamente a nuevos productos</p>
+                                        </div>
+                                        <div>
+                                            <label for="default-min-stock" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Stock mínimo por defecto</label>
+                                            <input type="number" id="default-min-stock" value="${state.settings.defaultMinStock || 5}" min="0" class="themed-input w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors">
+                                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Cantidad mínima de stock que se asigna automáticamente a nuevos productos</p>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div>
-                                    <label for="default-unit" class="block text-sm font-medium themed-text-light mb-1">Unidad por defecto</label>
-                                    <input type="text" id="default-unit" value="${state.settings.defaultUnit || 'pza'}" class="themed-input w-full border rounded-md px-3 py-2">
-                                </div>
-                                <div>
-                                    <label for="default-min-stock" class="block text-sm font-medium themed-text-light mb-1">Stock mínimo por defecto</label>
-                                    <input type="number" id="default-min-stock" value="${state.settings.defaultMinStock || 5}" min="0" class="themed-input w-full border rounded-md px-3 py-2">
+                                
+                                <!-- Security & Session -->
+                                <div class="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-slate-800 dark:to-slate-700 rounded-xl p-6 border border-green-200 dark:border-slate-600">
+                                    <div class="flex items-center mb-4">
+                                        <div class="p-2 bg-green-100 dark:bg-green-900 rounded-lg mr-3">
+                                            <i data-lucide="shield" class="w-5 h-5 text-green-600 dark:text-green-400"></i>
+                                        </div>
+                                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Seguridad y Sesión</h3>
+                                    </div>
+                                    <div class="space-y-5">
+                                        <div>
+                                            <label for="session-timeout" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tiempo límite de sesión (minutos)</label>
+                                            <input type="number" id="session-timeout" value="${state.settings.sessionTimeout || 480}" min="30" max="1440" class="themed-input w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors">
+                                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Tiempo antes de cerrar sesión automáticamente por inactividad</p>
+                                        </div>
+                                        <div class="flex items-center justify-between p-4 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-gray-600">
+                                            <div>
+                                                <label for="enable-audit-log" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Registro de auditoría</label>
+                                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Mantiene un registro detallado de todas las acciones realizadas</p>
+                                            </div>
+                                            <label class="switch">
+                                                <input type="checkbox" id="enable-audit-log" ${state.settings.enableAuditLog ? 'checked' : ''}>
+                                                <span class="slider"></span>
+                                            </label>
+                                        </div>
+                                        <div class="flex items-center justify-between p-4 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-gray-600">
+                                            <div>
+                                                <label for="barcode-scanning" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Escaneo de códigos de barras</label>
+                                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Habilita funciones de lectura de códigos de barras</p>
+                                            </div>
+                                            <label class="switch">
+                                                <input type="checkbox" id="barcode-scanning" ${state.settings.barcodeScanning ? 'checked' : ''}>
+                                                <span class="slider"></span>
+                                            </label>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="space-y-4">
-                                <h3 class="text-lg font-semibold flex items-center"><i data-lucide="shield" class="mr-2"></i>Seguridad y Sesión</h3>
-                                <div>
-                                    <label for="session-timeout" class="block text-sm font-medium themed-text-light mb-1">Tiempo límite de sesión (minutos)</label>
-                                    <input type="number" id="session-timeout" value="${state.settings.sessionTimeout || 480}" min="30" max="1440" class="themed-input w-full border rounded-md px-3 py-2">
+                        </div>
+                    `;
+                    break;
+                case 'display':
+                    content.innerHTML = `
+                        <div class="space-y-8">
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                                <!-- Table & List Settings -->
+                                <div class="bg-gradient-to-br from-purple-50 to-violet-50 dark:from-slate-800 dark:to-slate-700 rounded-xl p-6 border border-purple-200 dark:border-slate-600">
+                                    <div class="flex items-center mb-4">
+                                        <div class="p-2 bg-purple-100 dark:bg-purple-900 rounded-lg mr-3">
+                                            <i data-lucide="table" class="w-5 h-5 text-purple-600 dark:text-purple-400"></i>
+                                        </div>
+                                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Visualización de Tablas</h3>
+                                    </div>
+                                    <div class="space-y-5">
+                                        <div>
+                                            <label for="table-density" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Densidad de tabla</label>
+                                            <select id="table-density" class="themed-input w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors">
+                                                <option value="compact" ${state.settings.displayPreferences?.tableDensity === 'compact' ? 'selected' : ''}>Compacta</option>
+                                                <option value="comfortable" ${state.settings.displayPreferences?.tableDensity === 'comfortable' ? 'selected' : ''}>Cómoda</option>
+                                                <option value="spacious" ${state.settings.displayPreferences?.tableDensity === 'spacious' ? 'selected' : ''}>Espaciosa</option>
+                                            </select>
+                                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Controla el espaciado entre filas en las tablas</p>
+                                        </div>
+                                        <div>
+                                            <label for="default-view" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Vista por defecto</label>
+                                            <select id="default-view" class="themed-input w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors">
+                                                <option value="table" ${state.settings.displayPreferences?.defaultView === 'table' ? 'selected' : ''}>Tabla</option>
+                                                <option value="grid" ${state.settings.displayPreferences?.defaultView === 'grid' ? 'selected' : ''}>Cuadrícula</option>
+                                                <option value="list" ${state.settings.displayPreferences?.defaultView === 'list' ? 'selected' : ''}>Lista</option>
+                                            </select>
+                                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Formato de visualización preferido para el inventario</p>
+                                        </div>
+                                        <div class="flex items-center justify-between p-4 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-gray-600">
+                                            <div>
+                                                <label for="show-column-lines" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Mostrar líneas de columnas</label>
+                                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Muestra bordes entre columnas en las tablas</p>
+                                            </div>
+                                            <label class="switch">
+                                                <input type="checkbox" id="show-column-lines" ${state.settings.displayPreferences?.showColumnLines ? 'checked' : ''}>
+                                                <span class="slider"></span>
+                                            </label>
+                                        </div>
+                                        <div class="flex items-center justify-between p-4 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-gray-600">
+                                            <div>
+                                                <label for="enable-row-hover" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Resaltar filas al pasar el cursor</label>
+                                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Destaca la fila sobre la que está el cursor</p>
+                                            </div>
+                                            <label class="switch">
+                                                <input type="checkbox" id="enable-row-hover" ${state.settings.displayPreferences?.enableRowHover ? 'checked' : ''}>
+                                                <span class="slider"></span>
+                                            </label>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="flex items-center justify-between">
-                                    <label for="enable-audit-log" class="block text-sm font-medium themed-text-light">Registro de auditoría</label>
-                                    <label class="switch">
-                                        <input type="checkbox" id="enable-audit-log" ${state.settings.enableAuditLog ? 'checked' : ''}>
-                                        <span class="slider"></span>
-                                    </label>
+                                
+                                <!-- Interface Customization -->
+                                <div class="bg-gradient-to-br from-orange-50 to-amber-50 dark:from-slate-800 dark:to-slate-700 rounded-xl p-6 border border-orange-200 dark:border-slate-600">
+                                    <div class="flex items-center mb-4">
+                                        <div class="p-2 bg-orange-100 dark:bg-orange-900 rounded-lg mr-3">
+                                            <i data-lucide="palette" class="w-5 h-5 text-orange-600 dark:text-orange-400"></i>
+                                        </div>
+                                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Personalización de Interfaz</h3>
+                                    </div>
+                                    <div class="space-y-5">
+                                        <div>
+                                            <label for="font-size" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tamaño de fuente</label>
+                                            <select id="font-size" class="themed-input w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors">
+                                                <option value="small" ${state.settings.interfaceCustomization?.fontSize === 'small' ? 'selected' : ''}>Pequeña</option>
+                                                <option value="medium" ${state.settings.interfaceCustomization?.fontSize === 'medium' ? 'selected' : ''}>Mediana</option>
+                                                <option value="large" ${state.settings.interfaceCustomization?.fontSize === 'large' ? 'selected' : ''}>Grande</option>
+                                            </select>
+                                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Ajusta el tamaño del texto en toda la aplicación</p>
+                                        </div>
+                                        <div>
+                                            <label for="header-style" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Estilo de encabezado</label>
+                                            <select id="header-style" class="themed-input w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors">
+                                                <option value="classic" ${state.settings.interfaceCustomization?.headerStyle === 'classic' ? 'selected' : ''}>Clásico</option>
+                                                <option value="modern" ${state.settings.interfaceCustomization?.headerStyle === 'modern' ? 'selected' : ''}>Moderno</option>
+                                                <option value="minimal" ${state.settings.interfaceCustomization?.headerStyle === 'minimal' ? 'selected' : ''}>Minimalista</option>
+                                            </select>
+                                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Cambia el aspecto del encabezado de la aplicación</p>
+                                        </div>
+                                        <div class="flex items-center justify-between p-4 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-gray-600">
+                                            <div>
+                                                <label for="compact-sidebar" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Barra lateral compacta</label>
+                                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Reduce el ancho de la barra lateral para ahorrar espacio</p>
+                                            </div>
+                                            <label class="switch">
+                                                <input type="checkbox" id="compact-sidebar" ${state.settings.interfaceCustomization?.compactSidebar ? 'checked' : ''}>
+                                                <span class="slider"></span>
+                                            </label>
+                                        </div>
+                                        <div class="flex items-center justify-between p-4 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-gray-600">
+                                            <div>
+                                                <label for="animations-enabled" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Animaciones habilitadas</label>
+                                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Controla si se muestran transiciones y animaciones</p>
+                                            </div>
+                                            <label class="switch">
+                                                <input type="checkbox" id="animations-enabled" ${state.settings.interfaceCustomization?.animationsEnabled ? 'checked' : ''}>
+                                                <span class="slider"></span>
+                                            </label>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="flex items-center justify-between">
-                                    <label for="barcode-scanning" class="block text-sm font-medium themed-text-light">Escaneo de códigos de barras</label>
-                                    <label class="switch">
-                                        <input type="checkbox" id="barcode-scanning" ${state.settings.barcodeScanning ? 'checked' : ''}>
-                                        <span class="slider"></span>
-                                    </label>
+                            </div>
+                        </div>
+                    `;
+                    break;
+                case 'operational':
+                    content.innerHTML = `
+                        <div class="space-y-8">
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                                <!-- Quick Actions & Shortcuts -->
+                                <div class="bg-gradient-to-br from-cyan-50 to-blue-50 dark:from-slate-800 dark:to-slate-700 rounded-xl p-6 border border-cyan-200 dark:border-slate-600">
+                                    <div class="flex items-center mb-4">
+                                        <div class="p-2 bg-cyan-100 dark:bg-cyan-900 rounded-lg mr-3">
+                                            <i data-lucide="zap" class="w-5 h-5 text-cyan-600 dark:text-cyan-400"></i>
+                                        </div>
+                                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Acciones Rápidas</h3>
+                                    </div>
+                                    <div class="space-y-5">
+                                        <div>
+                                            <label for="default-transaction-type" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tipo de transacción por defecto</label>
+                                            <select id="default-transaction-type" class="themed-input w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors">
+                                                <option value="Entrada" ${state.settings.operationalPreferences?.defaultTransactionType === 'Entrada' ? 'selected' : ''}>Entrada</option>
+                                                <option value="Salida" ${state.settings.operationalPreferences?.defaultTransactionType === 'Salida' ? 'selected' : ''}>Salida</option>
+                                                <option value="Ajuste" ${state.settings.operationalPreferences?.defaultTransactionType === 'Ajuste' ? 'selected' : ''}>Ajuste</option>
+                                            </select>
+                                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Tipo de transacción preseleccionado al registrar movimientos</p>
+                                        </div>
+                                        <div>
+                                            <label for="recent-items-count" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Elementos recientes a mostrar</label>
+                                            <input type="number" id="recent-items-count" value="${state.settings.operationalPreferences?.recentItemsCount || 10}" min="5" max="50" class="themed-input w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors">
+                                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Cantidad de elementos recientes que se muestran para acceso rápido</p>
+                                        </div>
+                                        <div class="flex items-center justify-between p-4 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-gray-600">
+                                            <div>
+                                                <label for="enable-keyboard-shortcuts" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Atajos de teclado</label>
+                                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Habilita atajos de teclado para acciones comunes</p>
+                                            </div>
+                                            <label class="switch">
+                                                <input type="checkbox" id="enable-keyboard-shortcuts" ${state.settings.operationalPreferences?.enableKeyboardShortcuts ? 'checked' : ''}>
+                                                <span class="slider"></span>
+                                            </label>
+                                        </div>
+                                        <div class="flex items-center justify-between p-4 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-gray-600">
+                                            <div>
+                                                <label for="show-recent-items" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Mostrar elementos recientes</label>
+                                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Muestra una lista de elementos utilizados recientemente</p>
+                                            </div>
+                                            <label class="switch">
+                                                <input type="checkbox" id="show-recent-items" ${state.settings.operationalPreferences?.showRecentItems ? 'checked' : ''}>
+                                                <span class="slider"></span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Workflow Preferences -->
+                                <div class="bg-gradient-to-br from-teal-50 to-emerald-50 dark:from-slate-800 dark:to-slate-700 rounded-xl p-6 border border-teal-200 dark:border-slate-600">
+                                    <div class="flex items-center mb-4">
+                                        <div class="p-2 bg-teal-100 dark:bg-teal-900 rounded-lg mr-3">
+                                            <i data-lucide="workflow" class="w-5 h-5 text-teal-600 dark:text-teal-400"></i>
+                                        </div>
+                                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Preferencias de Flujo de Trabajo</h3>
+                                    </div>
+                                    <div class="space-y-5">
+                                        <div class="flex items-center justify-between p-4 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-gray-600">
+                                            <div>
+                                                <label for="auto-save-changes" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Guardado automático</label>
+                                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Guarda automáticamente los cambios sin confirmación</p>
+                                            </div>
+                                            <label class="switch">
+                                                <input type="checkbox" id="auto-save-changes" ${state.settings.operationalPreferences?.autoSaveChanges ? 'checked' : ''}>
+                                                <span class="slider"></span>
+                                            </label>
+                                        </div>
+                                        <div class="flex items-center justify-between p-4 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-gray-600">
+                                            <div>
+                                                <label for="confirm-before-delete" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Confirmar antes de eliminar</label>
+                                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Solicita confirmación antes de eliminar elementos</p>
+                                            </div>
+                                            <label class="switch">
+                                                <input type="checkbox" id="confirm-before-delete" ${state.settings.operationalPreferences?.confirmBeforeDelete ? 'checked' : ''}>
+                                                <span class="slider"></span>
+                                            </label>
+                                        </div>
+                                        <div class="flex items-center justify-between p-4 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-gray-600">
+                                            <div>
+                                                <label for="enable-bulk-operations" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Operaciones en lote</label>
+                                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Permite realizar acciones en múltiples elementos a la vez</p>
+                                            </div>
+                                            <label class="switch">
+                                                <input type="checkbox" id="enable-bulk-operations" ${state.settings.operationalPreferences?.enableBulkOperations ? 'checked' : ''}>
+                                                <span class="slider"></span>
+                                            </label>
+                                        </div>
+                                        <div class="flex items-center justify-between p-4 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-gray-600">
+                                            <div>
+                                                <label for="show-advanced-filters" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Filtros avanzados</label>
+                                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Muestra opciones de filtrado avanzadas por defecto</p>
+                                            </div>
+                                            <label class="switch">
+                                                <input type="checkbox" id="show-advanced-filters" ${state.settings.operationalPreferences?.showAdvancedFilters ? 'checked' : ''}>
+                                                <span class="slider"></span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    break;
+                case 'dashboard':
+                    content.innerHTML = `
+                        <div class="space-y-8">
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                                <!-- Dashboard Widgets -->
+                                <div class="bg-gradient-to-br from-pink-50 to-rose-50 dark:from-slate-800 dark:to-slate-700 rounded-xl p-6 border border-pink-200 dark:border-slate-600">
+                                    <div class="flex items-center mb-4">
+                                        <div class="p-2 bg-pink-100 dark:bg-pink-900 rounded-lg mr-3">
+                                            <i data-lucide="layout-dashboard" class="w-5 h-5 text-pink-600 dark:text-pink-400"></i>
+                                        </div>
+                                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Widgets del Panel</h3>
+                                    </div>
+                                    <div class="space-y-5">
+                                        <div class="flex items-center justify-between p-4 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-gray-600">
+                                            <div>
+                                                <label for="show-stock-overview" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Resumen de stock</label>
+                                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Muestra widget con resumen general del inventario</p>
+                                            </div>
+                                            <label class="switch">
+                                                <input type="checkbox" id="show-stock-overview" ${state.settings.dashboardCustomization?.showStockOverview ? 'checked' : ''}>
+                                                <span class="slider"></span>
+                                            </label>
+                                        </div>
+                                        <div class="flex items-center justify-between p-4 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-gray-600">
+                                            <div>
+                                                <label for="show-recent-transactions" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Transacciones recientes</label>
+                                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Muestra widget con las últimas transacciones</p>
+                                            </div>
+                                            <label class="switch">
+                                                <input type="checkbox" id="show-recent-transactions" ${state.settings.dashboardCustomization?.showRecentTransactions ? 'checked' : ''}>
+                                                <span class="slider"></span>
+                                            </label>
+                                        </div>
+                                        <div class="flex items-center justify-between p-4 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-gray-600">
+                                            <div>
+                                                <label for="show-low-stock-alerts" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Alertas de stock bajo</label>
+                                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Muestra widget con productos con stock bajo</p>
+                                            </div>
+                                            <label class="switch">
+                                                <input type="checkbox" id="show-low-stock-alerts" ${state.settings.dashboardCustomization?.showLowStockAlerts ? 'checked' : ''}>
+                                                <span class="slider"></span>
+                                            </label>
+                                        </div>
+                                        <div class="flex items-center justify-between p-4 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-gray-600">
+                                            <div>
+                                                <label for="show-quick-actions" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Acciones rápidas</label>
+                                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Muestra widget con botones de acciones comunes</p>
+                                            </div>
+                                            <label class="switch">
+                                                <input type="checkbox" id="show-quick-actions" ${state.settings.dashboardCustomization?.showQuickActions ? 'checked' : ''}>
+                                                <span class="slider"></span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Chart & Display Options -->
+                                <div class="bg-gradient-to-br from-indigo-50 to-blue-50 dark:from-slate-800 dark:to-slate-700 rounded-xl p-6 border border-indigo-200 dark:border-slate-600">
+                                    <div class="flex items-center mb-4">
+                                        <div class="p-2 bg-indigo-100 dark:bg-indigo-900 rounded-lg mr-3">
+                                            <i data-lucide="bar-chart-3" class="w-5 h-5 text-indigo-600 dark:text-indigo-400"></i>
+                                        </div>
+                                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Gráficos y Visualización</h3>
+                                    </div>
+                                    <div class="space-y-5">
+                                        <div>
+                                            <label for="chart-type" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tipo de gráfico por defecto</label>
+                                            <select id="chart-type" class="themed-input w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors">
+                                                <option value="bar" ${state.settings.dashboardCustomization?.chartType === 'bar' ? 'selected' : ''}>Barras</option>
+                                                <option value="line" ${state.settings.dashboardCustomization?.chartType === 'line' ? 'selected' : ''}>Líneas</option>
+                                                <option value="pie" ${state.settings.dashboardCustomization?.chartType === 'pie' ? 'selected' : ''}>Circular</option>
+                                            </select>
+                                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Tipo de gráfico preferido para mostrar datos</p>
+                                        </div>
+                                        <div>
+                                            <label for="default-date-range" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Rango de fecha por defecto</label>
+                                            <select id="default-date-range" class="themed-input w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors">
+                                                <option value="7days" ${state.settings.dashboardCustomization?.defaultDateRange === '7days' ? 'selected' : ''}>Últimos 7 días</option>
+                                                <option value="30days" ${state.settings.dashboardCustomization?.defaultDateRange === '30days' ? 'selected' : ''}>Últimos 30 días</option>
+                                                <option value="90days" ${state.settings.dashboardCustomization?.defaultDateRange === '90days' ? 'selected' : ''}>Últimos 90 días</option>
+                                                <option value="year" ${state.settings.dashboardCustomization?.defaultDateRange === 'year' ? 'selected' : ''}>Último año</option>
+                                            </select>
+                                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Periodo de tiempo predeterminado para los informes</p>
+                                        </div>
+                                        <div>
+                                            <label for="refresh-interval" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Intervalo de actualización (segundos)</label>
+                                            <input type="number" id="refresh-interval" value="${state.settings.dashboardCustomization?.refreshInterval || 300}" min="30" max="3600" step="30" class="themed-input w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors">
+                                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Frecuencia con la que se actualizan automáticamente los datos del panel</p>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -993,48 +1457,80 @@
                     break;
                 case 'stock':
                     content.innerHTML = `
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div class="space-y-4">
-                                <h3 class="text-lg font-semibold flex items-center"><i data-lucide="package" class="mr-2"></i>Reabastecimiento Automático</h3>
-                                <div class="flex items-center justify-between">
-                                    <label for="auto-reorder-enabled" class="block text-sm font-medium themed-text-light">Habilitar reorden automático</label>
-                                    <label class="switch">
-                                        <input type="checkbox" id="auto-reorder-enabled" ${state.settings.autoReorderEnabled ? 'checked' : ''}>
-                                        <span class="slider"></span>
-                                    </label>
+                        <div class="space-y-8">
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                                <!-- Auto Reorder Settings -->
+                                <div class="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-slate-800 dark:to-slate-700 rounded-xl p-6 border border-green-200 dark:border-slate-600">
+                                    <div class="flex items-center mb-4">
+                                        <div class="p-2 bg-green-100 dark:bg-green-900 rounded-lg mr-3">
+                                            <i data-lucide="package" class="w-5 h-5 text-green-600 dark:text-green-400"></i>
+                                        </div>
+                                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Reabastecimiento Automático</h3>
+                                    </div>
+                                    <div class="space-y-5">
+                                        <div class="flex items-center justify-between p-4 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-gray-600">
+                                            <div>
+                                                <label for="auto-reorder-enabled" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Habilitar reorden automático</label>
+                                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Sugiere automáticamente cuándo reabastecer productos</p>
+                                            </div>
+                                            <label class="switch">
+                                                <input type="checkbox" id="auto-reorder-enabled" ${state.settings.autoReorderEnabled ? 'checked' : ''}>
+                                                <span class="slider"></span>
+                                            </label>
+                                        </div>
+                                        <div>
+                                            <label for="auto-reorder-threshold" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Umbral de reorden (% del stock mínimo)</label>
+                                            <input type="number" id="auto-reorder-threshold" value="${(state.settings.autoReorderThreshold || 0.2) * 100}" min="10" max="100" step="5" class="themed-input w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors">
+                                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Sugiere reabastecimiento cuando el stock esté por debajo de este porcentaje del mínimo</p>
+                                        </div>
+                                        <div class="flex items-center justify-between p-4 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-gray-600">
+                                            <div>
+                                                <label for="supplier-management" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Gestión de proveedores</label>
+                                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Habilita funciones de gestión de proveedores</p>
+                                            </div>
+                                            <label class="switch">
+                                                <input type="checkbox" id="supplier-management" ${state.settings.supplierManagement ? 'checked' : ''}>
+                                                <span class="slider"></span>
+                                            </label>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div>
-                                    <label for="auto-reorder-threshold" class="block text-sm font-medium themed-text-light mb-1">Umbral de reorden (% del stock mínimo)</label>
-                                    <input type="number" id="auto-reorder-threshold" value="${(state.settings.autoReorderThreshold || 0.2) * 100}" min="10" max="100" step="5" class="themed-input w-full border rounded-md px-3 py-2">
-                                    <p class="text-xs themed-text-light mt-1">Sugerir reabastecimiento cuando el stock esté por debajo de este porcentaje del mínimo</p>
-                                </div>
-                                <div class="flex items-center justify-between">
-                                    <label for="supplier-management" class="block text-sm font-medium themed-text-light">Gestión de proveedores</label>
-                                    <label class="switch">
-                                        <input type="checkbox" id="supplier-management" ${state.settings.supplierManagement ? 'checked' : ''}>
-                                        <span class="slider"></span>
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="space-y-4">
-                                <h3 class="text-lg font-semibold flex items-center"><i data-lucide="alert-triangle" class="mr-2"></i>Validaciones de Stock</h3>
-                                <div>
-                                    <label for="max-quantity-transaction" class="block text-sm font-medium themed-text-light mb-1">Cantidad máxima por transacción</label>
-                                    <input type="number" id="max-quantity-transaction" value="${state.settings.customValidations?.maxQuantityPerTransaction || 1000}" min="1" class="themed-input w-full border rounded-md px-3 py-2">
-                                </div>
-                                <div class="flex items-center justify-between">
-                                    <label for="require-notes-large" class="block text-sm font-medium themed-text-light">Requerir notas en transacciones grandes</label>
-                                    <label class="switch">
-                                        <input type="checkbox" id="require-notes-large" ${state.settings.customValidations?.requireNotesForLargeTransactions ? 'checked' : ''}>
-                                        <span class="slider"></span>
-                                    </label>
-                                </div>
-                                <div class="flex items-center justify-between">
-                                    <label for="prevent-negative-stock" class="block text-sm font-medium themed-text-light">Prevenir stock negativo</label>
-                                    <label class="switch">
-                                        <input type="checkbox" id="prevent-negative-stock" ${state.settings.customValidations?.preventNegativeStock ? 'checked' : ''}>
-                                        <span class="slider"></span>
-                                    </label>
+                                
+                                <!-- Stock Validations -->
+                                <div class="bg-gradient-to-br from-red-50 to-pink-50 dark:from-slate-800 dark:to-slate-700 rounded-xl p-6 border border-red-200 dark:border-slate-600">
+                                    <div class="flex items-center mb-4">
+                                        <div class="p-2 bg-red-100 dark:bg-red-900 rounded-lg mr-3">
+                                            <i data-lucide="alert-triangle" class="w-5 h-5 text-red-600 dark:text-red-400"></i>
+                                        </div>
+                                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Validaciones de Stock</h3>
+                                    </div>
+                                    <div class="space-y-5">
+                                        <div>
+                                            <label for="max-quantity-transaction" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Cantidad máxima por transacción</label>
+                                            <input type="number" id="max-quantity-transaction" value="${state.settings.customValidations?.maxQuantityPerTransaction || 1000}" min="1" class="themed-input w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors">
+                                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Límite máximo de productos que se pueden mover en una sola transacción</p>
+                                        </div>
+                                        <div class="flex items-center justify-between p-4 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-gray-600">
+                                            <div>
+                                                <label for="require-notes-large" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Requerir notas en transacciones grandes</label>
+                                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Obliga a incluir notas cuando las cantidades son altas</p>
+                                            </div>
+                                            <label class="switch">
+                                                <input type="checkbox" id="require-notes-large" ${state.settings.customValidations?.requireNotesForLargeTransactions ? 'checked' : ''}>
+                                                <span class="slider"></span>
+                                            </label>
+                                        </div>
+                                        <div class="flex items-center justify-between p-4 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-gray-600">
+                                            <div>
+                                                <label for="prevent-negative-stock" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Prevenir stock negativo</label>
+                                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Impide realizar operaciones que resulten en stock negativo</p>
+                                            </div>
+                                            <label class="switch">
+                                                <input type="checkbox" id="prevent-negative-stock" ${state.settings.customValidations?.preventNegativeStock ? 'checked' : ''}>
+                                                <span class="slider"></span>
+                                            </label>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -1042,42 +1538,69 @@
                     break;
                 case 'notifications':
                     content.innerHTML = `
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div class="space-y-4">
-                                <h3 class="text-lg font-semibold flex items-center"><i data-lucide="bell" class="mr-2"></i>Alertas de Stock</h3>
-                                <div class="flex items-center justify-between">
-                                    <label for="low-stock-notifications" class="block text-sm font-medium themed-text-light">Alertas de stock bajo</label>
-                                    <label class="switch">
-                                        <input type="checkbox" id="low-stock-notifications" ${state.settings.lowStockNotifications ? 'checked' : ''}>
-                                        <span class="slider"></span>
-                                    </label>
+                        <div class="space-y-8">
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                                <!-- Stock Alerts -->
+                                <div class="bg-gradient-to-br from-yellow-50 to-orange-50 dark:from-slate-800 dark:to-slate-700 rounded-xl p-6 border border-yellow-200 dark:border-slate-600">
+                                    <div class="flex items-center mb-4">
+                                        <div class="p-2 bg-yellow-100 dark:bg-yellow-900 rounded-lg mr-3">
+                                            <i data-lucide="bell" class="w-5 h-5 text-yellow-600 dark:text-yellow-400"></i>
+                                        </div>
+                                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Alertas de Stock</h3>
+                                    </div>
+                                    <div class="space-y-5">
+                                        <div class="flex items-center justify-between p-4 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-gray-600">
+                                            <div>
+                                                <label for="low-stock-notifications" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Alertas de stock bajo</label>
+                                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Recibe notificaciones cuando el stock esté bajo</p>
+                                            </div>
+                                            <label class="switch">
+                                                <input type="checkbox" id="low-stock-notifications" ${state.settings.lowStockNotifications ? 'checked' : ''}>
+                                                <span class="slider"></span>
+                                            </label>
+                                        </div>
+                                        <div>
+                                            <label for="notification-emails" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Correos para notificaciones</label>
+                                            <textarea id="notification-emails" rows="3" class="themed-input w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-colors" placeholder="correo1@ejemplo.com, correo2@ejemplo.com">${state.settings.notificationEmails || ''}</textarea>
+                                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Separar múltiples correos con comas</p>
+                                        </div>
+                                        <div>
+                                            <label for="stock-alert-days" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Días para alertas de stock</label>
+                                            <input type="text" id="stock-alert-days" value="${(state.settings.stockAlertDays || [1, 7, 30]).join(', ')}" class="themed-input w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-colors" placeholder="1, 7, 30">
+                                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Intervalos en días para mostrar alertas (separados por comas)</p>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div>
-                                    <label for="notification-emails" class="block text-sm font-medium themed-text-light mb-1">Correos para notificaciones</label>
-                                    <textarea id="notification-emails" rows="3" class="themed-input w-full border rounded-md px-3 py-2" placeholder="separar correos por coma">${state.settings.notificationEmails || ''}</textarea>
-                                </div>
-                                <div>
-                                    <label for="stock-alert-days" class="block text-sm font-medium themed-text-light mb-1">Días para alertas de stock</label>
-                                    <input type="text" id="stock-alert-days" value="${(state.settings.stockAlertDays || [1, 7, 30]).join(', ')}" class="themed-input w-full border rounded-md px-3 py-2" placeholder="1, 7, 30">
-                                    <p class="text-xs themed-text-light mt-1">Mostrar alertas en estos intervalos (días)</p>
-                                </div>
-                            </div>
-                            <div class="space-y-4">
-                                <h3 class="text-lg font-semibold flex items-center"><i data-lucide="calendar" class="mr-2"></i>Reportes Programados</h3>
-                                <div class="flex items-center justify-between">
-                                    <label for="enable-scheduled-reports" class="block text-sm font-medium themed-text-light">Habilitar reportes automáticos</label>
-                                    <label class="switch">
-                                        <input type="checkbox" id="enable-scheduled-reports" ${state.settings.enableScheduledReports ? 'checked' : ''}>
-                                        <span class="slider"></span>
-                                    </label>
-                                </div>
-                                <div>
-                                    <label for="report-schedule" class="block text-sm font-medium themed-text-light mb-1">Frecuencia de reportes</label>
-                                    <select id="report-schedule" class="themed-input w-full border rounded-md px-3 py-2">
-                                        <option value="daily" ${state.settings.reportSchedule === 'daily' ? 'selected' : ''}>Diario</option>
-                                        <option value="weekly" ${state.settings.reportSchedule === 'weekly' ? 'selected' : ''}>Semanal</option>
-                                        <option value="monthly" ${state.settings.reportSchedule === 'monthly' ? 'selected' : ''}>Mensual</option>
-                                    </select>
+                                
+                                <!-- Scheduled Reports -->
+                                <div class="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-slate-800 dark:to-slate-700 rounded-xl p-6 border border-blue-200 dark:border-slate-600">
+                                    <div class="flex items-center mb-4">
+                                        <div class="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg mr-3">
+                                            <i data-lucide="calendar" class="w-5 h-5 text-blue-600 dark:text-blue-400"></i>
+                                        </div>
+                                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Reportes Programados</h3>
+                                    </div>
+                                    <div class="space-y-5">
+                                        <div class="flex items-center justify-between p-4 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-gray-600">
+                                            <div>
+                                                <label for="enable-scheduled-reports" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Habilitar reportes automáticos</label>
+                                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Genera y envía reportes de forma automática</p>
+                                            </div>
+                                            <label class="switch">
+                                                <input type="checkbox" id="enable-scheduled-reports" ${state.settings.enableScheduledReports ? 'checked' : ''}>
+                                                <span class="slider"></span>
+                                            </label>
+                                        </div>
+                                        <div>
+                                            <label for="report-schedule" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Frecuencia de reportes</label>
+                                            <select id="report-schedule" class="themed-input w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                                                <option value="daily" ${state.settings.reportSchedule === 'daily' ? 'selected' : ''}>Diario</option>
+                                                <option value="weekly" ${state.settings.reportSchedule === 'weekly' ? 'selected' : ''}>Semanal</option>
+                                                <option value="monthly" ${state.settings.reportSchedule === 'monthly' ? 'selected' : ''}>Mensual</option>
+                                            </select>
+                                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Con qué frecuencia se generan los reportes automáticos</p>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -1085,33 +1608,57 @@
                     break;
                 case 'workflow':
                     content.innerHTML = `
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div class="space-y-4">
-                                <h3 class="text-lg font-semibold flex items-center"><i data-lucide="workflow" class="mr-2"></i>Aprobaciones</h3>
-                                <div class="flex items-center justify-between">
-                                    <label for="enable-workflow-approvals" class="block text-sm font-medium themed-text-light">Requerir aprobaciones</label>
-                                    <label class="switch">
-                                        <input type="checkbox" id="enable-workflow-approvals" ${state.settings.enableWorkflowApprovals ? 'checked' : ''}>
-                                        <span class="slider"></span>
-                                    </label>
+                        <div class="space-y-8">
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                                <!-- Approval Workflows -->
+                                <div class="bg-gradient-to-br from-purple-50 to-violet-50 dark:from-slate-800 dark:to-slate-700 rounded-xl p-6 border border-purple-200 dark:border-slate-600">
+                                    <div class="flex items-center mb-4">
+                                        <div class="p-2 bg-purple-100 dark:bg-purple-900 rounded-lg mr-3">
+                                            <i data-lucide="workflow" class="w-5 h-5 text-purple-600 dark:text-purple-400"></i>
+                                        </div>
+                                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Flujos de Aprobación</h3>
+                                    </div>
+                                    <div class="space-y-5">
+                                        <div class="flex items-center justify-between p-4 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-gray-600">
+                                            <div>
+                                                <label for="enable-workflow-approvals" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Requerir aprobaciones</label>
+                                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Requiere aprobación para transacciones importantes</p>
+                                            </div>
+                                            <label class="switch">
+                                                <input type="checkbox" id="enable-workflow-approvals" ${state.settings.enableWorkflowApprovals ? 'checked' : ''}>
+                                                <span class="slider"></span>
+                                            </label>
+                                        </div>
+                                        <div>
+                                            <label for="approval-threshold" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Umbral para aprobación (cantidad)</label>
+                                            <input type="number" id="approval-threshold" value="${state.settings.approvalThreshold || 100}" min="1" class="themed-input w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors">
+                                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Transacciones superiores a esta cantidad requerirán aprobación de supervisor</p>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div>
-                                    <label for="approval-threshold" class="block text-sm font-medium themed-text-light mb-1">Umbral para aprobación (cantidad)</label>
-                                    <input type="number" id="approval-threshold" value="${state.settings.approvalThreshold || 100}" min="1" class="themed-input w-full border rounded-md px-3 py-2">
-                                    <p class="text-xs themed-text-light mt-1">Transacciones superiores a esta cantidad requerirán aprobación</p>
-                                </div>
-                            </div>
-                            <div class="space-y-4">
-                                <h3 class="text-lg font-semibold flex items-center"><i data-lucide="database" class="mr-2"></i>Retención de Datos</h3>
-                                <div>
-                                    <label for="data-retention-days" class="block text-sm font-medium themed-text-light mb-1">Días de retención de historial</label>
-                                    <input type="number" id="data-retention-days" value="${state.settings.dataRetentionDays || 365}" min="30" max="2555" class="themed-input w-full border rounded-md px-3 py-2">
-                                    <p class="text-xs themed-text-light mt-1">Tiempo para mantener registros históricos antes del archivado automático</p>
-                                </div>
-                                <div class="mt-4">
-                                    <button id="archive-old-data-btn" class="bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 px-4 rounded flex items-center space-x-2">
-                                        <i data-lucide="archive"></i><span>Archivar Datos Antiguos</span>
-                                    </button>
+                                
+                                <!-- Data Management -->
+                                <div class="bg-gradient-to-br from-gray-50 to-slate-50 dark:from-slate-800 dark:to-slate-700 rounded-xl p-6 border border-gray-200 dark:border-slate-600">
+                                    <div class="flex items-center mb-4">
+                                        <div class="p-2 bg-gray-100 dark:bg-gray-900 rounded-lg mr-3">
+                                            <i data-lucide="database" class="w-5 h-5 text-gray-600 dark:text-gray-400"></i>
+                                        </div>
+                                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Gestión de Datos</h3>
+                                    </div>
+                                    <div class="space-y-5">
+                                        <div>
+                                            <label for="data-retention-days" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Días de retención de historial</label>
+                                            <input type="number" id="data-retention-days" value="${state.settings.dataRetentionDays || 365}" min="30" max="2555" class="themed-input w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-gray-500 focus:border-gray-500 transition-colors">
+                                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Tiempo para mantener registros históricos antes del archivado automático</p>
+                                        </div>
+                                        <div class="pt-4">
+                                            <button id="archive-old-data-btn" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-medium py-2.5 px-4 rounded-lg flex items-center justify-center space-x-2 transition-colors">
+                                                <i data-lucide="archive" class="w-4 h-4"></i>
+                                                <span>Archivar Datos Antiguos</span>
+                                            </button>
+                                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">Archiva registros más antiguos que el período de retención configurado</p>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -1150,54 +1697,116 @@
                     break;
                 case 'categories':
                     content.innerHTML = `
-                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                            <div class="space-y-4">
-                                <h3 class="text-lg font-semibold flex items-center"><i data-lucide="layout-list" class="mr-2"></i>Gestionar Categorías</h3>
-                                <div>
-                                    <label for="new-category-name" class="block text-sm font-medium themed-text-light mb-1">Añadir Nueva Categoría</label>
-                                    <div class="flex space-x-2">
-                                         <input type="text" id="new-category-name" placeholder="Nombre de la categoría" class="themed-input flex-grow border rounded-md px-3 py-2">
-                                         <button id="add-category-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold p-2 rounded"><i data-lucide="plus"></i></button>
+                        <div class="space-y-8">
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                                <!-- Category Management -->
+                                <div class="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-slate-800 dark:to-slate-700 rounded-xl p-6 border border-emerald-200 dark:border-slate-600">
+                                    <div class="flex items-center mb-4">
+                                        <div class="p-2 bg-emerald-100 dark:bg-emerald-900 rounded-lg mr-3">
+                                            <i data-lucide="folder-plus" class="w-5 h-5 text-emerald-600 dark:text-emerald-400"></i>
+                                        </div>
+                                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Gestión de Categorías</h3>
                                     </div>
-                                </div>
-                                 <div id="category-management-list" class="space-y-2 max-h-64 overflow-y-auto">
-                                    ${state.categories.filter(c => c !== 'Todas').map(cat => `
-                                        <div class="flex items-center justify-between p-2 rounded themed-border border">
-                                            <span class="category-name">${cat}</span>
-                                            <div class="space-x-2">
-                                                <button class="rename-category-btn text-blue-500 hover:text-blue-400" data-category="${cat}"><i data-lucide="pencil"></i></button>
-                                                <button class="delete-category-btn text-red-500 hover:text-red-400" data-category="${cat}"><i data-lucide="trash-2"></i></button>
+                                    <div class="space-y-5">
+                                        <div>
+                                            <label for="new-category-name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Añadir Nueva Categoría</label>
+                                            <div class="flex space-x-3">
+                                                <input type="text" id="new-category-name" placeholder="Nombre de la categoría" class="themed-input flex-grow border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors">
+                                                <button id="add-category-btn" class="bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-4 py-2.5 rounded-lg flex items-center space-x-2 transition-colors">
+                                                    <i data-lucide="plus" class="w-4 h-4"></i>
+                                                    <span>Añadir</span>
+                                                </button>
+                                            </div>
+                                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Crea una nueva categoría para organizar tus productos</p>
+                                        </div>
+                                        <div>
+                                            <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Categorías Existentes</h4>
+                                            <div id="category-management-list" class="space-y-2 max-h-80 overflow-y-auto">
+                                                ${state.categories.filter(c => c !== 'Todas').map(cat => `
+                                                    <div class="flex items-center justify-between p-3 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-gray-600 hover:border-emerald-300 dark:hover:border-emerald-600 transition-colors">
+                                                        <div class="flex items-center space-x-3">
+                                                            <div class="p-1.5 bg-emerald-100 dark:bg-emerald-900 rounded-md">
+                                                                <i data-lucide="folder" class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400"></i>
+                                                            </div>
+                                                            <span class="category-name text-gray-900 dark:text-white font-medium">${cat}</span>
+                                                        </div>
+                                                        <div class="flex items-center space-x-2">
+                                                            <button class="rename-category-btn p-1.5 text-blue-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900 rounded-md transition-colors" data-category="${cat}" title="Renombrar categoría">
+                                                                <i data-lucide="pencil" class="w-4 h-4"></i>
+                                                            </button>
+                                                            <button class="delete-category-btn p-1.5 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900 rounded-md transition-colors" data-category="${cat}" title="Eliminar categoría">
+                                                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                `).join('')}
                                             </div>
                                         </div>
-                                    `).join('')}
-                                </div>
-                            </div>
-                            <div class="space-y-4">
-                                <h3 class="text-lg font-semibold flex items-center"><i data-lucide="database-zap" class="mr-2"></i>Acciones Masivas</h3>
-                                <div>
-                                    <label for="bulk-category-select" class="block text-sm font-medium themed-text-light mb-1">Cambiar tipo de categoría completa</label>
-                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-2 items-center">
-                                        <select id="bulk-category-select" class="themed-input border rounded-md px-3 py-2">
-                                            ${state.categories.filter(c => c !== 'Todas').map(cat => `<option value="${cat}">${cat}</option>`).join('')}
-                                        </select>
-                                        <select id="bulk-type-select" class="themed-input border rounded-md px-3 py-2">
-                                            <option value="Consumible">a Consumible</option>
-                                            <option value="Retornable">a Retornable</option>
-                                        </select>
-                                        <button id="bulk-update-type-btn" class="bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 px-4 rounded">Actualizar</button>
                                     </div>
-                                    <p class="text-xs themed-text-light mt-2">Esta acción cambiará el tipo de *todos* los artículos en la categoría seleccionada.</p>
                                 </div>
-                                 <div class="themed-border border-t pt-4 mt-4">
-                                    <label for="bulk-delete-category-select" class="block text-sm font-medium themed-text-light mb-1">Eliminar una categoría completa</label>
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2 items-center">
-                                        <select id="bulk-delete-category-select" class="themed-input border rounded-md px-3 py-2">
-                                            <option value="" selected disabled>Seleccionar categoría...</option>
-                                            ${state.categories.filter(c => c !== 'Todas').map(cat => `<option value="${cat}">${cat}</option>`).join('')}
-                                        </select>
-                                        <button id="bulk-delete-category-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded flex items-center justify-center space-x-2"><i data-lucide="trash-2"></i><span>Eliminar Categoría</span></button>
+                                
+                                <!-- Bulk Operations -->
+                                <div class="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-slate-800 dark:to-slate-700 rounded-xl p-6 border border-amber-200 dark:border-slate-600">
+                                    <div class="flex items-center mb-4">
+                                        <div class="p-2 bg-amber-100 dark:bg-amber-900 rounded-lg mr-3">
+                                            <i data-lucide="layers" class="w-5 h-5 text-amber-600 dark:text-amber-400"></i>
+                                        </div>
+                                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Acciones Masivas</h3>
                                     </div>
-                                    <p class="text-xs themed-text-light mt-2 text-red-500 dark:text-red-400">¡Cuidado! Esta acción eliminará la categoría y *todos* los artículos que contiene de forma permanente.</p>
+                                    <div class="space-y-6">
+                                        <div class="p-4 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-gray-600">
+                                            <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 flex items-center">
+                                                <i data-lucide="refresh-cw" class="w-4 h-4 mr-2"></i>
+                                                Cambiar Tipo de Categoría
+                                            </h4>
+                                            <div class="space-y-3">
+                                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                                    <div>
+                                                        <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Categoría</label>
+                                                        <select id="bulk-category-select" class="themed-input w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-colors">
+                                                            ${state.categories.filter(c => c !== 'Todas').map(cat => `<option value="${cat}">${cat}</option>`).join('')}
+                                                        </select>
+                                                    </div>
+                                                    <div>
+                                                        <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Nuevo Tipo</label>
+                                                        <select id="bulk-type-select" class="themed-input w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-colors">
+                                                            <option value="Consumible">Consumible</option>
+                                                            <option value="Retornable">Retornable</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                                <button id="bulk-update-type-btn" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-medium py-2 px-4 rounded-lg flex items-center justify-center space-x-2 transition-colors">
+                                                    <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                                                    <span>Actualizar Tipo</span>
+                                                </button>
+                                                <p class="text-xs text-gray-500 dark:text-gray-400">Esta acción cambiará el tipo de todos los artículos en la categoría seleccionada</p>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="p-4 bg-red-50 dark:bg-red-950 rounded-lg border border-red-200 dark:border-red-800">
+                                            <h4 class="text-sm font-medium text-red-700 dark:text-red-300 mb-3 flex items-center">
+                                                <i data-lucide="trash-2" class="w-4 h-4 mr-2"></i>
+                                                Eliminar Categoría Completa
+                                            </h4>
+                                            <div class="space-y-3">
+                                                <div>
+                                                    <label class="block text-xs text-red-600 dark:text-red-400 mb-1">Seleccionar categoría a eliminar</label>
+                                                    <select id="bulk-delete-category-select" class="themed-input w-full border border-red-300 dark:border-red-600 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors">
+                                                        <option value="" selected disabled>Seleccionar categoría...</option>
+                                                        ${state.categories.filter(c => c !== 'Todas').map(cat => `<option value="${cat}">${cat}</option>`).join('')}
+                                                    </select>
+                                                </div>
+                                                <button id="bulk-delete-category-btn" class="w-full bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg flex items-center justify-center space-x-2 transition-colors">
+                                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                                    <span>Eliminar Categoría</span>
+                                                </button>
+                                                <div class="p-3 bg-red-100 dark:bg-red-900 rounded-md">
+                                                    <p class="text-xs text-red-700 dark:text-red-300 font-medium">⚠️ Acción Irreversible</p>
+                                                    <p class="text-xs text-red-600 dark:text-red-400 mt-1">Esta acción eliminará la categoría y todos los artículos que contiene de forma permanente</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -1751,6 +2360,37 @@
             const enableAuditLog = document.getElementById('enable-audit-log')?.checked ?? state.settings.enableAuditLog;
             const barcodeScanning = document.getElementById('barcode-scanning')?.checked ?? state.settings.barcodeScanning;
             
+            // Display preferences
+            const tableDensity = document.getElementById('table-density')?.value || state.settings.displayPreferences?.tableDensity;
+            const defaultView = document.getElementById('default-view')?.value || state.settings.displayPreferences?.defaultView;
+            const showColumnLines = document.getElementById('show-column-lines')?.checked ?? state.settings.displayPreferences?.showColumnLines;
+            const enableRowHover = document.getElementById('enable-row-hover')?.checked ?? state.settings.displayPreferences?.enableRowHover;
+            
+            // Interface customization
+            const fontSize = document.getElementById('font-size')?.value || state.settings.interfaceCustomization?.fontSize;
+            const headerStyle = document.getElementById('header-style')?.value || state.settings.interfaceCustomization?.headerStyle;
+            const compactSidebar = document.getElementById('compact-sidebar')?.checked ?? state.settings.interfaceCustomization?.compactSidebar;
+            const animationsEnabled = document.getElementById('animations-enabled')?.checked ?? state.settings.interfaceCustomization?.animationsEnabled;
+            
+            // Operational preferences
+            const defaultTransactionType = document.getElementById('default-transaction-type')?.value || state.settings.operationalPreferences?.defaultTransactionType;
+            const recentItemsCount = parseInt(document.getElementById('recent-items-count')?.value || state.settings.operationalPreferences?.recentItemsCount, 10);
+            const enableKeyboardShortcuts = document.getElementById('enable-keyboard-shortcuts')?.checked ?? state.settings.operationalPreferences?.enableKeyboardShortcuts;
+            const showRecentItems = document.getElementById('show-recent-items')?.checked ?? state.settings.operationalPreferences?.showRecentItems;
+            const autoSaveChanges = document.getElementById('auto-save-changes')?.checked ?? state.settings.operationalPreferences?.autoSaveChanges;
+            const confirmBeforeDelete = document.getElementById('confirm-before-delete')?.checked ?? state.settings.operationalPreferences?.confirmBeforeDelete;
+            const enableBulkOperations = document.getElementById('enable-bulk-operations')?.checked ?? state.settings.operationalPreferences?.enableBulkOperations;
+            const showAdvancedFilters = document.getElementById('show-advanced-filters')?.checked ?? state.settings.operationalPreferences?.showAdvancedFilters;
+            
+            // Dashboard customization
+            const showStockOverview = document.getElementById('show-stock-overview')?.checked ?? state.settings.dashboardCustomization?.showStockOverview;
+            const showRecentTransactions = document.getElementById('show-recent-transactions')?.checked ?? state.settings.dashboardCustomization?.showRecentTransactions;
+            const showLowStockAlerts = document.getElementById('show-low-stock-alerts')?.checked ?? state.settings.dashboardCustomization?.showLowStockAlerts;
+            const showQuickActions = document.getElementById('show-quick-actions')?.checked ?? state.settings.dashboardCustomization?.showQuickActions;
+            const chartType = document.getElementById('chart-type')?.value || state.settings.dashboardCustomization?.chartType;
+            const defaultDateRange = document.getElementById('default-date-range')?.value || state.settings.dashboardCustomization?.defaultDateRange;
+            const refreshInterval = parseInt(document.getElementById('refresh-interval')?.value || state.settings.dashboardCustomization?.refreshInterval, 10);
+            
             // Stock management settings
             const autoReorderEnabled = document.getElementById('auto-reorder-enabled')?.checked ?? state.settings.autoReorderEnabled;
             const autoReorderThreshold = (parseInt(document.getElementById('auto-reorder-threshold')?.value || (state.settings.autoReorderThreshold * 100), 10)) / 100;
@@ -1800,6 +2440,43 @@
                     maxQuantityPerTransaction,
                     requireNotesForLargeTransactions: requireNotesLarge,
                     preventNegativeStock
+                },
+                displayPreferences: {
+                    tableDensity,
+                    showColumnLines,
+                    enableRowHover,
+                    defaultView,
+                    itemsPerRow: state.settings.displayPreferences?.itemsPerRow || 4,
+                    showStockBadges: state.settings.displayPreferences?.showStockBadges || true,
+                    enableQuickEdit: state.settings.displayPreferences?.enableQuickEdit || true
+                },
+                operationalPreferences: {
+                    enableKeyboardShortcuts,
+                    autoSaveChanges,
+                    confirmBeforeDelete,
+                    defaultTransactionType,
+                    showRecentItems,
+                    recentItemsCount,
+                    enableBulkOperations,
+                    showAdvancedFilters
+                },
+                dashboardCustomization: {
+                    showStockOverview,
+                    showRecentTransactions,
+                    showLowStockAlerts,
+                    showQuickActions,
+                    chartType,
+                    refreshInterval,
+                    defaultDateRange
+                },
+                interfaceCustomization: {
+                    compactSidebar,
+                    sidebarPosition: state.settings.interfaceCustomization?.sidebarPosition || 'left',
+                    showBreadcrumbs: state.settings.interfaceCustomization?.showBreadcrumbs || true,
+                    animationsEnabled,
+                    highContrastMode: state.settings.interfaceCustomization?.highContrastMode || false,
+                    fontSize,
+                    headerStyle
                 }
             };
 

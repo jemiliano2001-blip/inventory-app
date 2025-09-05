@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale-1.0">
     <title>Gestión Central de Inventario</title>
     
     <!-- Tailwind CSS -->
@@ -268,14 +268,27 @@
         import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 
         // --- CONFIGURACIÓN ---
-        // CRITICAL SECURITY NOTE: Your Firebase configuration is exposed on the client side.
-        // This is expected, but it means you MUST secure your database using Firebase Security Rules.
-        // Without rules, anyone can read, write, or delete your data.
+        // NOTA DE SEGURIDAD CRÍTICA: Tu configuración de Firebase está expuesta en el lado del cliente.
+        // Esto es normal, pero significa que DEBES asegurar tu base de datos usando Reglas de Seguridad de Firebase.
+        // El error "Missing or insufficient permissions" significa que tus reglas son demasiado restrictivas.
+        // Para desarrollo, puedes empezar con estas reglas en tu Consola de Firebase -> Firestore -> Reglas:
+        /*
+        rules_version = '2';
+        service cloud.firestore {
+          match /databases/{database}/documents {
+            match /{document=**} {
+              // Permite leer y escribir a cualquier usuario autenticado.
+              // ¡NO USAR EN PRODUCCIÓN SIN RESTRINGIR MÁS!
+              allow read, write: if request.auth != null;
+            }
+          }
+        }
+        */
         const firebaseConfig = {
             apiKey: "AIzaSyDPvm07EShBWY_tqG1J6DZCxuKj0sbN1Cw",
             authDomain: "mi-inventario-app-e44a9.firebaseapp.com",
             projectId: "mi-inventario-app-e44a9",
-            storageBucket: "mi-inventario-app-e44a9.appspot.com",
+            storageBucket: "mi-inventario-app-e44a9.firebasestorage.app",
             messagingSenderId: "863395232436",
             appId: "1:863395232436:web:3f65ad3cc2ce61d30175e1",
             measurementId: "G-GE6QRCGJRH"
@@ -344,8 +357,6 @@
                     console.error("Error creating lucide icons:", e);
                 }
             } else {
-                // If it fails, the UI will lack icons, but the app won't crash.
-                // A timeout can try again in case of slow network.
                 setTimeout(() => {
                     if(window.lucide) {
                         try {
@@ -372,20 +383,34 @@
                 const appContainer = document.getElementById('app-container');
 
                 if (user) {
-                    loginScreen.classList.add('hidden');
-                    appContainer.classList.remove('hidden');
-                    state.currentUser = user;
-                    await fetchUserRole(user.uid);
-                    await loadSettings();
+                    try {
+                        loginScreen.classList.add('hidden');
+                        appContainer.classList.remove('hidden');
+                        state.currentUser = user;
+                        await fetchUserRole(user.uid);
+                        
+                        // Solo los administradores pueden leer y escribir la configuración global.
+                        // Los operadores usarán la configuración por defecto.
+                        if (state.userRole === 'admin') {
+                            await loadSettings();
+                        }
 
-                    if (!state.isInitialized) {
-                        state.isInitialized = true;
-                        initializeAppState();
+                        if (!state.isInitialized) {
+                            state.isInitialized = true;
+                            initializeAppState();
+                        }
+                        
+                        const isAdmin = state.userRole === 'admin';
+                        document.getElementById('users-nav-link').classList.toggle('hidden', !isAdmin);
+                        document.getElementById('settings-nav-link').classList.toggle('hidden', !isAdmin);
+                    } catch (error) {
+                        console.error("Firebase Initialization Error:", error);
+                        if (error.code === 'permission-denied') {
+                            showNotification('Error de Permisos: Revisa las reglas de seguridad de tu base de datos Firestore.', 'error');
+                        } else {
+                            showNotification('Ocurrió un error al cargar los datos iniciales.', 'error');
+                        }
                     }
-                    
-                    const isAdmin = state.userRole === 'admin';
-                    document.getElementById('users-nav-link').classList.toggle('hidden', !isAdmin);
-                    document.getElementById('settings-nav-link').classList.toggle('hidden', !isAdmin);
 
                 } else {
                     loginScreen.classList.remove('hidden');
@@ -464,6 +489,12 @@
         }
         
         function setupRealtimeListeners() {
+            const handleSnapshotError = (collectionName, error) => {
+                console.error(`Error fetching ${collectionName}:`, error);
+                // El mensaje de error de Firestore a menudo incluye un enlace para crear el índice que falta.
+                showNotification(`Error al cargar datos de ${collectionName}. Revisa la consola (F12) para más detalles.`, 'error');
+            };
+
             onSnapshot(collection(db, 'inventory'), (snapshot) => {
                 state.inventory = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })).sort((a, b) => a.description.localeCompare(b.description));
                 const uniqueCategories = [...new Set(state.inventory.map(item => item.category))].sort();
@@ -475,13 +506,13 @@
                 if (state.isInitialized) {
                     navigateTo(currentPage, true); 
                 }
-            });
+            }, (error) => handleSnapshotError('inventario', error));
 
             const loansQuery = query(collection(db, 'loans'), where('returnedAt', '==', null));
             onSnapshot(loansQuery, (snapshot) => {
                 state.activeLoans = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 if (state.isInitialized && window.location.hash === '#active-loans') renderActiveLoansView();
-            });
+            }, (error) => handleSnapshotError('préstamos activos', error));
 
             onSnapshot(collection(db, 'transactions'), (snapshot) => {
                 state.transactions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -490,19 +521,19 @@
                     if (currentPage === 'history') renderHistoryView();
                     if (currentPage === 'dashboard') renderDashboardView();
                 }
-            });
+            }, (error) => handleSnapshotError('transacciones', error));
 
             onSnapshot(collection(db, 'shoppingList'), (snapshot) => {
                 state.shoppingList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 updateShoppingListCount();
                 if (state.isInitialized && window.location.hash === '#shopping-list') renderShoppingListView();
-            });
+            }, (error) => handleSnapshotError('lista de compras', error));
             
             if (state.userRole === 'admin') {
                 onSnapshot(collection(db, 'users'), (snapshot) => {
                     state.allUsers = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                     if(state.isInitialized && window.location.hash === '#users') renderUsersView();
-                });
+                }, (error) => handleSnapshotError('usuarios', error));
             }
         }
 
@@ -1160,12 +1191,9 @@
                 document.getElementById('auth-error-message').classList.add('hidden');
 
                 try {
-                    // SECURITY NOTE: For a production app, you MUST send the `recaptchaResponse`
-                    // to your backend for verification with your reCAPTCHA secret key.
-                    // An attacker can easily bypass this client-side check.
                     await signInWithEmailAndPassword(auth, email, password);
                 } catch (error) {
-                    displayAuthError(error.code); // FIX: Pass error code
+                    displayAuthError(error.code);
                 }
             });
 
@@ -2076,7 +2104,7 @@
             notif.className = `text-white px-6 py-4 border-0 rounded relative mb-4 ${colors[type]} pop-animation`;
             notif.innerHTML = `<span class="inline-block align-middle mr-8">${message}</span>`;
             container.appendChild(notif);
-            setTimeout(() => { notif.remove(); }, 3000);
+            setTimeout(() => { notif.remove(); }, 5000); // Increased timeout for important messages
         }
         async function addToShoppingList(item, quantity) {
             if (quantity <= 0) { showNotification('La cantidad debe ser mayor a cero.', 'error'); return; }
@@ -2225,5 +2253,3 @@
     </script>
 </body>
 </html>
-
-

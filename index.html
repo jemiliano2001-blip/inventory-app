@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale-1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestión Central de Inventario</title>
     
     <!-- Tailwind CSS -->
@@ -2352,138 +2352,168 @@
 
         // --- LÓGICA DE AJUSTES ---
         async function handleSaveSettings() {
-            // General settings
-            const itemsPerPage = parseInt(document.getElementById('items-per-page')?.value || state.settings.itemsPerPage, 10);
-            const defaultUnit = document.getElementById('default-unit')?.value || state.settings.defaultUnit;
-            const defaultMinStock = parseInt(document.getElementById('default-min-stock')?.value || state.settings.defaultMinStock, 10);
-            const sessionTimeout = parseInt(document.getElementById('session-timeout')?.value || state.settings.sessionTimeout, 10);
-            const enableAuditLog = document.getElementById('enable-audit-log')?.checked ?? state.settings.enableAuditLog;
-            const barcodeScanning = document.getElementById('barcode-scanning')?.checked ?? state.settings.barcodeScanning;
+            // Helper function to safely parse integers, falling back to a default if NaN
+            const safeParseInt = (value, fallback) => {
+                const parsed = parseInt(value, 10);
+                return isNaN(parsed) ? fallback : parsed;
+            };
+
+            // Create a deep copy of the current settings to modify
+            const updatedSettings = JSON.parse(JSON.stringify(state.settings));
+
+            // Go through each possible setting in the DOM.
+            // If the element exists (i.e., its tab is active), update the value in our copied object.
+            // This prevents overwriting settings from inactive tabs with null/undefined.
             
-            // Display preferences
-            const tableDensity = document.getElementById('table-density')?.value || state.settings.displayPreferences?.tableDensity;
-            const defaultView = document.getElementById('default-view')?.value || state.settings.displayPreferences?.defaultView;
-            const showColumnLines = document.getElementById('show-column-lines')?.checked ?? state.settings.displayPreferences?.showColumnLines;
-            const enableRowHover = document.getElementById('enable-row-hover')?.checked ?? state.settings.displayPreferences?.enableRowHover;
+            // General Tab
+            const itemsPerPageEl = document.getElementById('items-per-page');
+            if (itemsPerPageEl) updatedSettings.itemsPerPage = safeParseInt(itemsPerPageEl.value, updatedSettings.itemsPerPage);
+
+            const defaultUnitEl = document.getElementById('default-unit');
+            if (defaultUnitEl) updatedSettings.defaultUnit = defaultUnitEl.value;
+
+            const defaultMinStockEl = document.getElementById('default-min-stock');
+            if (defaultMinStockEl) updatedSettings.defaultMinStock = safeParseInt(defaultMinStockEl.value, updatedSettings.defaultMinStock);
             
-            // Interface customization
-            const fontSize = document.getElementById('font-size')?.value || state.settings.interfaceCustomization?.fontSize;
-            const headerStyle = document.getElementById('header-style')?.value || state.settings.interfaceCustomization?.headerStyle;
-            const compactSidebar = document.getElementById('compact-sidebar')?.checked ?? state.settings.interfaceCustomization?.compactSidebar;
-            const animationsEnabled = document.getElementById('animations-enabled')?.checked ?? state.settings.interfaceCustomization?.animationsEnabled;
+            const sessionTimeoutEl = document.getElementById('session-timeout');
+            if (sessionTimeoutEl) updatedSettings.sessionTimeout = safeParseInt(sessionTimeoutEl.value, updatedSettings.sessionTimeout);
+
+            const enableAuditLogEl = document.getElementById('enable-audit-log');
+            if (enableAuditLogEl) updatedSettings.enableAuditLog = enableAuditLogEl.checked;
             
-            // Operational preferences
-            const defaultTransactionType = document.getElementById('default-transaction-type')?.value || state.settings.operationalPreferences?.defaultTransactionType;
-            const recentItemsCount = parseInt(document.getElementById('recent-items-count')?.value || state.settings.operationalPreferences?.recentItemsCount, 10);
-            const enableKeyboardShortcuts = document.getElementById('enable-keyboard-shortcuts')?.checked ?? state.settings.operationalPreferences?.enableKeyboardShortcuts;
-            const showRecentItems = document.getElementById('show-recent-items')?.checked ?? state.settings.operationalPreferences?.showRecentItems;
-            const autoSaveChanges = document.getElementById('auto-save-changes')?.checked ?? state.settings.operationalPreferences?.autoSaveChanges;
-            const confirmBeforeDelete = document.getElementById('confirm-before-delete')?.checked ?? state.settings.operationalPreferences?.confirmBeforeDelete;
-            const enableBulkOperations = document.getElementById('enable-bulk-operations')?.checked ?? state.settings.operationalPreferences?.enableBulkOperations;
-            const showAdvancedFilters = document.getElementById('show-advanced-filters')?.checked ?? state.settings.operationalPreferences?.showAdvancedFilters;
+            const barcodeScanningEl = document.getElementById('barcode-scanning');
+            if (barcodeScanningEl) updatedSettings.barcodeScanning = barcodeScanningEl.checked;
             
-            // Dashboard customization
-            const showStockOverview = document.getElementById('show-stock-overview')?.checked ?? state.settings.dashboardCustomization?.showStockOverview;
-            const showRecentTransactions = document.getElementById('show-recent-transactions')?.checked ?? state.settings.dashboardCustomization?.showRecentTransactions;
-            const showLowStockAlerts = document.getElementById('show-low-stock-alerts')?.checked ?? state.settings.dashboardCustomization?.showLowStockAlerts;
-            const showQuickActions = document.getElementById('show-quick-actions')?.checked ?? state.settings.dashboardCustomization?.showQuickActions;
-            const chartType = document.getElementById('chart-type')?.value || state.settings.dashboardCustomization?.chartType;
-            const defaultDateRange = document.getElementById('default-date-range')?.value || state.settings.dashboardCustomization?.defaultDateRange;
-            const refreshInterval = parseInt(document.getElementById('refresh-interval')?.value || state.settings.dashboardCustomization?.refreshInterval, 10);
+            // Display Tab
+            const tableDensityEl = document.getElementById('table-density');
+            if (tableDensityEl) updatedSettings.displayPreferences.tableDensity = tableDensityEl.value;
             
-            // Stock management settings
-            const autoReorderEnabled = document.getElementById('auto-reorder-enabled')?.checked ?? state.settings.autoReorderEnabled;
-            const autoReorderThreshold = (parseInt(document.getElementById('auto-reorder-threshold')?.value || (state.settings.autoReorderThreshold * 100), 10)) / 100;
-            const supplierManagement = document.getElementById('supplier-management')?.checked ?? state.settings.supplierManagement;
-            const maxQuantityTransaction = parseInt(document.getElementById('max-quantity-transaction')?.value || state.settings.customValidations?.maxQuantityPerTransaction, 10);
-            const requireNotesLarge = document.getElementById('require-notes-large')?.checked ?? state.settings.customValidations?.requireNotesForLargeTransactions;
-            const preventNegativeStock = document.getElementById('prevent-negative-stock')?.checked ?? state.settings.customValidations?.preventNegativeStock;
+            const defaultViewEl = document.getElementById('default-view');
+            if (defaultViewEl) updatedSettings.displayPreferences.defaultView = defaultViewEl.value;
             
-            // Notification settings
-            const lowStockNotifications = document.getElementById('low-stock-notifications')?.checked ?? state.settings.lowStockNotifications;
-            const notificationEmails = document.getElementById('notification-emails')?.value || state.settings.notificationEmails;
-            const stockAlertDaysStr = document.getElementById('stock-alert-days')?.value || state.settings.stockAlertDays?.join(', ');
-            const stockAlertDays = stockAlertDaysStr.split(',').map(d => parseInt(d.trim(), 10)).filter(d => !isNaN(d));
-            const enableScheduledReports = document.getElementById('enable-scheduled-reports')?.checked ?? state.settings.enableScheduledReports;
-            const reportSchedule = document.getElementById('report-schedule')?.value || state.settings.reportSchedule;
+            const showColumnLinesEl = document.getElementById('show-column-lines');
+            if (showColumnLinesEl) updatedSettings.displayPreferences.showColumnLines = showColumnLinesEl.checked;
+
+            const enableRowHoverEl = document.getElementById('enable-row-hover');
+            if (enableRowHoverEl) updatedSettings.displayPreferences.enableRowHover = enableRowHoverEl.checked;
+
+            const fontSizeEl = document.getElementById('font-size');
+            if (fontSizeEl) updatedSettings.interfaceCustomization.fontSize = fontSizeEl.value;
             
-            // Workflow settings
-            const enableWorkflowApprovals = document.getElementById('enable-workflow-approvals')?.checked ?? state.settings.enableWorkflowApprovals;
-            const approvalThreshold = parseInt(document.getElementById('approval-threshold')?.value || state.settings.approvalThreshold, 10);
-            const dataRetentionDays = parseInt(document.getElementById('data-retention-days')?.value || state.settings.dataRetentionDays, 10);
+            const headerStyleEl = document.getElementById('header-style');
+            if (headerStyleEl) updatedSettings.interfaceCustomization.headerStyle = headerStyleEl.value;
+            
+            const compactSidebarEl = document.getElementById('compact-sidebar');
+            if (compactSidebarEl) updatedSettings.interfaceCustomization.compactSidebar = compactSidebarEl.checked;
+            
+            const animationsEnabledEl = document.getElementById('animations-enabled');
+            if (animationsEnabledEl) updatedSettings.interfaceCustomization.animationsEnabled = animationsEnabledEl.checked;
+
+            // Operational Tab
+            const defaultTransactionTypeEl = document.getElementById('default-transaction-type');
+            if (defaultTransactionTypeEl) updatedSettings.operationalPreferences.defaultTransactionType = defaultTransactionTypeEl.value;
+
+            const recentItemsCountEl = document.getElementById('recent-items-count');
+            if (recentItemsCountEl) updatedSettings.operationalPreferences.recentItemsCount = safeParseInt(recentItemsCountEl.value, updatedSettings.operationalPreferences.recentItemsCount);
+            
+            const enableKeyboardShortcutsEl = document.getElementById('enable-keyboard-shortcuts');
+            if (enableKeyboardShortcutsEl) updatedSettings.operationalPreferences.enableKeyboardShortcuts = enableKeyboardShortcutsEl.checked;
+            
+            const showRecentItemsEl = document.getElementById('show-recent-items');
+            if (showRecentItemsEl) updatedSettings.operationalPreferences.showRecentItems = showRecentItemsEl.checked;
+            
+            const autoSaveChangesEl = document.getElementById('auto-save-changes');
+            if (autoSaveChangesEl) updatedSettings.operationalPreferences.autoSaveChanges = autoSaveChangesEl.checked;
+            
+            const confirmBeforeDeleteEl = document.getElementById('confirm-before-delete');
+            if (confirmBeforeDeleteEl) updatedSettings.operationalPreferences.confirmBeforeDelete = confirmBeforeDeleteEl.checked;
+            
+            const enableBulkOperationsEl = document.getElementById('enable-bulk-operations');
+            if (enableBulkOperationsEl) updatedSettings.operationalPreferences.enableBulkOperations = enableBulkOperationsEl.checked;
+            
+            const showAdvancedFiltersEl = document.getElementById('show-advanced-filters');
+            if (showAdvancedFiltersEl) updatedSettings.operationalPreferences.showAdvancedFilters = showAdvancedFiltersEl.checked;
+
+            // Dashboard Tab
+            const showStockOverviewEl = document.getElementById('show-stock-overview');
+            if (showStockOverviewEl) updatedSettings.dashboardCustomization.showStockOverview = showStockOverviewEl.checked;
+
+            const showRecentTransactionsEl = document.getElementById('show-recent-transactions');
+            if (showRecentTransactionsEl) updatedSettings.dashboardCustomization.showRecentTransactions = showRecentTransactionsEl.checked;
+            
+            const showLowStockAlertsEl = document.getElementById('show-low-stock-alerts');
+            if (showLowStockAlertsEl) updatedSettings.dashboardCustomization.showLowStockAlerts = showLowStockAlertsEl.checked;
+
+            const showQuickActionsEl = document.getElementById('show-quick-actions');
+            if (showQuickActionsEl) updatedSettings.dashboardCustomization.showQuickActions = showQuickActionsEl.checked;
+
+            const chartTypeEl = document.getElementById('chart-type');
+            if (chartTypeEl) updatedSettings.dashboardCustomization.chartType = chartTypeEl.value;
+
+            const defaultDateRangeEl = document.getElementById('default-date-range');
+            if (defaultDateRangeEl) updatedSettings.dashboardCustomization.defaultDateRange = defaultDateRangeEl.value;
+            
+            const refreshIntervalEl = document.getElementById('refresh-interval');
+            if (refreshIntervalEl) updatedSettings.dashboardCustomization.refreshInterval = safeParseInt(refreshIntervalEl.value, updatedSettings.dashboardCustomization.refreshInterval);
+
+            // Stock Tab
+            const autoReorderEnabledEl = document.getElementById('auto-reorder-enabled');
+            if (autoReorderEnabledEl) updatedSettings.autoReorderEnabled = autoReorderEnabledEl.checked;
+
+            const autoReorderThresholdEl = document.getElementById('auto-reorder-threshold');
+            if (autoReorderThresholdEl) updatedSettings.autoReorderThreshold = safeParseInt(autoReorderThresholdEl.value, updatedSettings.autoReorderThreshold * 100) / 100;
+
+            const supplierManagementEl = document.getElementById('supplier-management');
+            if (supplierManagementEl) updatedSettings.supplierManagement = supplierManagementEl.checked;
+
+            const maxQuantityTransactionEl = document.getElementById('max-quantity-transaction');
+            if (maxQuantityTransactionEl) updatedSettings.customValidations.maxQuantityPerTransaction = safeParseInt(maxQuantityTransactionEl.value, updatedSettings.customValidations.maxQuantityPerTransaction);
+            
+            const requireNotesLargeEl = document.getElementById('require-notes-large');
+            if (requireNotesLargeEl) updatedSettings.customValidations.requireNotesForLargeTransactions = requireNotesLargeEl.checked;
+
+            const preventNegativeStockEl = document.getElementById('prevent-negative-stock');
+            if (preventNegativeStockEl) updatedSettings.customValidations.preventNegativeStock = preventNegativeStockEl.checked;
+
+            // Notifications Tab
+            const lowStockNotificationsEl = document.getElementById('low-stock-notifications');
+            if (lowStockNotificationsEl) updatedSettings.lowStockNotifications = lowStockNotificationsEl.checked;
+            
+            const notificationEmailsEl = document.getElementById('notification-emails');
+            if (notificationEmailsEl) updatedSettings.notificationEmails = notificationEmailsEl.value;
+
+            const stockAlertDaysEl = document.getElementById('stock-alert-days');
+            if (stockAlertDaysEl) {
+                updatedSettings.stockAlertDays = stockAlertDaysEl.value.split(',').map(d => safeParseInt(d.trim(), null)).filter(d => d !== null);
+            }
+
+            const enableScheduledReportsEl = document.getElementById('enable-scheduled-reports');
+            if (enableScheduledReportsEl) updatedSettings.enableScheduledReports = enableScheduledReportsEl.checked;
+            
+            const reportScheduleEl = document.getElementById('report-schedule');
+            if (reportScheduleEl) updatedSettings.reportSchedule = reportScheduleEl.value;
+
+            // Workflow Tab
+            const enableWorkflowApprovalsEl = document.getElementById('enable-workflow-approvals');
+            if (enableWorkflowApprovalsEl) updatedSettings.enableWorkflowApprovals = enableWorkflowApprovalsEl.checked;
+
+            const approvalThresholdEl = document.getElementById('approval-threshold');
+            if (approvalThresholdEl) updatedSettings.approvalThreshold = safeParseInt(approvalThresholdEl.value, updatedSettings.approvalThreshold);
+
+            const dataRetentionDaysEl = document.getElementById('data-retention-days');
+            if (dataRetentionDaysEl) updatedSettings.dataRetentionDays = safeParseInt(dataRetentionDaysEl.value, updatedSettings.dataRetentionDays);
 
             // Validation
-            if (itemsPerPage < 5 || itemsPerPage > 50) {
+            if (updatedSettings.itemsPerPage < 5 || updatedSettings.itemsPerPage > 50) {
                  showNotification('Artículos por página debe estar entre 5 y 50.', 'error');
                  return;
             }
 
-            const newSettings = {
-                itemsPerPage,
-                defaultUnit,
-                defaultMinStock,
-                sessionTimeout,
-                enableAuditLog,
-                barcodeScanning,
-                autoReorderEnabled,
-                autoReorderThreshold,
-                supplierManagement,
-                lowStockNotifications,
-                notificationEmails,
-                stockAlertDays,
-                enableScheduledReports,
-                reportSchedule,
-                enableWorkflowApprovals,
-                approvalThreshold,
-                dataRetentionDays,
-                customValidations: {
-                    maxQuantityPerTransaction,
-                    requireNotesForLargeTransactions: requireNotesLarge,
-                    preventNegativeStock
-                },
-                displayPreferences: {
-                    tableDensity,
-                    showColumnLines,
-                    enableRowHover,
-                    defaultView,
-                    itemsPerRow: state.settings.displayPreferences?.itemsPerRow || 4,
-                    showStockBadges: state.settings.displayPreferences?.showStockBadges || true,
-                    enableQuickEdit: state.settings.displayPreferences?.enableQuickEdit || true
-                },
-                operationalPreferences: {
-                    enableKeyboardShortcuts,
-                    autoSaveChanges,
-                    confirmBeforeDelete,
-                    defaultTransactionType,
-                    showRecentItems,
-                    recentItemsCount,
-                    enableBulkOperations,
-                    showAdvancedFilters
-                },
-                dashboardCustomization: {
-                    showStockOverview,
-                    showRecentTransactions,
-                    showLowStockAlerts,
-                    showQuickActions,
-                    chartType,
-                    refreshInterval,
-                    defaultDateRange
-                },
-                interfaceCustomization: {
-                    compactSidebar,
-                    sidebarPosition: state.settings.interfaceCustomization?.sidebarPosition || 'left',
-                    showBreadcrumbs: state.settings.interfaceCustomization?.showBreadcrumbs || true,
-                    animationsEnabled,
-                    highContrastMode: state.settings.interfaceCustomization?.highContrastMode || false,
-                    fontSize,
-                    headerStyle
-                }
-            };
-
             try {
-                await setDoc(doc(db, 'settings', 'global'), newSettings, { merge: true });
-                state.settings = { ...state.settings, ...newSettings };
-                state.itemsPerPage = newSettings.itemsPerPage;
+                // Save the fully merged and updated settings object
+                await setDoc(doc(db, 'settings', 'global'), updatedSettings); // Using setDoc without merge is fine now as we have the full object
+                state.settings = updatedSettings; // Update local state with the saved version
+                state.itemsPerPage = updatedSettings.itemsPerPage;
                 showNotification('Ajustes guardados con éxito.', 'success');
                 if (window.location.hash === '#inventory') renderInventoryView();
 
@@ -2957,9 +2987,3 @@
     </script>
 </body>
 </html>
-
-
-
-
-
-

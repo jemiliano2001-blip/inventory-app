@@ -347,7 +347,7 @@
             apiKey: "AIzaSyDPvm07EShBWY_tqG1J6DZCxuKj0sbN1Cw",
             authDomain: "mi-inventario-app-e44a9.firebaseapp.com",
             projectId: "mi-inventario-app-e44a9",
-            storageBucket: "mi-inventario-app-e44a9.firebasestorage.app",
+            storageBucket: "mi-inventario-app-e44a9.appspot.com",
             messagingSenderId: "863395232436",
             appId: "1:863395232436:web:3f65ad3cc2ce61d30175e1",
             measurementId: "G-GE6QRCGJRH"
@@ -374,6 +374,7 @@
                 itemsPerPage: 10,
                 searchTerm: '',
                 activeCategory: 'Todas',
+                inventoryFilter: 'all', // 'all', 'low', 'returnable'
                 isInitialized: false,
                 settings: {
                     itemsPerPage: 10,
@@ -664,8 +665,10 @@
         function navigateTo(page, isRefresh = false) {
             const pageTitle = document.getElementById('page-title');
             const searchContainer = document.getElementById('search-input').parentElement.parentElement;
-            searchContainer.classList.toggle('hidden', page !== 'inventory');
             
+            const searchablePages = ['inventory', 'active-loans', 'history'];
+            searchContainer.classList.toggle('hidden', !searchablePages.includes(page));
+
             if (!isRefresh) {
                  updateActiveNavLink(page);
             }
@@ -745,14 +748,61 @@
         function renderDashboardView() {
             const mainContent = document.getElementById('main-content');
             const { dashboardCustomization } = state.settings;
+
+            const totalValue = state.inventory.reduce((sum, item) => sum + (item.cost || 0) * item.stock, 0);
+            const lowStockCount = state.inventory.filter(item => item.type === 'Consumible' && item.stock < item.minStock).length;
+
+            mainContent.innerHTML = `
+                <div class="space-y-6">
+                    <!-- Summary Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div class="themed-card p-6 rounded-lg shadow-md flex items-center space-x-4">
+                            <div class="p-3 bg-green-100 dark:bg-green-900 rounded-full"><i data-lucide="dollar-sign" class="h-8 w-8 text-green-600 dark:text-green-400"></i></div>
+                            <div>
+                                <p class="text-sm themed-text-light">Valor Total del Inventario</p>
+                                <p class="text-2xl font-bold">$${totalValue.toFixed(2)}</p>
+                            </div>
+                        </div>
+                        <div class="themed-card p-6 rounded-lg shadow-md flex items-center space-x-4">
+                            <div class="p-3 bg-blue-100 dark:bg-blue-900 rounded-full"><i data-lucide="archive" class="h-8 w-8 text-blue-600 dark:text-blue-400"></i></div>
+                            <div>
+                                <p class="text-sm themed-text-light">Artículos Totales</p>
+                                <p class="text-2xl font-bold">${state.inventory.length}</p>
+                            </div>
+                        </div>
+                        <div class="themed-card p-6 rounded-lg shadow-md flex items-center space-x-4">
+                            <div class="p-3 bg-red-100 dark:bg-red-900 rounded-full"><i data-lucide="alert-triangle" class="h-8 w-8 text-red-600 dark:text-red-400"></i></div>
+                            <div>
+                                <p class="text-sm themed-text-light">Artículos con Stock Bajo</p>
+                                <p class="text-2xl font-bold">${lowStockCount}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Main Dashboard Content -->
+                    <div id="dashboard-widgets" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+                </div>
+            `;
             
+            const widgetsContainer = document.getElementById('dashboard-widgets');
             let widgetsHTML = '';
             
-            // Map settings to widgets. Using showStockOverview for Top Consumables, 
-            // showLowStockAlerts for Top Reported, and showRecentTransactions for Top Employees.
+            if (dashboardCustomization.showQuickActions) {
+                 widgetsHTML += `
+                    <div class="themed-card p-6 rounded-lg shadow-md">
+                        <h3 class="text-lg font-semibold mb-4">Acciones Rápidas</h3>
+                        <div class="flex flex-col space-y-3">
+                            <button id="quick-add-item" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded flex items-center justify-center space-x-2"><i data-lucide="plus"></i><span>Nuevo Artículo</span></button>
+                            <button id="quick-add-entry" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded flex items-center justify-center space-x-2"><i data-lucide="plus-circle"></i><span>Registrar Entrada</span></button>
+                            <button id="quick-add-checkout" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded flex items-center justify-center space-x-2"><i data-lucide="log-out"></i><span>Registrar Salida/Préstamo</span></button>
+                        </div>
+                    </div>
+                 `;
+            }
+
             if (dashboardCustomization.showStockOverview) {
                 widgetsHTML += `
-                    <div class="themed-card p-6 rounded-lg shadow-md col-span-1 md:col-span-2 lg:col-span-1">
+                    <div class="themed-card p-6 rounded-lg shadow-md">
                         <h3 class="text-lg font-semibold mb-4">Top 10 Consumibles Más Utilizados</h3>
                         <canvas id="topConsumablesChart"></canvas>
                     </div>`;
@@ -773,31 +823,45 @@
             }
 
             if(widgetsHTML === ''){
-                mainContent.innerHTML = `
-                    <div class="themed-card p-10 rounded-lg shadow-md text-center">
+                widgetsContainer.innerHTML = `
+                    <div class="themed-card p-10 rounded-lg shadow-md text-center col-span-full">
                         <i data-lucide="layout-dashboard" class="mx-auto h-12 w-12 themed-text-light"></i>
                         <h3 class="text-lg font-semibold mt-4">El Panel de Control está vacío</h3>
                         <p class="themed-text-light mt-2">Puedes habilitar widgets desde la <a href="#settings" class="text-indigo-600 dark:text-indigo-400 hover:underline">página de Ajustes</a> en la pestaña "Panel de Control".</p>
                     </div>
                 `;
             } else {
-                 mainContent.innerHTML = `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">${widgetsHTML}</div>`;
+                 widgetsContainer.innerHTML = widgetsHTML;
                  generateCharts();
+                 if (dashboardCustomization.showQuickActions) {
+                     document.getElementById('quick-add-item').addEventListener('click', showNewItemModal);
+                     document.getElementById('quick-add-entry').addEventListener('click', () => showEntryModal());
+                     document.getElementById('quick-add-checkout').addEventListener('click', () => showCheckoutModal());
+                 }
             }
+            safeCreateIcons();
         }
 
         function renderInventoryView() {
             const mainContent = document.getElementById('main-content');
             
-            const filteredInventory = state.inventory
+            let filteredInventory = state.inventory
                 .filter(item => state.activeCategory === 'Todas' || item.category === state.activeCategory)
                 .filter(item => item.description.toLowerCase().includes(state.searchTerm.toLowerCase()));
+
+            if (state.inventoryFilter === 'low') {
+                filteredInventory = filteredInventory.filter(item => item.type === 'Consumible' && item.stock < item.minStock);
+            } else if (state.inventoryFilter === 'returnable') {
+                filteredInventory = filteredInventory.filter(item => item.type === 'Retornable');
+            }
 
             const totalPages = Math.ceil(filteredInventory.length / state.itemsPerPage);
             state.currentPage = Math.min(state.currentPage, totalPages) || 1;
             const paginatedInventory = filteredInventory.slice((state.currentPage - 1) * state.itemsPerPage, state.currentPage * state.itemsPerPage);
 
             const isAdmin = state.userRole === 'admin';
+            
+            const filterButtonClasses = (filter) => `px-4 py-2 text-sm font-medium rounded-md ${state.inventoryFilter === filter ? 'bg-indigo-600 text-white' : 'bg-white dark:bg-slate-700 themed-text hover:bg-gray-100 dark:hover:bg-slate-600'}`;
 
             mainContent.innerHTML = `
                 <div class="flex flex-col md:flex-row">
@@ -814,14 +878,19 @@
                         </div>
                     </div>
                     <div class="w-full md:w-4/5">
-                        <div class="flex justify-end mb-4">
+                         <div class="flex flex-col md:flex-row justify-between items-center mb-4 gap-4">
+                            <div class="flex items-center space-x-2">
+                                <button class="inventory-filter-btn ${filterButtonClasses('all')}" data-filter="all">Todos</button>
+                                <button class="inventory-filter-btn ${filterButtonClasses('low')}" data-filter="low">Stock Bajo</button>
+                                <button class="inventory-filter-btn ${filterButtonClasses('returnable')}" data-filter="returnable">Retornables</button>
+                            </div>
                             ${isAdmin ? `<button id="new-item-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded flex items-center space-x-2"><i data-lucide="plus"></i><span>Nuevo Artículo</span></button>` : ''}
                         </div>
                         <div class="themed-card rounded-lg shadow-md overflow-x-auto">
                             <table class="min-w-full themed-divide divide-y">
                                 <thead class="themed-table-header">
                                     <tr>
-                                        <th class="px-6 py-3 text-left text-xs font-medium themed-text-light uppercase tracking-wider">Descripción</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium themed-text-light uppercase tracking-wider">Artículo</th>
                                         <th class="px-6 py-3 text-left text-xs font-medium themed-text-light uppercase tracking-wider">Categoría</th>
                                         <th class="px-6 py-3 text-left text-xs font-medium themed-text-light uppercase tracking-wider">Tipo</th>
                                         <th class="px-6 py-3 text-left text-xs font-medium themed-text-light uppercase tracking-wider">Stock</th>
@@ -831,7 +900,14 @@
                                 <tbody id="inventory-table-body" class="themed-table-body themed-divide divide-y">
                                     ${paginatedInventory.length > 0 ? paginatedInventory.map(item => `
                                         <tr class="${item.type === 'Consumible' && item.stock < item.minStock ? 'low-stock' : ''}">
-                                            <td class="px-6 py-4 whitespace-nowrap">${item.description}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <div class="flex items-center">
+                                                    <div class="flex-shrink-0 h-10 w-10">
+                                                        <img class="h-10 w-10 rounded-full object-cover" src="${item.imageUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(item.description)}&background=random`}" alt="">
+                                                    </div>
+                                                    <div class="ml-4">${item.description}</div>
+                                                </div>
+                                            </td>
                                             <td class="px-6 py-4 whitespace-nowrap">${item.category}</td>
                                             <td class="px-6 py-4 whitespace-nowrap">${item.type}</td>
                                             <td class="px-6 py-4 whitespace-nowrap">
@@ -864,6 +940,11 @@
 
         function renderActiveLoansView() {
             const mainContent = document.getElementById('main-content');
+            const filteredLoans = state.activeLoans.filter(loan => 
+                loan.itemDescription.toLowerCase().includes(state.searchTerm.toLowerCase()) ||
+                loan.borrower.toLowerCase().includes(state.searchTerm.toLowerCase())
+            );
+
             mainContent.innerHTML = `
                 <div class="themed-card rounded-lg shadow-md overflow-x-auto">
                     <table class="min-w-full themed-divide divide-y">
@@ -876,7 +957,7 @@
                             </tr>
                         </thead>
                         <tbody class="themed-table-body themed-divide divide-y">
-                            ${state.activeLoans.length > 0 ? state.activeLoans.map(loan => `
+                            ${filteredLoans.length > 0 ? filteredLoans.map(loan => `
                                 <tr>
                                     <td class="px-6 py-4 whitespace-nowrap">${loan.itemDescription}</td>
                                     <td class="px-6 py-4 whitespace-nowrap">${loan.borrower}</td>
@@ -927,8 +1008,16 @@
                 salidas: ['Salida', 'Intercambio'], prestamos: ['Préstamo'],
                 devoluciones: ['Devolución'], bajas: ['Baja', 'Eliminado'], entradas: ['Entrada', 'Creación']
             };
+            
+            const lowerCaseSearch = state.searchTerm.toLowerCase();
             const data = state.transactions
                 .filter(t => typeMap[tabType].includes(t.type))
+                .filter(t => 
+                    t.itemDescription.toLowerCase().includes(lowerCaseSearch) ||
+                    (t.user && t.user.toLowerCase().includes(lowerCaseSearch)) ||
+                    (t.borrower && t.borrower.toLowerCase().includes(lowerCaseSearch)) ||
+                    (t.supplier && t.supplier.toLowerCase().includes(lowerCaseSearch))
+                )
                 .sort((a,b) => b.timestamp.seconds - a.timestamp.seconds);
             
             const headers = ['Fecha', 'Tipo', 'Artículo', 'Cantidad', 'Responsable', 'Notas'];
@@ -1447,7 +1536,7 @@
                                         <div class="flex items-center justify-between p-4 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-gray-600">
                                             <div>
                                                 <label for="show-quick-actions" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Acciones rápidas</label>
-                                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Muestra widget con botones de acciones comunes (No implementado)</p>
+                                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Muestra widget con botones de acciones comunes</p>
                                             </div>
                                             <label class="switch">
                                                 <input type="checkbox" id="show-quick-actions" ${state.settings.dashboardCustomization?.showQuickActions ? 'checked' : ''}>
@@ -1903,7 +1992,8 @@
             document.getElementById('search-input').addEventListener('input', (e) => {
                 state.searchTerm = e.target.value;
                 state.currentPage = 1;
-                if(window.location.hash === '#inventory' || window.location.hash === '') renderInventoryView();
+                const page = window.location.hash.substring(1) || 'dashboard';
+                navigateTo(page, true); // Use true to refresh the current view
             });
             
             document.body.addEventListener('click', (e) => {
@@ -1942,6 +2032,9 @@
                 const categoryFilter = target.closest('.category-filter');
                 if (categoryFilter) { e.preventDefault(); state.activeCategory = categoryFilter.dataset.category; state.currentPage = 1; renderInventoryView(); return; }
 
+                const inventoryFilter = target.closest('.inventory-filter-btn');
+                if (inventoryFilter) { e.preventDefault(); state.inventoryFilter = inventoryFilter.dataset.filter; state.currentPage = 1; renderInventoryView(); return; }
+
                 const pageLink = target.closest('.page-link');
                 if (pageLink) { e.preventDefault(); const page = parseInt(pageLink.dataset.page, 10); if (page) { state.currentPage = page; renderInventoryView(); } return; }
 
@@ -1964,6 +2057,30 @@
                 if (removeFromCartBtn) { removeFromShoppingList(removeFromCartBtn.dataset.id); return; }
                 
                 if (target.id === 'generate-pdf-btn') { generateShoppingListPDF(); return; }
+            });
+            
+            // Keyboard shortcuts listener
+            document.body.addEventListener('keydown', (e) => {
+                if (!state.isInitialized || !state.settings.operationalPreferences.enableKeyboardShortcuts) return;
+
+                // Ignore shortcuts if user is typing in an input
+                if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') {
+                    return;
+                }
+
+                if (e.key.toLowerCase() === 'n' && !e.ctrlKey && !e.metaKey) {
+                    e.preventDefault();
+                    if (state.userRole === 'admin') {
+                        showNewItemModal();
+                    } else {
+                        showNotification("Solo los administradores pueden crear nuevos artículos.", "info");
+                    }
+                }
+
+                if (e.key.toLowerCase() === 'f' && !e.ctrlKey && !e.metaKey) {
+                    e.preventDefault();
+                    document.getElementById('search-input')?.focus();
+                }
             });
         }
         
@@ -2066,9 +2183,19 @@
             document.getElementById('confirm-cancel').addEventListener('click', closeModal);
         }
 
-        function showEntryModal(item) {
+        function showEntryModal(item = null) {
+            // If no item is passed, show a selector
+            const itemSelector = !item ? `
+                <div class="mb-4">
+                    <label for="item-select" class="block text-sm font-medium themed-text-light">Seleccionar Artículo</label>
+                    <select id="item-select" name="item-select" required class="themed-input mt-1 block w-full px-3 py-2 border rounded-md shadow-sm">
+                        <option value="" disabled selected>Elige un artículo...</option>
+                        ${state.inventory.map(i => `<option value="${i.id}">${i.description}</option>`).join('')}
+                    </select>
+                </div>` : `<p class="mb-4"><strong>Artículo:</strong> ${item.description}</p>`;
+
             const content = `
-                <p class="mb-4"><strong>Artículo:</strong> ${item.description}</p>
+                ${itemSelector}
                 <form id="entry-form">
                     <div class="mb-4">
                         <label for="quantity" class="block text-sm font-medium themed-text-light">Cantidad</label>
@@ -2089,133 +2216,148 @@
             showModal('Registrar Entrada', content, 'max-w-md');
             document.getElementById('entry-form').addEventListener('submit', async (e) => {
                 e.preventDefault();
+                const itemToUpdate = item || state.inventory.find(i => i.id === e.target.closest('.relative').querySelector('#item-select')?.value);
+                if (!itemToUpdate) {
+                    showNotification("Por favor, selecciona un artículo.", "error");
+                    return;
+                }
                 const { quantity, supplier, notes } = e.target.elements;
-                const itemRef = doc(db, 'inventory', item.id);
-                await updateDoc(itemRef, { stock: item.stock + parseInt(quantity.value) });
+                const itemRef = doc(db, 'inventory', itemToUpdate.id);
+                await updateDoc(itemRef, { stock: itemToUpdate.stock + parseInt(quantity.value) });
                 await addDoc(collection(db, 'transactions'), {
-                    itemId: item.id, itemDescription: item.description, type: 'Entrada', quantity: parseInt(quantity.value),
+                    itemId: itemToUpdate.id, itemDescription: itemToUpdate.description, type: 'Entrada', quantity: parseInt(quantity.value),
                     supplier: supplier.value, notes: notes.value, timestamp: serverTimestamp(), user: state.currentUser.email
                 });
                 showNotification('Entrada registrada.', 'success');
                 closeModal();
             });
         }
-        function showCheckoutModal(item) {
-            const isEndmill = item.category.toLowerCase().includes('endmill');
-            const maxQuantity = Math.min(item.stock, state.settings.customValidations?.maxQuantityPerTransaction || 1000);
-            const requireNotes = state.settings.customValidations?.requireNotesForLargeTransactions;
-            const approvalThreshold = state.settings.approvalThreshold || 100;
-            
+        function showCheckoutModal(item = null) {
+             const itemSelector = !item ? `
+                <div class="mb-4">
+                    <label for="item-select" class="block text-sm font-medium themed-text-light">Seleccionar Artículo</label>
+                    <select id="item-select" name="item-select" required class="themed-input mt-1 block w-full px-3 py-2 border rounded-md shadow-sm">
+                        <option value="" disabled selected>Elige un artículo...</option>
+                        ${state.inventory.map(i => `<option value="${i.id}">${i.description} (${i.type})</option>`).join('')}
+                    </select>
+                </div>` : `<p class="mb-4"><strong>Artículo:</strong> ${item.description}</p>`;
+
             const content = `
-                <p class="mb-4"><strong>Artículo:</strong> ${item.description}</p>
+                ${itemSelector}
                 <form id="checkout-form">
-                    <div class="mb-4">
-                        <label for="quantity" class="block text-sm font-medium themed-text-light">Cantidad</label>
-                        <input type="number" id="quantity" name="quantity" min="1" max="${maxQuantity}" required class="themed-input mt-1 block w-full px-3 py-2 border rounded-md shadow-sm">
-                        <p class="text-xs themed-text-light mt-1">Máximo: ${maxQuantity} ${item.unit}</p>
-                    </div>
-                    <div class="mb-4">
-                        <label for="user" class="block text-sm font-medium themed-text-light">Nombre de quien retira</label>
-                        <input type="text" id="user" name="user" required class="themed-input mt-1 block w-full px-3 py-2 border rounded-md shadow-sm">
-                    </div>
-                    ${isEndmill ? `
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium themed-text-light">¿Devolvió pieza rota?</label>
-                        <div class="mt-2 space-x-4">
-                            <label><input type="radio" name="exchange" value="yes" class="form-radio"> Sí (Intercambio)</label>
-                            <label><input type="radio" name="exchange" value="no" class="form-radio" checked> No (Salida)</label>
-                        </div>
-                    </div>` : ''}
-                    <div class="mb-4" id="notes-container" ${requireNotes ? '' : 'style="display:none"'}>
-                        <label for="notes" class="block text-sm font-medium themed-text-light">Notas ${requireNotes ? '(Requerido para cantidades grandes)' : '(Opcional)'}</label>
-                        <textarea id="notes" name="notes" rows="2" class="themed-input mt-1 block w-full px-3 py-2 border rounded-md shadow-sm"></textarea>
-                    </div>
-                    <div class="flex justify-end">
-                        <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded">Registrar Salida</button>
-                    </div>
+                     <!-- Form fields will be populated by JS -->
                 </form>`;
-            showModal('Registrar Salida de Consumible', content, 'max-w-md');
+            showModal('Registrar Salida / Préstamo', content, 'max-w-md');
+
+            const formContainer = document.getElementById('checkout-form');
+            const itemSelect = document.getElementById('item-select');
             
-            const form = document.getElementById('checkout-form');
-            const quantityInput = form.quantity;
-            const notesContainer = document.getElementById('notes-container');
-            const notesInput = form.notes;
-            
-            // Show/hide notes based on quantity
-            quantityInput.addEventListener('input', () => {
-                const qty = parseInt(quantityInput.value) || 0;
-                if (requireNotes && qty >= approvalThreshold) {
-                    notesContainer.style.display = 'block';
-                    notesInput.required = true;
-                } else {
-                    notesContainer.style.display = requireNotes ? 'block' : 'none'; // Keep it visible if not required but enabled
-                    notesInput.required = false;
-                }
-            });
-            
-            form.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const { quantity, user, exchange, notes } = e.target.elements;
-                const qty = parseInt(quantity.value);
-                const isExchange = isEndmill && exchange.value === 'yes';
-                
-                // Validation
-                if (state.settings.customValidations?.preventNegativeStock && !isExchange && item.stock - qty < 0) {
-                    showNotification('No se puede tener stock negativo.', 'error');
+            const populateForm = (selectedItem) => {
+                if (!selectedItem) {
+                    formContainer.innerHTML = '';
                     return;
                 }
                 
-                if (requireNotes && qty >= approvalThreshold && !notes.value.trim()) {
-                    showNotification('Se requieren notas para transacciones grandes.', 'error');
-                    return;
+                if (selectedItem.type === 'Consumible') {
+                    const isEndmill = selectedItem.category.toLowerCase().includes('endmill');
+                    const maxQuantity = Math.min(selectedItem.stock, state.settings.customValidations?.maxQuantityPerTransaction || 1000);
+                    const requireNotes = state.settings.customValidations?.requireNotesForLargeTransactions;
+                    formContainer.innerHTML = `
+                        <div class="mb-4">
+                            <label for="quantity" class="block text-sm font-medium themed-text-light">Cantidad</label>
+                            <input type="number" id="quantity" name="quantity" min="1" max="${maxQuantity}" required class="themed-input mt-1 block w-full px-3 py-2 border rounded-md shadow-sm">
+                            <p class="text-xs themed-text-light mt-1">Máximo: ${maxQuantity} ${selectedItem.unit}</p>
+                        </div>
+                        <div class="mb-4">
+                            <label for="user" class="block text-sm font-medium themed-text-light">Nombre de quien retira</label>
+                            <input type="text" id="user" name="user" required class="themed-input mt-1 block w-full px-3 py-2 border rounded-md shadow-sm">
+                        </div>
+                        ${isEndmill ? `
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium themed-text-light">¿Devolvió pieza rota?</label>
+                            <div class="mt-2 space-x-4">
+                                <label><input type="radio" name="exchange" value="yes" class="form-radio"> Sí (Intercambio)</label>
+                                <label><input type="radio" name="exchange" value="no" class="form-radio" checked> No (Salida)</label>
+                            </div>
+                        </div>` : ''}
+                        <div class="mb-4" id="notes-container" ${requireNotes ? '' : 'style="display:none"'}>
+                            <label for="notes" class="block text-sm font-medium themed-text-light">Notas ${requireNotes ? '(Requerido para cantidades grandes)' : '(Opcional)'}</label>
+                            <textarea id="notes" name="notes" rows="2" class="themed-input mt-1 block w-full px-3 py-2 border rounded-md shadow-sm"></textarea>
+                        </div>
+                        <div class="flex justify-end">
+                            <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded">Registrar Salida</button>
+                        </div>
+                    `;
+                } else { // Retornable
+                    formContainer.innerHTML = `
+                        <div class="mb-4">
+                            <label for="borrower" class="block text-sm font-medium themed-text-light">Nombre de quien solicita</label>
+                            <input type="text" id="borrower" name="borrower" required class="themed-input mt-1 block w-full px-3 py-2 border rounded-md shadow-sm">
+                        </div>
+                        <div class="flex justify-end"><button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded">Registrar Préstamo</button></div>
+                    `;
                 }
-                
-                if (state.settings.enableWorkflowApprovals && qty >= approvalThreshold) {
-                    showNotification('Esta transacción requiere aprobación del administrador.', 'info');
-                    closeModal();
-                    return;
-                }
-                
-                const itemRef = doc(db, 'inventory', item.id);
-                if (!isExchange) {
-                    await updateDoc(itemRef, { stock: item.stock - qty });
-                }
-                await addDoc(collection(db, 'transactions'), {
-                    itemId: item.id, itemDescription: item.description, type: isExchange ? 'Intercambio' : 'Salida',
-                    quantity: qty, user: user.value, notes: notes?.value || '', timestamp: serverTimestamp()
+            };
+            
+            if(item) {
+                populateForm(item);
+            } else {
+                itemSelect.addEventListener('change', (e) => {
+                    const selectedItem = state.inventory.find(i => i.id === e.target.value);
+                    populateForm(selectedItem);
                 });
-                showNotification('Salida registrada.', 'success');
+            }
+
+            formContainer.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const selectedItem = item || state.inventory.find(i => i.id === itemSelect.value);
+                if (!selectedItem) {
+                     showNotification("Por favor, selecciona un artículo.", "error");
+                     return;
+                }
+                
+                if (selectedItem.type === 'Consumible') {
+                    // Logic for Consumable
+                    const { quantity, user, exchange, notes } = e.target.elements;
+                    const qty = parseInt(quantity.value);
+                    const isEndmill = selectedItem.category.toLowerCase().includes('endmill');
+                    const isExchange = isEndmill && exchange && exchange.value === 'yes';
+
+                    if (state.settings.customValidations?.preventNegativeStock && !isExchange && selectedItem.stock - qty < 0) {
+                        showNotification('No se puede tener stock negativo.', 'error');
+                        return;
+                    }
+
+                    const itemRef = doc(db, 'inventory', selectedItem.id);
+                    if (!isExchange) {
+                        await updateDoc(itemRef, { stock: selectedItem.stock - qty });
+                    }
+                    await addDoc(collection(db, 'transactions'), {
+                        itemId: selectedItem.id, itemDescription: selectedItem.description, type: isExchange ? 'Intercambio' : 'Salida',
+                        quantity: qty, user: user.value, notes: notes?.value || '', timestamp: serverTimestamp()
+                    });
+                    showNotification('Salida registrada.', 'success');
+                } else {
+                    // Logic for Retornable
+                    const borrower = e.target.borrower.value;
+                    const batch = writeBatch(db);
+                    batch.update(doc(db, 'inventory', selectedItem.id), { stock: selectedItem.stock - 1 });
+                    batch.set(doc(collection(db, 'loans')), {
+                        itemId: selectedItem.id, itemDescription: selectedItem.description, borrower: borrower,
+                        loanedAt: serverTimestamp(), returnedAt: null
+                    });
+                    batch.set(doc(collection(db, 'transactions')), {
+                        itemId: selectedItem.id, itemDescription: selectedItem.description, type: 'Préstamo',
+                        quantity: 1, borrower: borrower, timestamp: serverTimestamp()
+                    });
+                    await batch.commit();
+                    showNotification('Préstamo registrado.', 'success');
+                }
                 closeModal();
             });
         }
         function showLoanModal(item) {
-            const content = `
-                <p class="mb-4"><strong>Artículo:</strong> ${item.description}</p>
-                <form id="loan-form">
-                    <div class="mb-4">
-                        <label for="borrower" class="block text-sm font-medium themed-text-light">Nombre de quien solicita</label>
-                        <input type="text" id="borrower" name="borrower" required class="themed-input mt-1 block w-full px-3 py-2 border rounded-md shadow-sm">
-                    </div>
-                    <div class="flex justify-end"><button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded">Registrar Préstamo</button></div>
-                </form>`;
-            showModal('Registrar Préstamo de Herramienta', content, 'max-w-md');
-            document.getElementById('loan-form').addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const borrower = e.target.borrower.value;
-                const batch = writeBatch(db);
-                batch.update(doc(db, 'inventory', item.id), { stock: item.stock - 1 });
-                batch.set(doc(collection(db, 'loans')), {
-                    itemId: item.id, itemDescription: item.description, borrower: borrower,
-                    loanedAt: serverTimestamp(), returnedAt: null
-                });
-                batch.set(doc(collection(db, 'transactions')), {
-                    itemId: item.id, itemDescription: item.description, type: 'Préstamo',
-                    quantity: 1, borrower: borrower, timestamp: serverTimestamp()
-                });
-                await batch.commit();
-                showNotification('Préstamo registrado.', 'success');
-                closeModal();
-            });
+             showCheckoutModal(item);
         }
         
         function showReportLossModal(loan, item) {
@@ -2300,9 +2442,20 @@
                             <label for="unit" class="block text-sm font-medium themed-text-light">Unidad</label>
                             <input type="text" id="unit" value="${item.unit || 'pza'}" required class="themed-input mt-1 block w-full px-3 py-2 border rounded-md shadow-sm">
                         </div>
+                        <div>
+                            <label for="cost" class="block text-sm font-medium themed-text-light">Costo por unidad</label>
+                            <input type="number" id="cost" value="${item.cost || 0}" min="0" step="0.01" class="themed-input mt-1 block w-full px-3 py-2 border rounded-md shadow-sm">
+                        </div>
+                        <div>
+                             <label for="image" class="block text-sm font-medium themed-text-light">Imagen</label>
+                             <input type="file" id="image" accept="image/*" class="themed-input mt-1 block w-full text-sm">
+                        </div>
                     </div>
                     <div class="flex justify-end mt-6">
-                        <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded">Guardar Cambios</button>
+                        <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded flex items-center space-x-2">
+                             <span id="save-btn-text">Guardar Cambios</span>
+                             <i id="save-spinner" data-lucide="loader" class="h-5 w-5 animate-spin hidden"></i>
+                        </button>
                     </div>
                 </form>
             `;
@@ -2314,14 +2467,26 @@
             });
             document.getElementById('edit-item-form').addEventListener('submit', async (e) => {
                 e.preventDefault();
-                const { description, category, type, minStock, unit } = e.target.elements;
+                const { description, category, type, minStock, unit, cost, image } = e.target.elements;
+                const saveBtnText = document.getElementById('save-btn-text');
+                const saveSpinner = document.getElementById('save-spinner');
+                saveBtnText.classList.add('hidden');
+                saveSpinner.classList.remove('hidden');
+
                 const updatedData = {
                     description: description.value,
                     category: category.value,
                     type: type.value,
                     unit: unit.value,
                     minStock: type.value === 'Consumible' ? parseInt(minStock.value) : 0,
+                    cost: parseFloat(cost.value) || 0,
+                    imageUrl: item.imageUrl // Keep old image by default
                 };
+                
+                if (image.files[0]) {
+                    updatedData.imageUrl = await uploadImage(image.files[0]);
+                }
+
                 await updateDoc(doc(db, 'inventory', item.id), updatedData);
                 showNotification('Artículo actualizado.', 'success');
                 closeModal();
@@ -2359,9 +2524,20 @@
                             <label for="unit" class="block text-sm font-medium themed-text-light">Unidad</label>
                             <input type="text" id="unit" value="${state.settings.defaultUnit || 'pza'}" required class="themed-input mt-1 block w-full px-3 py-2 border rounded-md shadow-sm">
                         </div>
+                        <div>
+                            <label for="cost" class="block text-sm font-medium themed-text-light">Costo por unidad</label>
+                            <input type="number" id="cost" value="0" min="0" step="0.01" class="themed-input mt-1 block w-full px-3 py-2 border rounded-md shadow-sm">
+                        </div>
+                        <div>
+                             <label for="image" class="block text-sm font-medium themed-text-light">Imagen</label>
+                             <input type="file" id="image" accept="image/*" class="themed-input mt-1 block w-full text-sm">
+                        </div>
                     </div>
                     <div class="flex justify-end mt-6">
-                        <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded">Crear Artículo</button>
+                        <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded flex items-center space-x-2">
+                             <span id="save-btn-text">Crear Artículo</span>
+                             <i id="save-spinner" data-lucide="loader" class="h-5 w-5 animate-spin hidden"></i>
+                        </button>
                     </div>
                 </form>
             `;
@@ -2374,7 +2550,12 @@
 
             document.getElementById('new-item-form').addEventListener('submit', async (e) => {
                 e.preventDefault();
-                const { description, category, type, minStock, unit, stock } = e.target.elements;
+                const saveBtnText = document.getElementById('save-btn-text');
+                const saveSpinner = document.getElementById('save-spinner');
+                saveBtnText.classList.add('hidden');
+                saveSpinner.classList.remove('hidden');
+
+                const { description, category, type, minStock, unit, stock, cost, image } = e.target.elements;
                 const newItem = {
                     description: description.value,
                     category: category.value,
@@ -2382,7 +2563,14 @@
                     unit: unit.value,
                     stock: parseInt(stock.value),
                     minStock: type.value === 'Consumible' ? parseInt(minStock.value) : 0,
+                    cost: parseFloat(cost.value) || 0,
+                    imageUrl: ''
                 };
+                
+                if (image.files[0]) {
+                    newItem.imageUrl = await uploadImage(image.files[0]);
+                }
+
                 try {
                     const docRef = await addDoc(collection(db, 'inventory'), newItem);
                     await addDoc(collection(db, 'transactions'), {
@@ -2393,6 +2581,8 @@
                     closeModal();
                 } catch(error) {
                     showNotification('Error al crear el artículo.', 'error');
+                    saveBtnText.classList.remove('hidden');
+                    saveSpinner.classList.add('hidden');
                 }
             });
         }
@@ -2865,6 +3055,20 @@
         }
 
         // --- LÓGICA DE UTILIDADES ---
+        async function uploadImage(file) {
+            if (!file) return null;
+            const storageRef = ref(storage, `item_images/${Date.now()}_${file.name}`);
+            try {
+                const snapshot = await uploadBytes(storageRef, file);
+                const downloadURL = await getDownloadURL(snapshot.ref);
+                return downloadURL;
+            } catch (error) {
+                console.error("Error uploading image: ", error);
+                showNotification("Error al subir la imagen.", "error");
+                return null;
+            }
+        }
+
         function generatePaginator(totalPages) {
             if (totalPages <= 1) return '';
             let pages = '';

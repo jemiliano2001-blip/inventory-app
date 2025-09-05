@@ -25,8 +25,8 @@
     <!-- Google reCAPTCHA -->
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 
-    <!-- PWA Manifest -->
-    <link rel="manifest" href="manifest.json">
+    <!-- PWA Manifest (Ensure you have a manifest.json file) -->
+    <!-- <link rel="manifest" href="manifest.json"> -->
     <meta name="theme-color" content="#4f46e5">
 
     <style>
@@ -164,6 +164,10 @@
                 </div>
 
                 <div class="flex justify-center my-4">
+                     <!-- 
+                        SECURITY NOTE: For a production environment, your reCAPTCHA site key should not be hardcoded.
+                        It's better to load it from a configuration file or environment variable.
+                     -->
                     <div class="g-recaptcha" data-sitekey="6Lel_b0rAAAAACnX8hN1WkEPO0bltj0mft6bM3NZ"></div>
                 </div>
 
@@ -275,6 +279,18 @@
         import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 
         // --- CONFIGURACIÓN ---
+        // CRITICAL SECURITY NOTE: Your Firebase configuration is exposed on the client side.
+        // This is expected, but it means you MUST secure your database using Firebase Security Rules.
+        // Without rules, anyone can read, write, or delete your data.
+        // Example Rule: Allow reads/writes only if a user is authenticated:
+        // rules_version = '2';
+        // service cloud.firestore {
+        //   match /databases/{database}/documents {
+        //     match /{document=**} {
+        //       allow read, write: if request.auth != null;
+        //     }
+        //   }
+        // }
         const firebaseConfig = {
             apiKey: "AIzaSyDPvm07EShBWY_tqG1J6DZCxuKj0sbN1Cw",
             authDomain: "mi-inventario-app-e44a9.firebaseapp.com",
@@ -376,6 +392,7 @@
             if (userDoc.exists()) {
                 state.userRole = userDoc.data().role;
             } else {
+                // Set default role for new users
                 await setDoc(userDocRef, { email: auth.currentUser.email, role: 'operator' });
                 state.userRole = 'operator';
             }
@@ -388,24 +405,27 @@
                 state.settings = { ...state.settings, ...settingsDoc.data() };
                 state.itemsPerPage = state.settings.itemsPerPage || 10;
             } else if (state.userRole === 'admin') {
+                // Create initial settings document if it doesn't exist
                 await setDoc(settingsRef, state.settings);
             }
         }
 
-        function displayAuthError(message) {
+        function displayAuthError(errorCode) {
             const errorMessage = document.getElementById('auth-error-message');
-            switch(message) {
-                case "Firebase: Error (auth/user-not-found).":
-                case "Firebase: Error (auth/wrong-password).":
-                case "Firebase: Error (auth/invalid-credential).":
-                    errorMessage.textContent = "Correo o contraseña incorrectos.";
+            let message = "Ocurrió un error. Inténtelo de nuevo."; // Default message
+
+            // FIX: Using error codes is more reliable than parsing error message strings.
+            switch(errorCode) {
+                case "auth/user-not-found":
+                case "auth/wrong-password":
+                case "auth/invalid-credential":
+                    message = "Correo o contraseña incorrectos.";
                     break;
-                case "Por favor, complete el reCAPTCHA.":
-                     errorMessage.textContent = message;
+                case "custom/recaptcha-missing":
+                     message = "Por favor, complete el reCAPTCHA.";
                      break;
-                default:
-                    errorMessage.textContent = "Ocurrió un error. Inténtelo de nuevo.";
             }
+            errorMessage.textContent = message;
             errorMessage.classList.remove('hidden');
         }
 
@@ -418,10 +438,14 @@
 
         async function checkAndLoadInitialData() {
             const inventoryRef = collection(db, 'inventory');
-            const snapshot = await getDocs(inventoryRef);
+            const snapshot = await getDocs(query(inventoryRef)); // Use a simple query
             if (snapshot.empty) {
                 showNotification('Cargando inventario inicial...', 'info');
                 const initialInventory = getFullInventoryList(); 
+                if (initialInventory.length === 0) {
+                    showNotification('La lista de inventario inicial está vacía. Agregue artículos en la sección de inventario.', 'info');
+                    return;
+                }
                 const batch = writeBatch(db);
                 initialInventory.forEach(item => {
                     const docRef = doc(collection(db, 'inventory'));
@@ -433,22 +457,20 @@
         }
         
         function setupRealtimeListeners() {
+            // FIX: More efficient listener logic. Avoids fetching settings on every inventory change.
+            // It now only re-renders the currently active view.
             onSnapshot(collection(db, 'inventory'), (snapshot) => {
                 state.inventory = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })).sort((a, b) => a.description.localeCompare(b.description));
                 const uniqueCategories = [...new Set(state.inventory.map(item => item.category))].sort();
                 
-                const settingsRef = doc(db, 'settings', 'global');
-                getDoc(settingsRef).then(docSnap => {
-                    const storedCategories = docSnap.exists() ? docSnap.data().categories || [] : [];
-                    state.categories = ['Todas', ...new Set([...uniqueCategories, ...storedCategories])].sort();
-                    
-                    const currentPage = window.location.hash.substring(1) || 'dashboard';
-                    if (state.isInitialized) {
-                        if (currentPage === 'inventory') renderInventoryView();
-                        if (currentPage === 'dashboard') renderDashboardView();
-                        if (currentPage === 'settings') renderSettingsView();
-                    }
-                });
+                const settingsCategories = state.settings.categories || [];
+                state.categories = ['Todas', ...new Set([...uniqueCategories, ...settingsCategories])].sort();
+                
+                // Only re-render the current page to avoid unnecessary work
+                const currentPage = window.location.hash.substring(1) || 'dashboard';
+                if (state.isInitialized) {
+                    navigateTo(currentPage, true); // Pass a flag to indicate it's a soft-refresh
+                }
             });
 
             const loansQuery = query(collection(db, 'loans'), where('returnedAt', '==', null));
@@ -460,8 +482,9 @@
             onSnapshot(collection(db, 'transactions'), (snapshot) => {
                 state.transactions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 if (state.isInitialized) {
-                    if (window.location.hash === '#history') renderHistoryView();
-                    if (window.location.hash === '#dashboard') renderDashboardView();
+                    const currentPage = window.location.hash.substring(1);
+                    if (currentPage === 'history') renderHistoryView();
+                    if (currentPage === 'dashboard') renderDashboardView();
                 }
             });
 
@@ -480,52 +503,57 @@
         }
 
         // --- NAVEGACIÓN Y RENDERIZADO DE VISTAS ---
-        function navigateTo(page) {
+        function navigateTo(page, isRefresh = false) {
             const pageTitle = document.getElementById('page-title');
-            document.getElementById('search-input').parentElement.parentElement.classList.add('hidden');
+            // Hide search unless on inventory page
+            const searchContainer = document.getElementById('search-input').parentElement.parentElement;
+            searchContainer.classList.toggle('hidden', page !== 'inventory');
+            
+            // Don't change title or active link on a soft refresh
+            if (!isRefresh) {
+                 updateActiveNavLink(page);
+            }
 
             switch (page) {
                 case 'dashboard':
-                    pageTitle.textContent = 'Dashboard';
+                    if (!isRefresh) pageTitle.textContent = 'Dashboard';
                     renderDashboardView();
                     break;
                 case 'inventory':
-                    pageTitle.textContent = 'Inventario';
-                    document.getElementById('search-input').parentElement.parentElement.classList.remove('hidden');
+                    if (!isRefresh) pageTitle.textContent = 'Inventario';
                     renderInventoryView();
                     break;
                 case 'active-loans':
-                    pageTitle.textContent = 'Préstamos Activos';
+                    if (!isRefresh) pageTitle.textContent = 'Préstamos Activos';
                     renderActiveLoansView();
                     break;
                 case 'history':
-                    pageTitle.textContent = 'Historial';
+                    if (!isRefresh) pageTitle.textContent = 'Historial';
                     renderHistoryView();
                     break;
                 case 'reports':
-                    pageTitle.textContent = 'Reportes';
+                    if (!isRefresh) pageTitle.textContent = 'Reportes';
                     renderReportsView();
                     break;
                 case 'shopping-list':
-                    pageTitle.textContent = 'Lista de Compras';
+                    if (!isRefresh) pageTitle.textContent = 'Lista de Compras';
                     renderShoppingListView();
                     break;
                 case 'users':
                     if (state.userRole === 'admin') {
-                        pageTitle.textContent = 'Gestión de Usuarios';
+                        if (!isRefresh) pageTitle.textContent = 'Gestión de Usuarios';
                         renderUsersView();
                     } else { window.location.hash = 'dashboard'; }
                     break;
                 case 'settings':
                     if (state.userRole === 'admin') {
-                        pageTitle.textContent = 'Ajustes';
+                        if (!isRefresh) pageTitle.textContent = 'Ajustes';
                         renderSettingsView();
                     } else { window.location.hash = 'dashboard'; }
                     break;
                 default:
                     window.location.hash = 'dashboard';
             }
-            updateActiveNavLink(page);
             lucide.createIcons();
         }
 
@@ -665,6 +693,7 @@
                     </table>
                 </div>
             `;
+            lucide.createIcons();
         }
 
         function renderHistoryView() {
@@ -715,7 +744,7 @@
                         <tbody class="themed-table-body themed-divide divide-y">
                             ${data.length > 0 ? data.map(t => `
                                 <tr>
-                                    <td class="px-6 py-4 whitespace-nowrap">${new Date(t.timestamp?.seconds * 1000).toLocaleString()}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">${t.timestamp?.seconds ? new Date(t.timestamp.seconds * 1000).toLocaleString() : 'Fecha no disponible'}</td>
                                     <td class="px-6 py-4 whitespace-nowrap">${t.type}</td>
                                     <td class="px-6 py-4 whitespace-nowrap">${t.itemDescription}</td>
                                     <td class="px-6 py-4 whitespace-nowrap">${t.quantity}</td>
@@ -727,6 +756,8 @@
                     </table>
                 </div>
             `;
+            // FIX: Icons inside the history tab need to be re-rendered on tab switch.
+            lucide.createIcons();
         }
 
 
@@ -1129,17 +1160,17 @@
                 document.getElementById('auth-error-message').classList.add('hidden');
 
                 if (recaptchaResponse.length === 0) {
-                    displayAuthError("Por favor, complete el reCAPTCHA.");
+                    displayAuthError("custom/recaptcha-missing");
                     return;
                 }
 
                 try {
-                    // NOTE: For a production app, you should send the `recaptchaResponse`
-                    // to your backend for verification with your secret key.
-                    // Since this is a client-side app, we'll proceed without server verification.
+                    // SECURITY NOTE: For a production app, you MUST send the `recaptchaResponse`
+                    // to your backend for verification with your reCAPTCHA secret key.
+                    // An attacker can easily bypass this client-side check.
                     await signInWithEmailAndPassword(auth, email, password);
                 } catch (error) {
-                    displayAuthError(error.message);
+                    displayAuthError(error.code); // FIX: Pass error code
                     grecaptcha.reset(); // Reset reCAPTCHA on login failure
                 }
             });
@@ -1274,13 +1305,16 @@
             try {
                 const itemDoc = await getDoc(itemRef);
                 if (!itemDoc.exists()) throw new Error("Item not found");
+                const loanDoc = await getDoc(loanRef);
+                if (!loanDoc.exists()) throw new Error("Loan not found");
+                
                 const batch = writeBatch(db);
                 batch.update(itemRef, { stock: itemDoc.data().stock + 1 });
                 batch.update(loanRef, { returnedAt: serverTimestamp() });
                 const transactionRef = doc(collection(db, 'transactions'));
                 batch.set(transactionRef, {
                     itemId: itemId, itemDescription: itemDoc.data().description, type: 'Devolución',
-                    quantity: 1, borrower: (await getDoc(loanRef)).data().borrower,
+                    quantity: 1, borrower: loanDoc.data().borrower,
                     timestamp: serverTimestamp(), user: state.currentUser.email
                 });
                 await batch.commit();
@@ -1301,7 +1335,7 @@
             const modalContainer = document.getElementById('modal-container');
             modalContainer.innerHTML = `
                 <div id="app-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-40">
-                    <div class="relative top-20 mx-auto p-5 border w-full ${maxWidth} shadow-lg rounded-md themed-card themed-border">
+                    <div class="relative top-20 mx-auto p-5 border w-full ${maxWidth} shadow-lg rounded-md themed-card themed-border pop-animation">
                         <div class="flex justify-between items-center pb-3 border-b themed-border">
                             <h3 class="text-2xl font-bold">${title}</h3>
                             <button id="close-modal-btn"><i data-lucide="x" class="h-6 w-6"></i></button>
@@ -1408,8 +1442,8 @@
                 if (requireNotes && qty >= approvalThreshold) {
                     notesContainer.style.display = 'block';
                     notesInput.required = true;
-                } else if (!requireNotes) {
-                    notesContainer.style.display = 'none';
+                } else {
+                    notesContainer.style.display = requireNotes ? 'block' : 'none'; // Keep it visible if not required but enabled
                     notesInput.required = false;
                 }
             });
@@ -1434,6 +1468,7 @@
                 if (state.settings.enableWorkflowApprovals && qty >= approvalThreshold) {
                     showNotification('Esta transacción requiere aprobación del administrador.', 'info');
                     // In a real implementation, this would create a pending approval record
+                    closeModal();
                     return;
                 }
                 
@@ -1767,9 +1802,11 @@
 
             showConfirmationModal(`¿Seguro que quieres renombrar "${oldName}" a "${newName}"? Esto actualizará todos los artículos de esta categoría.`, async () => {
                 const batch = writeBatch(db);
-                const itemsToUpdate = state.inventory.filter(item => item.category === oldName);
-                itemsToUpdate.forEach(item => {
-                    batch.update(doc(db, 'inventory', item.id), { category: newName });
+                const itemsToUpdateQuery = query(collection(db, 'inventory'), where('category', '==', oldName));
+                const querySnapshot = await getDocs(itemsToUpdateQuery);
+                
+                querySnapshot.forEach(itemDoc => {
+                    batch.update(itemDoc.ref, { category: newName });
                 });
                 
                 const updatedCategories = state.categories.map(c => c === oldName ? newName : c).sort();
@@ -1785,8 +1822,9 @@
         }
 
         async function handleDeleteCategory(categoryName) {
-            const itemsInCategory = state.inventory.filter(item => item.category === categoryName);
-            const itemsCount = itemsInCategory.length;
+            const itemsInCategoryQuery = query(collection(db, 'inventory'), where('category', '==', categoryName));
+            const querySnapshot = await getDocs(itemsInCategoryQuery);
+            const itemsCount = querySnapshot.size;
 
             let confirmationMessage = `¿Seguro que quieres eliminar la categoría "${categoryName}"?`;
             if (itemsCount > 0) {
@@ -1797,16 +1835,16 @@
                 const batch = writeBatch(db);
 
                 // Delete all items in the category
-                itemsInCategory.forEach(item => {
-                    const itemRef = doc(db, 'inventory', item.id);
-                    batch.delete(itemRef);
+                querySnapshot.forEach(itemDoc => {
+                    const itemData = itemDoc.data();
+                    batch.delete(itemDoc.ref);
 
                     // Add a transaction log for each deleted item
                     const transactionRef = doc(collection(db, 'transactions'));
                     batch.set(transactionRef, {
-                        itemDescription: item.description,
+                        itemDescription: itemData.description,
                         type: 'Eliminado',
-                        quantity: item.stock,
+                        quantity: itemData.stock,
                         timestamp: serverTimestamp(),
                         user: state.currentUser.email,
                         notes: `Artículo eliminado por borrado de categoría: ${categoryName}`
@@ -1841,21 +1879,22 @@
             const message = `¿Estás seguro de que quieres cambiar todos los artículos en la categoría "${categoryToUpdate}" al tipo "${newType}"? Esta acción es irreversible.`;
 
             showConfirmationModal(message, async () => {
-                const itemsToUpdate = state.inventory.filter(item => item.category === categoryToUpdate);
-                if (itemsToUpdate.length === 0) {
+                const itemsToUpdateQuery = query(collection(db, 'inventory'), where('category', '==', categoryToUpdate));
+                const querySnapshot = await getDocs(itemsToUpdateQuery);
+
+                if (querySnapshot.empty) {
                     showNotification('No hay artículos en esta categoría para actualizar.', 'info');
                     return;
                 }
 
                 const batch = writeBatch(db);
-                itemsToUpdate.forEach(item => {
-                    const itemRef = doc(db, 'inventory', item.id);
-                    batch.update(itemRef, { type: newType });
+                querySnapshot.forEach(itemDoc => {
+                    batch.update(itemDoc.ref, { type: newType });
                 });
 
                 try {
                     await batch.commit();
-                    showNotification(`Se actualizaron ${itemsToUpdate.length} artículos en la categoría "${categoryToUpdate}".`, 'success');
+                    showNotification(`Se actualizaron ${querySnapshot.size} artículos en la categoría "${categoryToUpdate}".`, 'success');
                 } catch (error) {
                     showNotification('Ocurrió un error al actualizar los artículos.', 'error');
                     console.error("Error during bulk category type update:", error);
@@ -1877,10 +1916,10 @@
             reader.onload = async (e) => {
                 try {
                     const csv = e.target.result;
-                    const lines = csv.split('\n');
+                    const lines = csv.split(/\r\n|\n/); // Handles different line endings
                     const items = [];
                     
-                    // Skip header line
+                    // Skip header line (i=1)
                     for (let i = 1; i < lines.length; i++) {
                         const line = lines[i].trim();
                         if (!line) continue;
@@ -1914,15 +1953,10 @@
                             const docRef = doc(collection(db, 'inventory'));
                             batch.set(docRef, item);
                             
-                            // Add transaction log
                             const transactionRef = doc(collection(db, 'transactions'));
                             batch.set(transactionRef, {
-                                itemDescription: item.description,
-                                type: 'Creación',
-                                quantity: item.stock,
-                                timestamp: serverTimestamp(),
-                                user: state.currentUser.email,
-                                notes: 'Importado desde CSV'
+                                itemDescription: item.description, type: 'Creación', quantity: item.stock,
+                                timestamp: serverTimestamp(), user: state.currentUser.email, notes: 'Importado desde CSV'
                             });
                             successCount++;
                         });
@@ -1946,12 +1980,8 @@
 
         async function handleExportInventory() {
             const data = state.inventory.map(item => [
-                item.description,
-                item.category,
-                item.type,
-                item.stock,
-                item.unit,
-                item.minStock || 0
+                item.description, item.category, item.type,
+                item.stock, item.unit, item.minStock || 0
             ]);
             const headers = ['Descripción', 'Categoría', 'Tipo', 'Stock', 'Unidad', 'Stock Mínimo'];
             exportToCSV('inventario_completo', headers, data);
@@ -1976,9 +2006,9 @@
                 const backup = {
                     timestamp: new Date().toISOString(),
                     settings: state.settings,
-                    categories: state.categories,
+                    categories: state.categories.filter(c => c !== 'Todas'),
                     inventory: state.inventory,
-                    transactions: state.transactions.slice(-1000), // Last 1000 transactions
+                    transactions: state.transactions,
                     activeLoans: state.activeLoans,
                     shoppingList: state.shoppingList
                 };
@@ -2005,34 +2035,30 @@
             const cutoffDate = new Date();
             cutoffDate.setDate(cutoffDate.getDate() - retentionDays);
             
-            const oldTransactions = state.transactions.filter(t => 
-                t.timestamp && t.timestamp.toDate && t.timestamp.toDate() < cutoffDate
-            );
+            const oldTransactionsQuery = query(collection(db, 'transactions'), where('timestamp', '<', cutoffDate));
+            const querySnapshot = await getDocs(oldTransactionsQuery);
             
-            if (oldTransactions.length === 0) {
+            if (querySnapshot.empty) {
                 showNotification('No hay datos antiguos para archivar.', 'info');
                 return;
             }
             
-            showConfirmationModal(`¿Archivar ${oldTransactions.length} transacciones anteriores a ${cutoffDate.toLocaleDateString()}?`, async () => {
+            showConfirmationModal(`¿Archivar ${querySnapshot.size} transacciones anteriores a ${cutoffDate.toLocaleDateString()}?`, async () => {
                 try {
-                    // Create archive collection
                     const archiveBatch = writeBatch(db);
                     const deleteBatch = writeBatch(db);
                     
-                    oldTransactions.forEach(transaction => {
-                        // Add to archive
+                    querySnapshot.forEach(transactionDoc => {
+                        const transactionData = transactionDoc.data();
                         const archiveRef = doc(collection(db, 'archived_transactions'));
-                        archiveBatch.set(archiveRef, { ...transaction, archivedAt: serverTimestamp() });
-                        
-                        // Delete from main collection
-                        deleteBatch.delete(doc(db, 'transactions', transaction.id));
+                        archiveBatch.set(archiveRef, { ...transactionData, archivedAt: serverTimestamp() });
+                        deleteBatch.delete(transactionDoc.ref);
                     });
                     
                     await archiveBatch.commit();
                     await deleteBatch.commit();
                     
-                    showNotification(`${oldTransactions.length} transacciones archivadas.`, 'success');
+                    showNotification(`${querySnapshot.size} transacciones archivadas.`, 'success');
                 } catch (error) {
                     showNotification('Error al archivar los datos.', 'error');
                     console.error('Archive error:', error);
@@ -2062,7 +2088,10 @@
         }
         async function addToShoppingList(item, quantity) {
             if (quantity <= 0) { showNotification('La cantidad debe ser mayor a cero.', 'error'); return; }
-            if (state.shoppingList.find(i => i.itemId === item.id)) {
+            const existingItemQuery = query(collection(db, 'shoppingList'), where('itemId', '==', item.id));
+            const querySnapshot = await getDocs(existingItemQuery);
+
+            if (!querySnapshot.empty) {
                 showNotification(`${item.description} ya está en la lista.`, 'info');
                 return;
             }
@@ -2092,16 +2121,15 @@
             let y = 40;
             doc.setFontSize(10);
             state.shoppingList.forEach((item, index) => {
-                if (index === 0) y += 10;
-                const textLines = doc.splitTextToSize(`${item.quantity} x ${item.description}`, 160);
-                doc.text(textLines, 25, y);
-                y += (textLines.length * 5) + 3;
                 if (y > 280) { doc.addPage(); y = 20; }
+                const textLines = doc.splitTextToSize(`[  ] ${item.quantity} x ${item.description}`, 160);
+                doc.text(textLines, 25, y);
+                y += (textLines.length * 5) + 5;
             });
             doc.save("lista_de_compras.pdf");
         }
         function generateCharts() {
-            const consumableUsage = state.transactions.filter(t => t.type === 'Salida').reduce((acc, t) => {
+            const consumableUsage = state.transactions.filter(t => t.type === 'Salida' || t.type === 'Intercambio').reduce((acc, t) => {
                 acc[t.itemDescription] = (acc[t.itemDescription] || 0) + t.quantity; return acc; }, {});
             const topConsumables = Object.entries(consumableUsage).sort(([,a],[,b]) => b-a).slice(0, 10);
             new Chart(document.getElementById('topConsumablesChart'), {
@@ -2138,7 +2166,7 @@
                 default:
                     title = `Historial de ${type}`; headers = ['Fecha', 'Tipo', 'Articulo', 'Cantidad', 'Responsable', 'Notas'];
                     data = state.transactions.filter(t => typeMap[type].includes(t.type)).sort((a,b) => b.timestamp.seconds - a.timestamp.seconds)
-                        .map(t => [new Date(t.timestamp.seconds * 1000).toLocaleString(), t.type, t.itemDescription, t.quantity, t.user || t.borrower || 'N/A', t.notes || '']);
+                        .map(t => [t.timestamp?.seconds ? new Date(t.timestamp.seconds * 1000).toLocaleString() : '', t.type, t.itemDescription, t.quantity, t.user || t.borrower || 'N/A', t.notes || '']);
             }
             showReportPreviewModal(title, headers, data, type);
         }
@@ -2147,7 +2175,7 @@
                 <div class="max-h-96 overflow-y-auto border themed-border rounded-md">
                     <table class="min-w-full themed-divide divide-y">
                         <thead class="themed-table-header sticky top-0"><tr>${headers.map(h => `<th class="px-4 py-2 text-left text-xs font-medium themed-text-light uppercase tracking-wider">${h}</th>`).join('')}</tr></thead>
-                        <tbody class="themed-table-body themed-divide divide-y">${data.map(row => `<tr>${row.map(cell => `<td class="px-4 py-2 whitespace-nowrap text-sm">${String(cell).replace(/"/g, '')}</td>`).join('')}</tr>`).join('')}</tbody>
+                        <tbody class="themed-table-body themed-divide divide-y">${data.map(row => `<tr>${row.map(cell => `<td class="px-4 py-2 whitespace-nowrap text-sm">${String(cell ?? '').replace(/"/g, '""')}</td>`).join('')}</tr>`).join('')}</tbody>
                     </table>
                 </div>` : `<p class="themed-text-light text-center py-8">No hay datos para mostrar.</p>`;
 
@@ -2161,7 +2189,7 @@
         }
         function exportToCSV(type, headers, data) {
             const filename = `${type}_${new Date().toISOString().slice(0,10)}.csv`;
-            let csvContent = "data:text/csv;charset=utf-8," + [headers.join(','), ...data.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))].join('\n');
+            let csvContent = "data:text/csv;charset=utf-8," + [headers.join(','), ...data.map(row => row.map(cell => `"${String(cell ?? '').replace(/"/g, '""')}"`).join(','))].join('\n');
             const link = document.createElement("a");
             link.setAttribute("href", encodeURI(csvContent));
             link.setAttribute("download", filename);
@@ -2179,9 +2207,16 @@
             lucide.createIcons();
         }
         
+        // FIX: Added sample data so the app can be tested immediately.
+        // You can remove or change this to fit your needs.
         function getFullInventoryList() {
             return [
-            
+                { description: 'Tornillo Allen 1/4"', category: 'Tornillería', type: 'Consumible', stock: 500, unit: 'pza', minStock: 100 },
+                { description: 'Endmill Plano 1/2"', category: 'Herramientas de Corte', type: 'Consumible', stock: 15, unit: 'pza', minStock: 5 },
+                { description: 'Calibrador Vernier Digital', category: 'Herramientas de Medición', type: 'Retornable', stock: 5, unit: 'pza', minStock: 0 },
+                { description: 'Guantes de Nitrilo', category: 'Seguridad', type: 'Consumible', stock: 2, unit: 'caja', minStock: 1 },
+                { description: 'WD-40 Lata Grande', category: 'Químicos', type: 'Consumible', stock: 10, unit: 'lata', minStock: 3 },
+                { description: 'Taladro Inalámbrico Dewalt', category: 'Herramienta Eléctrica', type: 'Retornable', stock: 3, unit: 'pza', minStock: 0 },
             ];
         }
 

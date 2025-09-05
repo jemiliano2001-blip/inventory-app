@@ -502,14 +502,18 @@
 
             onSnapshot(collection(db, 'inventory'), (snapshot) => {
                 state.inventory = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })).sort((a, b) => a.description.localeCompare(b.description));
-                const uniqueCategories = [...new Set(state.inventory.map(item => item.category))].sort();
                 
-                const settingsCategories = state.settings.categories || [];
-                state.categories = ['Todas', ...new Set([...uniqueCategories, ...settingsCategories])].sort();
-                
+                // Recalculate categories using the already synced settings state
+                const uniqueCategoriesFromInventory = [...new Set(state.inventory.map(item => item.category))];
+                const categoriesFromSettings = state.settings.categories || [];
+                state.categories = ['Todas', ...new Set([...uniqueCategoriesFromInventory, ...categoriesFromSettings])].sort();
+
                 const currentPage = window.location.hash.substring(1) || 'dashboard';
                 if (state.isInitialized) {
-                    navigateTo(currentPage, true); 
+                    if (currentPage === 'inventory' || currentPage === 'settings') {
+                        navigateTo(currentPage, true);
+                    }
+                    if (currentPage === 'dashboard') renderDashboardView();
                 }
             }, (error) => handleSnapshotError('inventario', error));
 
@@ -535,6 +539,24 @@
             }, (error) => handleSnapshotError('lista de compras', error));
             
             if (state.userRole === 'admin') {
+                // ADDED: Real-time listener for settings, only for admins.
+                onSnapshot(doc(db, 'settings', 'global'), (docSnap) => {
+                    if (docSnap.exists()) {
+                        state.settings = { ...getInitialState().settings, ...docSnap.data() };
+                        state.itemsPerPage = state.settings.itemsPerPage || 10;
+                        
+                        // Recalculate categories whenever settings change
+                        const uniqueCategoriesFromInventory = [...new Set(state.inventory.map(item => item.category))];
+                        const categoriesFromSettings = state.settings.categories || [];
+                        state.categories = ['Todas', ...new Set([...uniqueCategoriesFromInventory, ...categoriesFromSettings])].sort();
+
+                        const currentPage = window.location.hash.substring(1);
+                        if (state.isInitialized && (currentPage === 'settings' || currentPage === 'inventory')) {
+                           navigateTo(currentPage, true);
+                        }
+                    }
+                }, (error) => handleSnapshotError('configuraciones', error));
+
                 onSnapshot(collection(db, 'users'), (snapshot) => {
                     state.allUsers = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                     if(state.isInitialized && window.location.hash === '#users') renderUsersView();
@@ -2258,3 +2280,9 @@
     </script>
 </body>
 </html>
+
+
+
+
+
+

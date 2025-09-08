@@ -21,6 +21,9 @@
     
     <!-- jsPDF for PDF Generation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
+    <!-- SheetJS for Excel Generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
     <!-- PWA Manifest (Ensure you have a manifest.json file) -->
     <!-- <link rel="manifest" href="manifest.json"> -->
@@ -90,6 +93,255 @@
         }
         ::-webkit-scrollbar-thumb:hover {
             background: #555;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(-100%); }
+            to { transform: translateX(0); }
+        }
+
+        @keyframes slideInRight {
+            from { transform: translateX(100%); }
+            to { transform: translateX(0); }
+        }
+
+        @keyframes scaleIn {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        @keyframes bounce {
+            0%, 20%, 53%, 80%, 100% { transform: translate3d(0,0,0); }
+            40%, 43% { transform: translate3d(0, -30px, 0); }
+            70% { transform: translate3d(0, -15px, 0); }
+            90% { transform: translate3d(0, -4px, 0); }
+        }
+
+        /* Animation Classes */
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .animate-slide-in {
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .animate-slide-in-right {
+            animation: slideInRight 0.3s ease-out;
+        }
+
+        .animate-scale-in {
+            animation: scaleIn 0.3s ease-out;
+        }
+
+        .animate-pulse {
+            animation: pulse 2s infinite;
+        }
+
+        .animate-bounce {
+            animation: bounce 1s;
+        }
+
+        /* Hover Effects */
+        .hover-lift {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .hover-lift:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .hover-glow {
+            transition: box-shadow 0.3s ease;
+        }
+
+        .hover-glow:hover {
+            box-shadow: 0 0 20px rgba(79, 70, 229, 0.3);
+        }
+
+        /* Loading States */
+        .loading {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .loading::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            animation: loading 1.5s infinite;
+        }
+
+        @keyframes loading {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        /* Notification Animations */
+        .pop-animation {
+            animation: scaleIn 0.3s ease-out;
+        }
+
+        /* Smooth Transitions */
+        .transition-all {
+            transition: all 0.3s ease;
+        }
+
+        .transition-colors {
+            transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+        }
+
+        .transition-transform {
+            transition: transform 0.2s ease;
+        }
+
+        /* Responsive Design Improvements */
+        @media (max-width: 768px) {
+            .mobile-hidden {
+                display: none !important;
+            }
+            
+            .mobile-full {
+                width: 100% !important;
+            }
+            
+            .mobile-stack {
+                flex-direction: column !important;
+            }
+            
+            .mobile-p-4 {
+                padding: 1rem !important;
+            }
+            
+            .mobile-text-sm {
+                font-size: 0.875rem !important;
+            }
+            
+            .mobile-text-xs {
+                font-size: 0.75rem !important;
+            }
+            
+            /* Mobile Table Improvements */
+            .mobile-table {
+                display: block;
+                width: 100%;
+            }
+            
+            .mobile-table thead {
+                display: none;
+            }
+            
+            .mobile-table tbody,
+            .mobile-table tr,
+            .mobile-table td {
+                display: block;
+                width: 100%;
+            }
+            
+            .mobile-table tr {
+                border: 1px solid #e5e7eb;
+                border-radius: 0.5rem;
+                margin-bottom: 1rem;
+                padding: 1rem;
+                background: white;
+            }
+            
+            .mobile-table td {
+                border: none;
+                padding: 0.25rem 0;
+                text-align: left !important;
+            }
+            
+            .mobile-table td:before {
+                content: attr(data-label) ": ";
+                font-weight: 600;
+                color: #6b7280;
+            }
+            
+            /* Mobile Cards */
+            .mobile-card {
+                background: white;
+                border-radius: 0.75rem;
+                padding: 1rem;
+                margin-bottom: 1rem;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            }
+            
+            /* Mobile Buttons */
+            .mobile-btn {
+                width: 100%;
+                padding: 0.75rem 1rem;
+                font-size: 0.875rem;
+                border-radius: 0.5rem;
+            }
+            
+            /* Mobile Sidebar */
+            .mobile-sidebar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                height: 100vh;
+                width: 280px;
+                z-index: 50;
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+            
+            .mobile-sidebar.open {
+                transform: translateX(0);
+            }
+            
+            .mobile-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 40;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .sm-mobile-p-2 {
+                padding: 0.5rem !important;
+            }
+            
+            .sm-mobile-text-xs {
+                font-size: 0.625rem !important;
+            }
+            
+            .sm-mobile-hidden {
+                display: none !important;
+            }
+        }
+
+        /* Dark mode responsive adjustments */
+        @media (max-width: 768px) {
+            html.dark .mobile-table tr {
+                background: #1f2937;
+                border-color: #374151;
+            }
+            
+            html.dark .mobile-card {
+                background: #1f2937;
+            }
         }
 
         /* Other styles */
@@ -198,111 +450,186 @@
 <body class="bg-gray-100">
 
     <!-- Login Screen -->
-    <div id="login-screen" class="fixed inset-0 bg-gray-200 z-50 flex items-center justify-center">
-        <div class="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-md">
-            <div class="text-center">
-                <i data-lucide="boxes" class="mx-auto h-12 w-12 text-indigo-600"></i>
-                <h2 class="mt-6 text-3xl font-bold text-gray-900">
-                    Control de Inventario
-                </h2>
-                <p class="mt-2 text-sm text-gray-600">
-                    Inicia sesión para continuar
-                </p>
-            </div>
-            <form id="login-form" class="mt-8 space-y-6">
-                <div class="rounded-md shadow-sm -space-y-px">
-                    <div>
-                        <input id="email" name="email" type="email" autocomplete="email" required class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm" placeholder="Correo electrónico">
+    <div id="login-screen" class="fixed inset-0 bg-gradient-to-br from-indigo-50 via-white to-cyan-50 z-50 flex items-center justify-center p-4">
+        <div class="w-full max-w-md">
+            <!-- Login Card -->
+            <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-8 space-y-8">
+                <!-- Header -->
+                <div class="text-center">
+                    <div class="mx-auto h-16 w-16 flex items-center justify-center rounded-2xl bg-gradient-to-r from-indigo-500 to-purple-600 shadow-lg">
+                        <i data-lucide="package" class="h-8 w-8 text-white"></i>
                     </div>
-                    <div>
-                        <input id="password" name="password" type="password" autocomplete="current-password" required class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm" placeholder="Contraseña">
-                    </div>
+                    <h2 class="mt-6 text-2xl font-bold text-gray-900">
+                        Inventario Central
+                    </h2>
+                    <p class="mt-2 text-sm text-gray-600">
+                        Gestiona tu inventario de forma inteligente
+                    </p>
                 </div>
 
-                <div id="auth-error-message" class="text-red-500 text-sm text-center hidden"></div>
+                <!-- Login Form -->
+                <form id="login-form" class="space-y-6">
+                    <div class="space-y-4">
+                        <div>
+                            <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
+                                Correo electrónico
+                            </label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <i data-lucide="mail" class="h-5 w-5 text-gray-400"></i>
+                                </div>
+                                <input id="email" name="email" type="email" autocomplete="email" required 
+                                       class="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200" 
+                                       placeholder="tu@email.com">
+                            </div>
+                        </div>
+                        <div>
+                            <label for="password" class="block text-sm font-medium text-gray-700 mb-2">
+                                Contraseña
+                            </label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <i data-lucide="lock" class="h-5 w-5 text-gray-400"></i>
+                                </div>
+                                <input id="password" name="password" type="password" autocomplete="current-password" required 
+                                       class="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200" 
+                                       placeholder="••••••••">
+                            </div>
+                        </div>
+                    </div>
 
-                <div>
-                    <button type="button" id="login-button" class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    <div id="auth-error-message" class="text-red-600 text-center text-sm hidden bg-red-50 p-3 rounded-lg border border-red-200"></div>
+
+                    <button type="button" id="login-button" 
+                            class="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transform hover:scale-105 transition-all duration-200">
+                        <i data-lucide="log-in" class="h-5 w-5 mr-2"></i>
                         Iniciar Sesión
                     </button>
-                </div>
-            </form>
+                </form>
+            </div>
+
+            <!-- Footer -->
+            <div class="mt-8 text-center">
+                <p class="text-xs text-gray-500">
+                    Sistema de Gestión de Inventario v2.0
+                </p>
+            </div>
         </div>
     </div>
 
     <!-- Main App Structure (hidden by default) -->
     <div id="app-container" class="hidden h-screen w-full flex">
         <!-- Sidebar -->
-        <aside id="sidebar" class="themed-sidebar w-64 space-y-6 py-7 px-2 absolute inset-y-0 left-0 transform -translate-x-full md:relative md:translate-x-0 transition-all duration-300 ease-in-out z-30 flex flex-col">
-            <div>
-                <a href="#" class="text-white flex items-center space-x-2 px-4">
-                    <i data-lucide="boxes"></i>
-                    <span class="text-2xl font-extrabold transition-opacity duration-300">Inventario</span>
+        <aside id="sidebar" class="themed-sidebar w-72 space-y-6 py-6 px-4 absolute inset-y-0 left-0 transform -translate-x-full md:relative md:translate-x-0 transition-all duration-300 ease-in-out z-30 flex flex-col">
+            <!-- Logo Section -->
+            <div class="px-2">
+                <a href="#" class="flex items-center space-x-3 px-3 py-2 rounded-xl hover:bg-white/10 transition-all duration-200">
+                    <div class="h-10 w-10 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 flex items-center justify-center">
+                        <i data-lucide="package" class="h-6 w-6 text-white"></i>
+                    </div>
+                    <div>
+                        <span class="text-xl font-bold text-white">Inventario</span>
+                        <p class="text-xs text-white/70">Sistema Central</p>
+                    </div>
                 </a>
-
-                <nav id="main-nav" class="mt-10">
-                    <a href="#dashboard" class="nav-link flex items-center space-x-2 py-2.5 px-4 rounded transition duration-200 active">
-                        <i data-lucide="layout-dashboard"></i>
-                        <span class="transition-opacity duration-300">Dashboard</span>
-                    </a>
-                    <a href="#inventory" class="nav-link flex items-center space-x-2 py-2.5 px-4 rounded transition duration-200">
-                        <i data-lucide="archive"></i>
-                        <span class="transition-opacity duration-300">Inventario</span>
-                    </a>
-                    <a href="#active-loans" class="nav-link flex items-center space-x-2 py-2.5 px-4 rounded transition duration-200">
-                        <i data-lucide="arrow-right-left"></i>
-                        <span class="transition-opacity duration-300">Préstamos Activos</span>
-                    </a>
-                    <a href="#history" class="nav-link flex items-center space-x-2 py-2.5 px-4 rounded transition duration-200">
-                        <i data-lucide="history"></i>
-                        <span class="transition-opacity duration-300">Historial</span>
-                    </a>
-                    <a href="#reports" class="nav-link flex items-center space-x-2 py-2.5 px-4 rounded transition duration-200">
-                        <i data-lucide="file-down"></i>
-                        <span class="transition-opacity duration-300">Reportes</span>
-                    </a>
-                    <a href="#shopping-list" class="nav-link flex items-center space-x-2 py-2.5 px-4 rounded transition duration-200 relative">
-                        <i data-lucide="shopping-cart"></i>
-                        <span class="transition-opacity duration-300">Lista de Compras</span>
-                        <span id="shopping-list-count" class="absolute right-2 top-1/2 -translate-y-1/2 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center hidden">0</span>
-                    </a>
-                    <a href="#users" id="users-nav-link" class="nav-link flex items-center space-x-2 py-2.5 px-4 rounded transition duration-200 hidden">
-                        <i data-lucide="users"></i>
-                        <span class="transition-opacity duration-300">Usuarios</span>
-                    </a>
-                    <a href="#settings" id="settings-nav-link" class="nav-link flex items-center space-x-2 py-2.5 px-4 rounded transition duration-200 hidden">
-                        <i data-lucide="settings"></i>
-                        <span class="transition-opacity duration-300">Ajustes</span>
-                    </a>
-                </nav>
             </div>
-            <div class="mt-auto">
-                 <a href="#" id="dark-mode-toggle" class="nav-link flex items-center space-x-2 py-2.5 px-4 rounded transition duration-200">
-                    <i data-lucide="moon"></i>
-                    <span class="transition-opacity duration-300">Modo Oscuro</span>
+
+            <!-- Navigation -->
+            <nav id="main-nav" class="space-y-2 px-2">
+                <a href="#dashboard" class="nav-link flex items-center space-x-3 py-3 px-4 rounded-xl transition-all duration-200 active group">
+                    <div class="h-8 w-8 rounded-lg bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors">
+                        <i data-lucide="layout-dashboard" class="h-4 w-4"></i>
+                    </div>
+                    <span class="font-medium">Dashboard</span>
                 </a>
-                 <a href="#" id="logout-button" class="nav-link flex items-center space-x-2 py-2.5 px-4 rounded transition duration-200">
-                    <i data-lucide="log-out"></i>
-                    <span class="transition-opacity duration-300">Cerrar Sesión</span>
+                <a href="#inventory" class="nav-link flex items-center space-x-3 py-3 px-4 rounded-xl transition-all duration-200 group">
+                    <div class="h-8 w-8 rounded-lg bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors">
+                        <i data-lucide="archive" class="h-4 w-4"></i>
+                    </div>
+                    <span class="font-medium">Inventario</span>
+                </a>
+                <a href="#active-loans" class="nav-link flex items-center space-x-3 py-3 px-4 rounded-xl transition-all duration-200 group">
+                    <div class="h-8 w-8 rounded-lg bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors">
+                        <i data-lucide="arrow-right-left" class="h-4 w-4"></i>
+                    </div>
+                    <span class="font-medium">Préstamos</span>
+                </a>
+                <a href="#history" class="nav-link flex items-center space-x-3 py-3 px-4 rounded-xl transition-all duration-200 group">
+                    <div class="h-8 w-8 rounded-lg bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors">
+                        <i data-lucide="history" class="h-4 w-4"></i>
+                    </div>
+                    <span class="font-medium">Historial</span>
+                </a>
+                <a href="#reports" class="nav-link flex items-center space-x-3 py-3 px-4 rounded-xl transition-all duration-200 group">
+                    <div class="h-8 w-8 rounded-lg bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors">
+                        <i data-lucide="file-down" class="h-4 w-4"></i>
+                    </div>
+                    <span class="font-medium">Reportes</span>
+                </a>
+                <a href="#shopping-list" class="nav-link flex items-center space-x-3 py-3 px-4 rounded-xl transition-all duration-200 group relative">
+                    <div class="h-8 w-8 rounded-lg bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors">
+                        <i data-lucide="shopping-cart" class="h-4 w-4"></i>
+                    </div>
+                    <span class="font-medium">Compras</span>
+                    <span id="shopping-list-count" class="absolute right-4 top-1/2 -translate-y-1/2 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center hidden">0</span>
+                </a>
+                <a href="#users" id="users-nav-link" class="nav-link flex items-center space-x-3 py-3 px-4 rounded-xl transition-all duration-200 group hidden">
+                    <div class="h-8 w-8 rounded-lg bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors">
+                        <i data-lucide="users" class="h-4 w-4"></i>
+                    </div>
+                    <span class="font-medium">Usuarios</span>
+                </a>
+                <a href="#settings" id="settings-nav-link" class="nav-link flex items-center space-x-3 py-3 px-4 rounded-xl transition-all duration-200 group hidden">
+                    <div class="h-8 w-8 rounded-lg bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors">
+                        <i data-lucide="settings" class="h-4 w-4"></i>
+                    </div>
+                    <span class="font-medium">Ajustes</span>
+                </a>
+            </nav>
+
+            <!-- Bottom Actions -->
+            <div class="mt-auto space-y-2 px-2">
+                <a href="#" id="dark-mode-toggle" class="nav-link flex items-center space-x-3 py-3 px-4 rounded-xl transition-all duration-200 group">
+                    <div class="h-8 w-8 rounded-lg bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors">
+                        <i data-lucide="moon" class="h-4 w-4"></i>
+                    </div>
+                    <span class="font-medium">Modo Oscuro</span>
+                </a>
+                <a href="#" id="logout-button" class="nav-link flex items-center space-x-3 py-3 px-4 rounded-xl transition-all duration-200 group text-red-200 hover:text-red-100 hover:bg-red-500/20">
+                    <div class="h-8 w-8 rounded-lg bg-red-500/20 flex items-center justify-center group-hover:bg-red-500/30 transition-colors">
+                        <i data-lucide="log-out" class="h-4 w-4"></i>
+                    </div>
+                    <span class="font-medium">Cerrar Sesión</span>
                 </a>
             </div>
         </aside>
 
         <!-- Main Content -->
         <div class="flex-1 flex flex-col overflow-hidden">
-            <header class="themed-header flex justify-between items-center p-4 border-b">
-                <div class="flex items-center">
-                    <button id="menu-button" class="focus:outline-none md:hidden">
-                        <i data-lucide="menu"></i>
+            <header class="themed-header flex justify-between items-center p-6 border-b bg-white/80 backdrop-blur-sm">
+                <div class="flex items-center space-x-4">
+                    <button id="menu-button" class="focus:outline-none md:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                        <i data-lucide="menu" class="h-5 w-5"></i>
                     </button>
-                    <h1 id="page-title" class="text-2xl font-semibold ml-2">Dashboard</h1>
+                    <div>
+                        <h1 id="page-title" class="text-2xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">Vista general del inventario</p>
+                    </div>
                 </div>
-                <div class="w-1/3">
-                     <div class="relative">
-                        <span class="absolute inset-y-0 left-0 flex items-center pl-3">
-                            <i data-lucide="search" class="h-5 w-5 themed-text-light"></i>
-                        </span>
-                        <input id="search-input" type="text" class="themed-input w-full pl-10 pr-4 py-2 border rounded-lg" placeholder="Buscar artículo...">
+                <div class="flex items-center space-x-4">
+                    <div class="relative w-80">
+                        <div class="absolute inset-y-0 left-0 flex items-center pl-3">
+                            <i data-lucide="search" class="h-5 w-5 text-gray-400"></i>
+                        </div>
+                        <input id="search-input" type="text" 
+                               class="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-all duration-200" 
+                               placeholder="Buscar artículos...">
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <div class="h-8 w-8 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 flex items-center justify-center">
+                            <i data-lucide="user" class="h-4 w-4 text-white"></i>
+                        </div>
+                        <span class="text-sm font-medium text-gray-700 dark:text-gray-300" id="user-name">Usuario</span>
                     </div>
                 </div>
             </header>
@@ -522,9 +849,9 @@
                     } catch (error) {
                         console.error("Firebase Initialization Error:", error);
                         if (error.code === 'permission-denied') {
-                            showNotification('Error de Permisos: Revisa las reglas de seguridad de tu base de datos Firestore.', 'error');
+                            showNotification('Error de permisos: Revisa la configuración de la base de datos.', 'error');
                         } else {
-                            showNotification('Ocurrió un error al cargar los datos iniciales.', 'error');
+                            showNotification('Error al cargar los datos. Intenta de nuevo.', 'error');
                         }
                     }
 
@@ -588,10 +915,10 @@
             const inventoryRef = collection(db, 'inventory');
             const snapshot = await getDocs(query(inventoryRef));
             if (snapshot.empty) {
-                showNotification('Cargando inventario inicial...', 'info');
+                showNotification('Cargando inventario...', 'info');
                 const initialInventory = getFullInventoryList(); 
                 if (initialInventory.length === 0) {
-                    showNotification('La lista de inventario inicial está vacía. Agregue artículos en la sección de inventario.', 'info');
+                    showNotification('No hay artículos en el inventario. Agrega algunos en la sección de inventario.', 'info');
                     return;
                 }
                 const batch = writeBatch(db);
@@ -600,14 +927,14 @@
                     batch.set(docRef, { ...item });
                 });
                 await batch.commit();
-                showNotification('Inventario inicial cargado.', 'success');
+                showNotification('Inventario cargado correctamente.', 'success');
             }
         }
         
         function setupRealtimeListeners() {
             const handleSnapshotError = (collectionName, error) => {
                 console.error(`Error fetching ${collectionName}:`, error);
-                showNotification(`Error al cargar datos de ${collectionName}. Revisa la consola (F12) para más detalles.`, 'error');
+                showNotification(`Error al cargar ${collectionName}. Intenta de nuevo.`, 'error');
             };
 
             const unsubscribeInventory = onSnapshot(collection(db, 'inventory'), (snapshot) => {
@@ -723,7 +1050,7 @@
                     break;
                 case 'users':
                     if (state.userRole === 'admin') {
-                        if (!isRefresh) pageTitle.textContent = 'Gestión de Usuarios';
+                        if (!isRefresh) pageTitle.textContent = 'Usuarios';
                         renderUsersView();
                     } else { window.location.hash = 'dashboard'; }
                     break;
@@ -773,23 +1100,71 @@
             const { dashboardCustomization } = state.settings;
 
             const lowStockCount = state.inventory.filter(item => item.type === 'Consumible' && item.stock < item.minStock).length;
+            const activeLoansCount = state.activeLoans.length;
+            const totalTransactions = state.transactions.length;
 
             mainContent.innerHTML = `
-                <div class="space-y-6">
-                    <!-- Summary Cards -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        <div class="themed-card p-6 rounded-lg shadow-md flex items-center space-x-4">
-                            <div class="p-3 bg-blue-100 dark:bg-blue-900 rounded-full"><i data-lucide="archive" class="h-8 w-8 text-blue-600 dark:text-blue-400"></i></div>
+                <div class="space-y-8">
+                    <!-- Welcome Section -->
+                    <div class="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl p-8 text-white">
+                        <div class="flex items-center justify-between">
                             <div>
-                                <p class="text-sm themed-text-light">Artículos Totales</p>
-                                <p class="text-2xl font-bold">${state.inventory.length}</p>
+                                <h2 class="text-3xl font-bold mb-2">¡Bienvenido de vuelta!</h2>
+                                <p class="text-indigo-100 text-lg">Aquí tienes un resumen de tu inventario</p>
+                            </div>
+                            <div class="hidden md:block">
+                                <i data-lucide="trending-up" class="h-16 w-16 text-white/20"></i>
                             </div>
                         </div>
-                        <div class="themed-card p-6 rounded-lg shadow-md flex items-center space-x-4">
-                            <div class="p-3 bg-red-100 dark:bg-red-900 rounded-full"><i data-lucide="alert-triangle" class="h-8 w-8 text-red-600 dark:text-red-400"></i></div>
-                            <div>
-                                <p class="text-sm themed-text-light">Artículos con Stock Bajo</p>
-                                <p class="text-2xl font-bold">${lowStockCount}</p>
+                    </div>
+
+                    <!-- Summary Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 hover:shadow-xl transition-all duration-300">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Artículos Totales</p>
+                                    <p class="text-3xl font-bold text-gray-900 dark:text-white">${state.inventory.length}</p>
+                                </div>
+                                <div class="h-12 w-12 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                                    <i data-lucide="package" class="h-6 w-6 text-blue-600 dark:text-blue-400"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 hover:shadow-xl transition-all duration-300">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Stock Bajo</p>
+                                    <p class="text-3xl font-bold text-red-600">${lowStockCount}</p>
+                                </div>
+                                <div class="h-12 w-12 rounded-xl bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
+                                    <i data-lucide="alert-triangle" class="h-6 w-6 text-red-600"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 hover:shadow-xl transition-all duration-300">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Préstamos Activos</p>
+                                    <p class="text-3xl font-bold text-green-600">${activeLoansCount}</p>
+                                </div>
+                                <div class="h-12 w-12 rounded-xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+                                    <i data-lucide="arrow-right-left" class="h-6 w-6 text-green-600"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 hover:shadow-xl transition-all duration-300">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Transacciones</p>
+                                    <p class="text-3xl font-bold text-purple-600">${totalTransactions}</p>
+                                </div>
+                                <div class="h-12 w-12 rounded-xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
+                                    <i data-lucide="activity" class="h-6 w-6 text-purple-600"></i>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -804,12 +1179,26 @@
             
             if (dashboardCustomization.showQuickActions) {
                  widgetsHTML += `
-                    <div class="themed-card p-6 rounded-lg shadow-md">
-                        <h3 class="text-lg font-semibold mb-4">Acciones Rápidas</h3>
-                        <div class="flex flex-col space-y-3">
-                            <button id="quick-add-item" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded flex items-center justify-center space-x-2"><i data-lucide="plus"></i><span>Nuevo Artículo</span></button>
-                            <button id="quick-add-entry" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded flex items-center justify-center space-x-2"><i data-lucide="plus-circle"></i><span>Registrar Entrada</span></button>
-                            <button id="quick-add-checkout" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded flex items-center justify-center space-x-2"><i data-lucide="log-out"></i><span>Registrar Salida/Préstamo</span></button>
+                    <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700">
+                        <div class="flex items-center mb-6">
+                            <div class="h-8 w-8 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center mr-3">
+                                <i data-lucide="zap" class="h-4 w-4 text-indigo-600"></i>
+                            </div>
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Acciones Rápidas</h3>
+                        </div>
+                        <div class="space-y-3">
+                            <button id="quick-add-item" class="w-full bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white font-medium py-3 px-4 rounded-xl flex items-center justify-center space-x-2 transition-all duration-200 transform hover:scale-105">
+                                <i data-lucide="plus" class="h-4 w-4"></i>
+                                <span>Nuevo Artículo</span>
+                            </button>
+                            <button id="quick-add-entry" class="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-medium py-3 px-4 rounded-xl flex items-center justify-center space-x-2 transition-all duration-200 transform hover:scale-105">
+                                <i data-lucide="plus-circle" class="h-4 w-4"></i>
+                                <span>Registrar Entrada</span>
+                            </button>
+                            <button id="quick-add-checkout" class="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-medium py-3 px-4 rounded-xl flex items-center justify-center space-x-2 transition-all duration-200 transform hover:scale-105">
+                                <i data-lucide="arrow-right-left" class="h-4 w-4"></i>
+                                <span>Registrar Salida/Préstamo</span>
+                            </button>
                         </div>
                     </div>
                  `;
@@ -817,32 +1206,53 @@
 
             if (dashboardCustomization.showStockOverview) {
                 widgetsHTML += `
-                    <div class="themed-card p-6 rounded-lg shadow-md">
-                        <h3 class="text-lg font-semibold mb-4">Top 10 Consumibles Más Utilizados</h3>
-                        <canvas id="topConsumablesChart"></canvas>
+                    <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700">
+                        <div class="flex items-center mb-6">
+                            <div class="h-8 w-8 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center mr-3">
+                                <i data-lucide="bar-chart-3" class="h-4 w-4 text-blue-600"></i>
+                            </div>
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Consumibles Más Utilizados</h3>
+                        </div>
+                        <canvas id="topConsumablesChart" class="w-full h-64"></canvas>
                     </div>`;
             }
             if (dashboardCustomization.showLowStockAlerts) {
                  widgetsHTML += `
-                    <div class="themed-card p-6 rounded-lg shadow-md">
-                        <h3 class="text-lg font-semibold mb-4">Top 10 Herramientas Reportadas</h3>
-                        <canvas id="topReportedChart"></canvas>
+                    <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700">
+                        <div class="flex items-center mb-6">
+                            <div class="h-8 w-8 rounded-lg bg-red-100 dark:bg-red-900/30 flex items-center justify-center mr-3">
+                                <i data-lucide="pie-chart" class="h-4 w-4 text-red-600"></i>
+                            </div>
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Herramientas Reportadas</h3>
+                        </div>
+                        <canvas id="topReportedChart" class="w-full h-64"></canvas>
                     </div>`;
             }
             if (dashboardCustomization.showRecentTransactions) {
                 widgetsHTML += `
-                    <div class="themed-card p-6 rounded-lg shadow-md">
-                        <h3 class="text-lg font-semibold mb-4">Top 10 Empleados con Más Préstamos</h3>
-                        <canvas id="topEmployeesChart"></canvas>
+                    <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700">
+                        <div class="flex items-center mb-6">
+                            <div class="h-8 w-8 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center mr-3">
+                                <i data-lucide="users" class="h-4 w-4 text-green-600"></i>
+                            </div>
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Empleados con Más Préstamos</h3>
+                        </div>
+                        <canvas id="topEmployeesChart" class="w-full h-64"></canvas>
                     </div>`;
             }
 
             if(widgetsHTML === ''){
                 widgetsContainer.innerHTML = `
-                    <div class="themed-card p-10 rounded-lg shadow-md text-center col-span-full">
-                        <i data-lucide="layout-dashboard" class="mx-auto h-12 w-12 themed-text-light"></i>
-                        <h3 class="text-lg font-semibold mt-4">El Panel de Control está vacío</h3>
-                        <p class="themed-text-light mt-2">Puedes habilitar widgets desde la <a href="#settings" class="text-indigo-600 dark:text-indigo-400 hover:underline">página de Ajustes</a> en la pestaña "Panel de Control".</p>
+                    <div class="bg-white dark:bg-gray-800 p-12 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 text-center col-span-full">
+                        <div class="h-16 w-16 rounded-2xl bg-gray-100 dark:bg-gray-700 flex items-center justify-center mx-auto mb-6">
+                            <i data-lucide="layout-dashboard" class="h-8 w-8 text-gray-400"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">El Panel de Control está vacío</h3>
+                        <p class="text-gray-500 dark:text-gray-400 mb-6">Personaliza tu dashboard habilitando widgets desde la configuración</p>
+                        <a href="#settings" class="inline-flex items-center px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-xl transition-colors duration-200">
+                            <i data-lucide="settings" class="h-4 w-4 mr-2"></i>
+                            Ir a Configuración
+                        </a>
                     </div>
                 `;
             } else {
@@ -879,64 +1289,138 @@
             const filterButtonClasses = (filter) => `px-4 py-2 text-sm font-medium rounded-md ${state.inventoryFilter === filter ? 'bg-indigo-600 text-white' : 'bg-white dark:bg-slate-700 themed-text hover:bg-gray-100 dark:hover:bg-slate-600'}`;
 
             mainContent.innerHTML = `
-                <div class="flex flex-col md:flex-row">
-                    <div class="w-full md:w-1/5 md:mr-6 mb-6 md:mb-0">
-                        <div class="themed-card p-4 rounded-lg shadow-md">
-                            <h3 class="font-semibold mb-3">Categorías</h3>
-                            <ul id="category-list" class="space-y-2">
-                                ${state.categories.map(cat => `
-                                    <li>
-                                        <a href="#" class="category-filter block break-words ${state.activeCategory === cat ? 'font-bold text-indigo-600' : 'hover:text-indigo-600'}" data-category="${cat}">${cat}</a>
-                                    </li>
-                                `).join('')}
-                            </ul>
+                <div class="space-y-6">
+                    <!-- Header Section -->
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                        <div>
+                            <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Inventario</h2>
+                            <p class="text-gray-500 dark:text-gray-400">Gestiona tu inventario de forma eficiente</p>
                         </div>
+                        ${isAdmin ? `
+                            <button id="new-item-btn" class="bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white font-medium py-3 px-6 rounded-xl flex items-center space-x-2 transition-all duration-200 transform hover:scale-105">
+                                <i data-lucide="plus" class="h-4 w-4"></i>
+                                <span>Nuevo Artículo</span>
+                            </button>
+                        ` : ''}
                     </div>
-                    <div class="w-full md:w-4/5">
-                         <div class="flex flex-col md:flex-row justify-between items-center mb-4 gap-4">
-                            <div class="flex items-center space-x-2">
-                                <button class="inventory-filter-btn ${filterButtonClasses('all')}" data-filter="all">Todos</button>
-                                <button class="inventory-filter-btn ${filterButtonClasses('low')}" data-filter="low">Stock Bajo</button>
-                                <button class="inventory-filter-btn ${filterButtonClasses('returnable')}" data-filter="returnable">Retornables</button>
+
+                    <!-- Filters and Categories -->
+                    <div class="flex flex-col lg:flex-row gap-6">
+                        <!-- Categories Sidebar -->
+                        <div class="lg:w-1/4">
+                            <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700">
+                                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Categorías</h3>
+                                <ul id="category-list" class="space-y-2">
+                                    <li>
+                                        <a href="#" class="category-filter flex items-center px-3 py-2 rounded-lg transition-colors ${state.activeCategory === 'Todas' ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 font-medium' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'}" data-category="Todas">
+                                            <i data-lucide="grid-3x3" class="h-4 w-4 mr-3"></i>
+                                            Todas
+                                        </a>
+                                    </li>
+                                    ${state.categories.map(cat => `
+                                        <li>
+                                            <a href="#" class="category-filter flex items-center px-3 py-2 rounded-lg transition-colors ${state.activeCategory === cat ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 font-medium' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'}" data-category="${cat}">
+                                                <i data-lucide="folder" class="h-4 w-4 mr-3"></i>
+                                                ${cat}
+                                            </a>
+                                        </li>
+                                    `).join('')}
+                                </ul>
                             </div>
-                            ${isAdmin ? `<button id="new-item-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded flex items-center space-x-2"><i data-lucide="plus"></i><span>Nuevo Artículo</span></button>` : ''}
                         </div>
-                        <div class="themed-card rounded-lg shadow-md overflow-x-auto">
-                            <table class="min-w-full themed-divide divide-y">
-                                <thead class="themed-table-header">
-                                    <tr>
-                                        <th class="px-6 py-3 text-left text-xs font-medium themed-text-light uppercase tracking-wider">Artículo</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium themed-text-light uppercase tracking-wider">Categoría</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium themed-text-light uppercase tracking-wider">Tipo</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium themed-text-light uppercase tracking-wider">Stock</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium themed-text-light uppercase tracking-wider">Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="inventory-table-body" class="themed-table-body themed-divide divide-y">
-                                    ${paginatedInventory.length > 0 ? paginatedInventory.map(item => `
-                                        <tr class="${item.type === 'Consumible' && item.stock < item.minStock ? 'low-stock' : ''}">
-                                            <td class="px-6 py-4 whitespace-nowrap">
-                                                <div class="flex items-center">
-                                                    <div class="ml-4">${item.description}</div>
-                                                </div>
-                                            </td>
-                                            <td class="px-6 py-4 whitespace-nowrap">${item.category}</td>
-                                            <td class="px-6 py-4 whitespace-nowrap">${item.type}</td>
-                                            <td class="px-6 py-4 whitespace-nowrap">
-                                                ${item.stock} ${item.unit}
-                                                ${item.type === 'Consumible' ? `<span class="text-xs themed-text-light ml-1">(Min: ${item.minStock})</span>` : ''}
-                                            </td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                                <button class="action-btn text-green-600 hover:text-green-500" data-action="entry" data-id="${item.id}" title="Registrar Entrada"><i data-lucide="plus-circle"></i></button>
-                                                <button class="action-btn text-blue-600 hover:text-blue-500 ml-2" data-action="checkout" data-id="${item.id}" title="${item.type === 'Consumible' ? 'Registrar Salida' : 'Registrar Préstamo'}"><i data-lucide="log-out"></i></button>
-                                                <button class="action-btn text-yellow-500 hover:text-yellow-400 ml-2" data-action="add-to-cart" data-id="${item.id}" title="Añadir a Lista de Compras"><i data-lucide="shopping-cart"></i></button>
-                                                ${isAdmin ? `
-                                                    <button class="action-btn text-purple-600 hover:text-purple-500 ml-2" data-action="edit" data-id="${item.id}" title="Editar Artículo"><i data-lucide="pencil"></i></button>
-                                                    <button class="action-btn text-red-600 hover:text-red-500 ml-2" data-action="delete" data-id="${item.id}" title="Eliminar Artículo"><i data-lucide="trash-2"></i></button>
-                                                ` : ''}
-                                            </td>
-                                        </tr>
-                                    `).join('') : `<tr><td colspan="5" class="text-center py-10 themed-text-light">No se encontraron artículos.</td></tr>`}
+
+                        <!-- Main Content -->
+                        <div class="lg:w-3/4">
+                            <!-- Filter Buttons -->
+                            <div class="flex flex-wrap gap-2 mb-6">
+                                <button class="inventory-filter-btn px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${state.inventoryFilter === 'all' ? 'bg-indigo-600 text-white shadow-lg' : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 border border-gray-200 dark:border-gray-600'}" data-filter="all">
+                                    <i data-lucide="grid-3x3" class="h-4 w-4 mr-2"></i>
+                                    Todos
+                                </button>
+                                <button class="inventory-filter-btn px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${state.inventoryFilter === 'low' ? 'bg-red-600 text-white shadow-lg' : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 border border-gray-200 dark:border-gray-600'}" data-filter="low">
+                                    <i data-lucide="alert-triangle" class="h-4 w-4 mr-2"></i>
+                                    Stock Bajo
+                                </button>
+                                <button class="inventory-filter-btn px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${state.inventoryFilter === 'returnable' ? 'bg-green-600 text-white shadow-lg' : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 border border-gray-200 dark:border-gray-600'}" data-filter="returnable">
+                                    <i data-lucide="rotate-ccw" class="h-4 w-4 mr-2"></i>
+                                    Retornables
+                                </button>
+                            </div>
+
+                            <!-- Inventory Table -->
+                            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 overflow-hidden">
+                                <div class="overflow-x-auto">
+                                    <table class="min-w-full">
+                                        <thead class="bg-gray-50 dark:bg-gray-700">
+                                            <tr>
+                                                <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">Artículo</th>
+                                                <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">Categoría</th>
+                                                <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">Tipo</th>
+                                                <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">Stock</th>
+                                                <th class="px-6 py-4 text-center text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">Acciones</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="inventory-table-body" class="divide-y divide-gray-200 dark:divide-gray-600">
+                                            ${paginatedInventory.length > 0 ? paginatedInventory.map(item => `
+                                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${item.type === 'Consumible' && item.stock < item.minStock ? 'bg-red-50 dark:bg-red-900/20' : ''}">
+                                                    <td class="px-6 py-4">
+                                                        <div class="flex items-center">
+                                                            <div class="h-10 w-10 rounded-lg bg-gray-100 dark:bg-gray-600 flex items-center justify-center mr-4">
+                                                                <i data-lucide="package" class="h-5 w-5 text-gray-600 dark:text-gray-300"></i>
+                                                            </div>
+                                                            <div>
+                                                                <div class="text-sm font-medium text-gray-900 dark:text-white">${item.description}</div>
+                                                                ${item.type === 'Consumible' && item.stock < item.minStock ? '<div class="text-xs text-red-600">Stock bajo</div>' : ''}
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td class="px-6 py-4">
+                                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200">
+                                                            ${item.category}
+                                                        </span>
+                                                    </td>
+                                                    <td class="px-6 py-4">
+                                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${item.type === 'Consumible' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300' : 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300'}">
+                                                            ${item.type}
+                                                        </span>
+                                                    </td>
+                                                    <td class="px-6 py-4">
+                                                        <div class="text-sm font-medium text-gray-900 dark:text-white">${item.stock} ${item.unit}</div>
+                                                        ${item.type === 'Consumible' ? `<div class="text-xs text-gray-500 dark:text-gray-400">Min: ${item.minStock}</div>` : ''}
+                                                    </td>
+                                                    <td class="px-6 py-4 text-center">
+                                                        <div class="flex items-center justify-center space-x-2">
+                                                            <button class="action-btn p-2 text-green-600 hover:text-green-700 hover:bg-green-100 dark:hover:bg-green-900/30 rounded-lg transition-colors" data-action="entry" data-id="${item.id}" title="Registrar Entrada">
+                                                                <i data-lucide="plus-circle" class="h-4 w-4"></i>
+                                                            </button>
+                                                            <button class="action-btn p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-lg transition-colors" data-action="checkout" data-id="${item.id}" title="${item.type === 'Consumible' ? 'Registrar Salida' : 'Registrar Préstamo'}">
+                                                                <i data-lucide="arrow-right-left" class="h-4 w-4"></i>
+                                                            </button>
+                                                            <button class="action-btn p-2 text-yellow-600 hover:text-yellow-700 hover:bg-yellow-100 dark:hover:bg-yellow-900/30 rounded-lg transition-colors" data-action="add-to-cart" data-id="${item.id}" title="Añadir a Lista de Compras">
+                                                                <i data-lucide="shopping-cart" class="h-4 w-4"></i>
+                                                            </button>
+                                                            ${isAdmin ? `
+                                                                <button class="action-btn p-2 text-purple-600 hover:text-purple-700 hover:bg-purple-100 dark:hover:bg-purple-900/30 rounded-lg transition-colors" data-action="edit" data-id="${item.id}" title="Editar Artículo">
+                                                                    <i data-lucide="pencil" class="h-4 w-4"></i>
+                                                                </button>
+                                                                <button class="action-btn p-2 text-red-600 hover:text-red-700 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition-colors" data-action="delete" data-id="${item.id}" title="Eliminar Artículo">
+                                                                    <i data-lucide="trash-2" class="h-4 w-4"></i>
+                                                                </button>
+                                                            ` : ''}
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            `).join('') : `
+                                                <tr>
+                                                    <td colspan="5" class="px-6 py-12 text-center">
+                                                        <div class="flex flex-col items-center">
+                                                            <i data-lucide="package" class="h-12 w-12 text-gray-400 mb-4"></i>
+                                                            <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">No se encontraron artículos</h3>
+                                                            <p class="text-gray-500 dark:text-gray-400">Intenta ajustar los filtros o agregar nuevos artículos</p>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            `}
                                 </tbody>
                             </table>
                             <div id="paginator" class="px-6 py-3 border-t themed-border">${generatePaginator(totalPages)}</div>
@@ -1062,15 +1546,172 @@
         function renderReportsView() {
             const mainContent = document.getElementById('main-content');
             mainContent.innerHTML = `
-                <div class="themed-card p-6 rounded-lg shadow-md">
-                    <h2 class="text-xl font-semibold mb-4">Exportar Reportes</h2>
-                    <p class="themed-text-light mb-6">Selecciona un reporte para previsualizar y descargar.</p>
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        <button data-type="inventory" class="report-btn bg-indigo-600 text-white font-bold py-3 px-4 rounded hover:bg-indigo-700 flex items-center justify-center space-x-2"><i data-lucide="archive"></i><span>Inventario Completo</span></button>
-                        <button data-type="loans" class="report-btn bg-indigo-600 text-white font-bold py-3 px-4 rounded hover:bg-indigo-700 flex items-center justify-center space-x-2"><i data-lucide="arrow-right-left"></i><span>Préstamos Activos</span></button>
-                        <button data-type="salidas" class="report-btn bg-green-600 text-white font-bold py-3 px-4 rounded hover:bg-green-700 flex items-center justify-center space-x-2"><i data-lucide="log-out"></i><span>Historial de Salidas</span></button>
-                        <button data-type="prestamos" class="report-btn bg-blue-600 text-white font-bold py-3 px-4 rounded hover:bg-blue-700 flex items-center justify-center space-x-2"><i data-lucide="arrow-right-left"></i><span>Historial de Préstamos</span></button>
-                        <button data-type="devoluciones" class="report-btn bg-purple-600 text-white font-bold py-3 px-4 rounded hover:bg-purple-700 flex items-center justify-center space-x-2"><i data-lucide="log-in"></i><span>Historial de Devoluciones</span></button>
+                <div class="space-y-8">
+                    <!-- Header Section -->
+                    <div class="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl p-8 text-white">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h2 class="text-3xl font-bold mb-2">Centro de Reportes</h2>
+                                <p class="text-indigo-100 text-lg">Genera reportes detallados en PDF y Excel</p>
+                            </div>
+                            <div class="hidden md:block">
+                                <i data-lucide="file-text" class="h-16 w-16 text-white/20"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Report Types -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <!-- Inventario Completo -->
+                        <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 hover:shadow-xl transition-all duration-300">
+                            <div class="flex items-center mb-4">
+                                <div class="h-12 w-12 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center mr-4">
+                                    <i data-lucide="archive" class="h-6 w-6 text-blue-600"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Inventario Completo</h3>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">Todos los artículos del inventario</p>
+                                </div>
+                            </div>
+                            <div class="flex space-x-2">
+                                <button data-type="inventory" data-format="pdf" class="report-btn flex-1 bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg flex items-center justify-center space-x-2 transition-all duration-200">
+                                    <i data-lucide="file-text" class="h-4 w-4"></i>
+                                    <span>PDF</span>
+                                </button>
+                                <button data-type="inventory" data-format="excel" class="report-btn flex-1 bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg flex items-center justify-center space-x-2 transition-all duration-200">
+                                    <i data-lucide="file-spreadsheet" class="h-4 w-4"></i>
+                                    <span>Excel</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Préstamos Activos -->
+                        <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 hover:shadow-xl transition-all duration-300">
+                            <div class="flex items-center mb-4">
+                                <div class="h-12 w-12 rounded-xl bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center mr-4">
+                                    <i data-lucide="arrow-right-left" class="h-6 w-6 text-orange-600"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Préstamos Activos</h3>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">Préstamos pendientes de devolución</p>
+                                </div>
+                            </div>
+                            <div class="flex space-x-2">
+                                <button data-type="loans" data-format="pdf" class="report-btn flex-1 bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg flex items-center justify-center space-x-2 transition-all duration-200">
+                                    <i data-lucide="file-text" class="h-4 w-4"></i>
+                                    <span>PDF</span>
+                                </button>
+                                <button data-type="loans" data-format="excel" class="report-btn flex-1 bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg flex items-center justify-center space-x-2 transition-all duration-200">
+                                    <i data-lucide="file-spreadsheet" class="h-4 w-4"></i>
+                                    <span>Excel</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Historial de Salidas -->
+                        <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 hover:shadow-xl transition-all duration-300">
+                            <div class="flex items-center mb-4">
+                                <div class="h-12 w-12 rounded-xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center mr-4">
+                                    <i data-lucide="log-out" class="h-6 w-6 text-green-600"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Historial de Salidas</h3>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">Registro de salidas de inventario</p>
+                                </div>
+                            </div>
+                            <div class="flex space-x-2">
+                                <button data-type="salidas" data-format="pdf" class="report-btn flex-1 bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg flex items-center justify-center space-x-2 transition-all duration-200">
+                                    <i data-lucide="file-text" class="h-4 w-4"></i>
+                                    <span>PDF</span>
+                                </button>
+                                <button data-type="salidas" data-format="excel" class="report-btn flex-1 bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg flex items-center justify-center space-x-2 transition-all duration-200">
+                                    <i data-lucide="file-spreadsheet" class="h-4 w-4"></i>
+                                    <span>Excel</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Historial de Préstamos -->
+                        <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 hover:shadow-xl transition-all duration-300">
+                            <div class="flex items-center mb-4">
+                                <div class="h-12 w-12 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center mr-4">
+                                    <i data-lucide="arrow-right-left" class="h-6 w-6 text-blue-600"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Historial de Préstamos</h3>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">Registro completo de préstamos</p>
+                                </div>
+                            </div>
+                            <div class="flex space-x-2">
+                                <button data-type="prestamos" data-format="pdf" class="report-btn flex-1 bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg flex items-center justify-center space-x-2 transition-all duration-200">
+                                    <i data-lucide="file-text" class="h-4 w-4"></i>
+                                    <span>PDF</span>
+                                </button>
+                                <button data-type="prestamos" data-format="excel" class="report-btn flex-1 bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg flex items-center justify-center space-x-2 transition-all duration-200">
+                                    <i data-lucide="file-spreadsheet" class="h-4 w-4"></i>
+                                    <span>Excel</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Historial de Devoluciones -->
+                        <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 hover:shadow-xl transition-all duration-300">
+                            <div class="flex items-center mb-4">
+                                <div class="h-12 w-12 rounded-xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center mr-4">
+                                    <i data-lucide="log-in" class="h-6 w-6 text-purple-600"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Historial de Devoluciones</h3>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">Registro de devoluciones</p>
+                                </div>
+                            </div>
+                            <div class="flex space-x-2">
+                                <button data-type="devoluciones" data-format="pdf" class="report-btn flex-1 bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg flex items-center justify-center space-x-2 transition-all duration-200">
+                                    <i data-lucide="file-text" class="h-4 w-4"></i>
+                                    <span>PDF</span>
+                                </button>
+                                <button data-type="devoluciones" data-format="excel" class="report-btn flex-1 bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg flex items-center justify-center space-x-2 transition-all duration-200">
+                                    <i data-lucide="file-spreadsheet" class="h-4 w-4"></i>
+                                    <span>Excel</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Reporte de Stock Bajo -->
+                        <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 hover:shadow-xl transition-all duration-300">
+                            <div class="flex items-center mb-4">
+                                <div class="h-12 w-12 rounded-xl bg-red-100 dark:bg-red-900/30 flex items-center justify-center mr-4">
+                                    <i data-lucide="alert-triangle" class="h-6 w-6 text-red-600"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Stock Bajo</h3>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">Artículos con stock insuficiente</p>
+                                </div>
+                            </div>
+                            <div class="flex space-x-2">
+                                <button data-type="low-stock" data-format="pdf" class="report-btn flex-1 bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg flex items-center justify-center space-x-2 transition-all duration-200">
+                                    <i data-lucide="file-text" class="h-4 w-4"></i>
+                                    <span>PDF</span>
+                                </button>
+                                <button data-type="low-stock" data-format="excel" class="report-btn flex-1 bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg flex items-center justify-center space-x-2 transition-all duration-200">
+                                    <i data-lucide="file-spreadsheet" class="h-4 w-4"></i>
+                                    <span>Excel</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Report Preview Section -->
+                    <div id="report-preview" class="hidden bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Vista Previa del Reporte</h3>
+                            <button id="close-preview" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                                <i data-lucide="x" class="h-5 w-5"></i>
+                            </button>
+                        </div>
+                        <div id="preview-content" class="max-h-96 overflow-y-auto">
+                            <!-- Preview content will be inserted here -->
+                        </div>
                     </div>
                 </div>
             `;
@@ -1083,9 +1724,14 @@
                 <div class="themed-card p-6 rounded-lg shadow-md">
                     <div class="flex justify-between items-center mb-4">
                         <h2 class="text-xl font-semibold">Lista de Compras</h2>
-                        <button id="generate-pdf-btn" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded flex items-center space-x-2 ${state.shoppingList.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}" ${state.shoppingList.length === 0 ? 'disabled' : ''}>
-                            <i data-lucide="file-down"></i><span>Generar PDF</span>
-                        </button>
+                        <div class="flex space-x-2">
+                            <button id="generate-pdf-btn" class="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg flex items-center space-x-2 transition-all duration-200 ${state.shoppingList.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}" ${state.shoppingList.length === 0 ? 'disabled' : ''}>
+                                <i data-lucide="file-text"></i><span>PDF</span>
+                            </button>
+                            <button id="generate-excel-btn" class="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg flex items-center space-x-2 transition-all duration-200 ${state.shoppingList.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}" ${state.shoppingList.length === 0 ? 'disabled' : ''}>
+                                <i data-lucide="file-spreadsheet"></i><span>Excel</span>
+                            </button>
+                        </div>
                     </div>
                     <ul id="shopping-list-items" class="themed-divide divide-y">
                         ${state.shoppingList.length > 0 ? state.shoppingList.map(item => `
@@ -1138,9 +1784,9 @@
                     const uid = e.target.dataset.uid;
                     try {
                         await updateDoc(doc(db, 'users', uid), { role: newRole });
-                        showNotification('Rol de usuario actualizado.', 'success');
+                        showNotification('Rol actualizado correctamente.', 'success');
                     } catch (error) {
-                        showNotification('Error al actualizar el rol.', 'error');
+                        showNotification('Error al cambiar el rol. Intenta de nuevo.', 'error');
                     }
                 });
             });
@@ -1153,8 +1799,8 @@
                 <!-- Header -->
                 <div class="flex items-center justify-between">
                     <div>
-                        <h1 class="text-3xl font-bold themed-text">Configuración del Sistema</h1>
-                        <p class="text-lg themed-text-light mt-1">Personaliza la experiencia de la aplicación según tus preferencias</p>
+                        <h1 class="text-3xl font-bold themed-text">Ajustes del Sistema</h1>
+                        <p class="text-lg themed-text-light mt-1">Cambia cómo funciona la aplicación para que sea más fácil de usar</p>
                     </div>
                     <div class="flex items-center space-x-3">
                         <button id="reset-settings-btn" class="bg-gray-500 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded-lg flex items-center space-x-2">
@@ -1173,25 +1819,25 @@
                     <div class="border-b border-opacity-10 px-6 py-4">
                         <nav class="flex space-x-8 overflow-x-auto scrollbar-hide" aria-label="Settings Tabs">
                             <a href="#" class="settings-tab-link whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm border-indigo-500 text-indigo-600 transition-all duration-200" data-tab="general">
-                                <i data-lucide="settings" class="w-4 h-4 inline mr-2"></i>General
+                                <i data-lucide="settings" class="w-4 h-4 inline mr-2"></i>Básico
                             </a>
                             <a href="#" class="settings-tab-link whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm border-transparent themed-text-light hover:text-indigo-500 transition-all duration-200" data-tab="display">
-                                <i data-lucide="monitor" class="w-4 h-4 inline mr-2"></i>Visualización
+                                <i data-lucide="monitor" class="w-4 h-4 inline mr-2"></i>Apariencia
                             </a>
                             <a href="#" class="settings-tab-link whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm border-transparent themed-text-light hover:text-indigo-500 transition-all duration-200" data-tab="operational">
-                                <i data-lucide="zap" class="w-4 h-4 inline mr-2"></i>Operacional
+                                <i data-lucide="zap" class="w-4 h-4 inline mr-2"></i>Funcionamiento
                             </a>
                             <a href="#" class="settings-tab-link whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm border-transparent themed-text-light hover:text-indigo-500 transition-all duration-200" data-tab="dashboard">
-                                <i data-lucide="layout-dashboard" class="w-4 h-4 inline mr-2"></i>Panel de Control
+                                <i data-lucide="layout-dashboard" class="w-4 h-4 inline mr-2"></i>Inicio
                             </a>
                             <a href="#" class="settings-tab-link whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm border-transparent themed-text-light hover:text-indigo-500 transition-all duration-200" data-tab="stock">
-                                <i data-lucide="package" class="w-4 h-4 inline mr-2"></i>Gestión de Stock
+                                <i data-lucide="package" class="w-4 h-4 inline mr-2"></i>Inventario
                             </a>
                             <a href="#" class="settings-tab-link whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm border-transparent themed-text-light hover:text-indigo-500 transition-all duration-200" data-tab="notifications">
-                                <i data-lucide="bell" class="w-4 h-4 inline mr-2"></i>Notificaciones
+                                <i data-lucide="bell" class="w-4 h-4 inline mr-2"></i>Avisos
                             </a>
                             <a href="#" class="settings-tab-link whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm border-transparent themed-text-light hover:text-indigo-500 transition-all duration-200" data-tab="workflow">
-                                <i data-lucide="workflow" class="w-4 h-4 inline mr-2"></i>Flujos de Trabajo
+                                <i data-lucide="workflow" class="w-4 h-4 inline mr-2"></i>Procesos
                             </a>
                             <a href="#" class="settings-tab-link whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm border-transparent themed-text-light hover:text-indigo-500 transition-all duration-200" data-tab="operator">
                                 <i data-lucide="user" class="w-4 h-4 inline mr-2"></i>Para Operadores
@@ -1232,23 +1878,23 @@
                                         <div class="p-2 bg-indigo-100 dark:bg-indigo-900 rounded-lg mr-3">
                                             <i data-lucide="settings" class="w-5 h-5 text-indigo-600 dark:text-indigo-400"></i>
                                         </div>
-                                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Configuración Principal</h3>
+                                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Ajustes Básicos</h3>
                                     </div>
                                     <div class="space-y-4">
                                         <div>
                                             <label for="items-per-page" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Artículos por página</label>
                                             <input type="number" id="items-per-page" value="${state.settings.itemsPerPage || 10}" min="5" max="50" step="5" class="themed-input w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors">
-                                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Cuántos artículos ver en cada página</p>
+                                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Cuántos artículos mostrar en cada página</p>
                                         </div>
                                         <div>
                                             <label for="default-unit" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Unidad por defecto</label>
                                             <input type="text" id="default-unit" value="${state.settings.defaultUnit || 'pza'}" class="themed-input w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors">
-                                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Unidad que se pone automáticamente a productos nuevos</p>
+                                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Unidad que se pone sola cuando agregas productos nuevos</p>
                                         </div>
                                         <div>
                                             <label for="default-min-stock" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Stock mínimo por defecto</label>
                                             <input type="number" id="default-min-stock" value="${state.settings.defaultMinStock || 5}" min="0" class="themed-input w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors">
-                                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Cantidad mínima que se pone automáticamente a productos nuevos</p>
+                                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Cantidad mínima que se pone sola cuando agregas productos nuevos</p>
                                         </div>
                                     </div>
                                 </div>
@@ -1265,12 +1911,12 @@
                                         <div>
                                             <label for="session-timeout" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tiempo para cerrar sesión (minutos)</label>
                                             <input type="number" id="session-timeout" value="${state.settings.sessionTimeout || 480}" min="30" max="1440" class="themed-input w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors">
-                                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Tiempo antes de cerrar sesión automáticamente</p>
+                                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Cuánto tiempo antes de cerrar la sesión sola</p>
                                         </div>
                                         <div class="flex items-center justify-between p-4 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-gray-600">
                                             <div>
-                                                <label for="enable-audit-log" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Registro de actividades</label>
-                                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Guarda un registro de todas las acciones que se hacen</p>
+                                                <label for="enable-audit-log" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Guardar historial</label>
+                                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Guarda un registro de todo lo que se hace</p>
                                             </div>
                                             <label class="switch">
                                                 <input type="checkbox" id="enable-audit-log" ${state.settings.enableAuditLog ? 'checked' : ''}>
@@ -1279,8 +1925,8 @@
                                         </div>
                                         <div class="flex items-center justify-between p-4 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-gray-600">
                                             <div>
-                                                <label for="barcode-scanning" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Lectura de códigos de barras</label>
-                                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Permite leer códigos de barras</p>
+                                                <label for="barcode-scanning" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Leer códigos de barras</label>
+                                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Permite leer códigos de barras con la cámara</p>
                                             </div>
                                             <label class="switch">
                                                 <input type="checkbox" id="barcode-scanning" ${state.settings.barcodeScanning ? 'checked' : ''}>
@@ -1820,7 +2466,7 @@
                                         </div>
                                         <div class="flex items-center justify-between p-4 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-gray-600">
                                             <div>
-                                                <label for="supplier-management" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Gestión de proveedores</label>
+                                                <label for="supplier-management" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Proveedores</label>
                                                 <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Habilita funciones de gestión de proveedores</p>
                                             </div>
                                             <label class="switch">
@@ -2223,7 +2869,7 @@
                         if (categoryToDelete) {
                             handleDeleteCategory(categoryToDelete);
                         } else {
-                            showNotification('Por favor, selecciona una categoría para eliminar.', 'info');
+                            showNotification('Selecciona una categoría para eliminar.', 'info');
                         }
                         return;
                     }
@@ -2264,12 +2910,22 @@
                 if (tabLink) { e.preventDefault(); renderHistoryTab(tabLink.dataset.type); return; }
 
                 const reportBtn = target.closest('.report-btn');
-                if (reportBtn) { previewReport(reportBtn.dataset.type); return; }
+                if (reportBtn) { 
+                    const reportType = reportBtn.dataset.type;
+                    const format = reportBtn.dataset.format;
+                    if (format === 'excel') {
+                        generateExcelReport(reportType);
+                    } else {
+                        generatePDFReport(reportType);
+                    }
+                    return; 
+                }
 
                 const removeFromCartBtn = target.closest('.remove-from-cart-btn');
                 if (removeFromCartBtn) { removeFromShoppingList(removeFromCartBtn.dataset.id); return; }
                 
                 if (target.id === 'generate-pdf-btn') { generateShoppingListPDF(); return; }
+                if (target.id === 'generate-excel-btn') { generateShoppingListExcel(); return; }
             });
             
             // Keyboard shortcuts listener
@@ -2286,7 +2942,7 @@
                     if (state.userRole === 'admin') {
                         showNewItemModal();
                     } else {
-                        showNotification("Solo los administradores pueden crear nuevos artículos.", "info");
+                        showNotification("Solo los administradores pueden agregar artículos.", "info");
                     }
                 }
 
@@ -2321,9 +2977,9 @@
                         itemDescription: item.description, type: 'Eliminado', quantity: item.stock,
                         timestamp: serverTimestamp(), user: state.currentUser.email, notes: 'Artículo eliminado del sistema'
                     });
-                    showNotification('Artículo eliminado correctamente.', 'success');
+                    showNotification('Artículo eliminado.', 'success');
                 } catch (error) {
-                    showNotification('Error al eliminar el artículo.', 'error');
+                    showNotification('Error al eliminar. Intenta de nuevo.', 'error');
                 }
             };
 
@@ -2353,9 +3009,9 @@
                     timestamp: serverTimestamp(), user: state.currentUser.email
                 });
                 await batch.commit();
-                showNotification('Devolución registrada.', 'success');
+                showNotification('Devolución guardada.', 'success');
             } catch (error) {
-                showNotification('Error al registrar la devolución.', 'error');
+                showNotification('Error al devolver. Intenta de nuevo.', 'error');
             }
         }
         async function handleReportLoanLoss(loanId, itemId) {
@@ -2448,9 +3104,31 @@
         function showCheckoutModal(item = null) {
              const itemSelector = !item ? `
                 <div class="mb-4">
-                    <label for="item-select" class="block text-sm font-medium themed-text-light">Seleccionar Artículo</label>
+                    <label for="item-select" class="block text-sm font-medium themed-text-light mb-2">Seleccionar Artículo</label>
+                    
+                    <!-- Búsqueda inteligente -->
+                    <div class="relative mb-3">
+                        <input type="text" id="item-search" placeholder="Buscar..." 
+                               class="themed-input w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <div class="absolute inset-y-0 right-0 flex items-center pr-3">
+                            <i data-lucide="search" class="h-4 w-4 text-gray-400"></i>
+                        </div>
+                    </div>
+                    
+                    <!-- Sugerencias inteligentes -->
+                    <div id="smart-suggestions" class="mb-3">
+                        <div class="flex items-center mb-2">
+                            <i data-lucide="zap" class="h-4 w-4 text-yellow-500 mr-2"></i>
+                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Más utilizados</span>
+                        </div>
+                        <div id="suggestions-list" class="grid grid-cols-1 gap-2">
+                            <!-- Las sugerencias se cargarán dinámicamente -->
+                        </div>
+                    </div>
+                    
+                    <!-- Selector tradicional -->
                     <select id="item-select" name="item-select" required class="themed-input mt-1 block w-full px-3 py-2 border rounded-md shadow-sm">
-                        <option value="" disabled selected>Elige un artículo...</option>
+                        <option value="" disabled selected>O elige de la lista...</option>
                         ${state.inventory.map(i => `<option value="${i.id}">${i.description} (${i.type})</option>`).join('')}
                     </select>
                 </div>` : `<p class="mb-4"><strong>Artículo:</strong> ${item.description}</p>`;
@@ -2464,6 +3142,12 @@
 
             const formContainer = document.getElementById('checkout-form');
             const itemSelect = document.getElementById('item-select');
+            
+            // Cargar sugerencias inteligentes
+            if (!item) {
+                loadSmartSuggestions();
+                setupSmartSearch();
+            }
             
             const populateForm = (selectedItem) => {
                 if (!selectedItem) {
@@ -2525,7 +3209,7 @@
                 e.preventDefault();
                 const selectedItem = item || state.inventory.find(i => i.id === itemSelect.value);
                 if (!selectedItem) {
-                     showNotification("Por favor, selecciona un artículo.", "error");
+                     showNotification("Selecciona un artículo.", "error");
                      return;
                 }
                 
@@ -2537,7 +3221,7 @@
                     const isExchange = isEndmill && exchange && exchange.value === 'yes';
 
                     if (state.settings.customValidations?.preventNegativeStock && !isExchange && selectedItem.stock - qty < 0) {
-                        showNotification('No se puede tener stock negativo.', 'error');
+                        showNotification('No puedes tener menos de 0 en stock.', 'error');
                         return;
                     }
 
@@ -2549,7 +3233,7 @@
                         itemId: selectedItem.id, itemDescription: selectedItem.description, type: isExchange ? 'Intercambio' : 'Salida',
                         quantity: qty, user: user.value, notes: notes?.value || '', timestamp: serverTimestamp()
                     });
-                    showNotification('Salida registrada.', 'success');
+                    showNotification('Salida guardada.', 'success');
                 } else {
                     // Logic for Retornable
                     const borrower = e.target.borrower.value;
@@ -2569,6 +3253,150 @@
                 closeModal();
             });
         }
+
+        function loadSmartSuggestions() {
+            const suggestionsList = document.getElementById('suggestions-list');
+            if (!suggestionsList) return;
+
+            const suggestions = getSmartSuggestions('', null, 6);
+            
+            if (suggestions.length === 0) {
+                suggestionsList.innerHTML = '<p class="text-sm text-gray-500 dark:text-gray-400 text-center py-2">No hay datos de uso reciente</p>';
+                return;
+            }
+
+            suggestionsList.innerHTML = suggestions.map(suggestion => {
+                const item = state.inventory.find(i => i.id === suggestion.itemId);
+                if (!item) return '';
+                
+                const usageText = suggestion.totalUsage > 0 ? 
+                    `${suggestion.totalUsage} usos` : 'Nuevo';
+                const lastUsed = suggestion.lastUsed ? 
+                    `Último: ${new Date(suggestion.lastUsed).toLocaleDateString()}` : '';
+                
+                return `
+                    <button type="button" 
+                            class="suggestion-item w-full text-left p-3 rounded-lg border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                            data-item-id="${suggestion.itemId}">
+                        <div class="flex items-center justify-between">
+                            <div class="flex-1">
+                                <div class="font-medium text-gray-900 dark:text-white">${suggestion.description}</div>
+                                <div class="text-sm text-gray-500 dark:text-gray-400">${suggestion.category} • ${suggestion.type}</div>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-xs text-gray-500 dark:text-gray-400">${usageText}</div>
+                                ${lastUsed ? `<div class="text-xs text-gray-400">${lastUsed}</div>` : ''}
+                            </div>
+                        </div>
+                    </button>
+                `;
+            }).join('');
+
+            // Agregar event listeners a las sugerencias
+            suggestionsList.querySelectorAll('.suggestion-item').forEach(button => {
+                button.addEventListener('click', () => {
+                    const itemId = button.dataset.itemId;
+                    const selectedItem = state.inventory.find(i => i.id === itemId);
+                    if (selectedItem) {
+                        // Seleccionar en el dropdown
+                        const itemSelect = document.getElementById('item-select');
+                        if (itemSelect) {
+                            itemSelect.value = itemId;
+                            itemSelect.dispatchEvent(new Event('change'));
+                        }
+                        // Limpiar búsqueda
+                        const searchInput = document.getElementById('item-search');
+                        if (searchInput) {
+                            searchInput.value = '';
+                        }
+                    }
+                });
+            });
+        }
+
+        function setupSmartSearch() {
+            const searchInput = document.getElementById('item-search');
+            if (!searchInput) return;
+
+            let searchTimeout;
+            searchInput.addEventListener('input', (e) => {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    const searchTerm = e.target.value;
+                    const suggestions = getSmartSuggestions(searchTerm, null, 8);
+                    updateSuggestionsList(suggestions);
+                }, 300);
+            });
+
+            // Limpiar búsqueda al hacer clic fuera
+            searchInput.addEventListener('blur', () => {
+                setTimeout(() => {
+                    if (document.activeElement !== searchInput) {
+                        searchInput.value = '';
+                        loadSmartSuggestions();
+                    }
+                }, 200);
+            });
+        }
+
+        function updateSuggestionsList(suggestions) {
+            const suggestionsList = document.getElementById('suggestions-list');
+            if (!suggestionsList) return;
+
+            if (suggestions.length === 0) {
+                suggestionsList.innerHTML = '<p class="text-sm text-gray-500 dark:text-gray-400 text-center py-2">No se encontraron artículos</p>';
+                return;
+            }
+
+            suggestionsList.innerHTML = suggestions.map(suggestion => {
+                const item = state.inventory.find(i => i.id === suggestion.itemId);
+                if (!item) return '';
+                
+                const usageText = suggestion.totalUsage > 0 ? 
+                    `${suggestion.totalUsage} usos` : 'Nuevo';
+                const lastUsed = suggestion.lastUsed ? 
+                    `Último: ${new Date(suggestion.lastUsed).toLocaleDateString()}` : '';
+                
+                return `
+                    <button type="button" 
+                            class="suggestion-item w-full text-left p-3 rounded-lg border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                            data-item-id="${suggestion.itemId}">
+                        <div class="flex items-center justify-between">
+                            <div class="flex-1">
+                                <div class="font-medium text-gray-900 dark:text-white">${suggestion.description}</div>
+                                <div class="text-sm text-gray-500 dark:text-gray-400">${suggestion.category} • ${suggestion.type}</div>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-xs text-gray-500 dark:text-gray-400">${usageText}</div>
+                                ${lastUsed ? `<div class="text-xs text-gray-400">${lastUsed}</div>` : ''}
+                            </div>
+                        </div>
+                    </button>
+                `;
+            }).join('');
+
+            // Agregar event listeners a las sugerencias
+            suggestionsList.querySelectorAll('.suggestion-item').forEach(button => {
+                button.addEventListener('click', () => {
+                    const itemId = button.dataset.itemId;
+                    const selectedItem = state.inventory.find(i => i.id === itemId);
+                    if (selectedItem) {
+                        // Seleccionar en el dropdown
+                        const itemSelect = document.getElementById('item-select');
+                        if (itemSelect) {
+                            itemSelect.value = itemId;
+                            itemSelect.dispatchEvent(new Event('change'));
+                        }
+                        // Limpiar búsqueda
+                        const searchInput = document.getElementById('item-search');
+                        if (searchInput) {
+                            searchInput.value = '';
+                        }
+                    }
+                });
+            });
+        }
+
         function showLoanModal(item) {
              showCheckoutModal(item);
         }
@@ -3411,6 +4239,403 @@
                 y += (textLines.length * 5) + 5;
             });
             doc.save("lista_de_compras.pdf");
+        }
+
+        function generateShoppingListExcel() {
+            if (state.shoppingList.length === 0) {
+                showNotification("La lista de compras está vacía.", 'info');
+                return;
+            }
+            
+            try {
+                // Preparar datos para Excel
+                const excelData = [
+                    ['Lista de Compras'],
+                    [`Fecha: ${new Date().toLocaleDateString()}`],
+                    [`Generado por: ${state.currentUser?.email || 'Usuario'}`],
+                    [''], // Línea vacía
+                    ['Cantidad', 'Descripción', 'Categoría', 'Prioridad'] // Encabezados
+                ];
+                
+                // Agregar elementos de la lista
+                state.shoppingList.forEach(item => {
+                    excelData.push([
+                        item.quantity,
+                        item.description,
+                        item.category || 'Sin categoría',
+                        item.priority || 'Normal'
+                    ]);
+                });
+                
+                // Crear libro de trabajo
+                const wb = XLSX.utils.book_new();
+                const ws = XLSX.utils.aoa_to_sheet(excelData);
+                
+                // Configurar ancho de columnas
+                ws['!cols'] = [
+                    { wch: 10 }, // Cantidad
+                    { wch: 40 }, // Descripción
+                    { wch: 20 }, // Categoría
+                    { wch: 15 }  // Prioridad
+                ];
+                
+                // Agregar hoja al libro
+                XLSX.utils.book_append_sheet(wb, ws, 'Lista de Compras');
+                
+                // Generar y descargar archivo
+                const date = new Date().toISOString().split('T')[0];
+                XLSX.writeFile(wb, `lista_de_compras_${date}.xlsx`);
+                showNotification('Lista de compras en Excel generada exitosamente', 'success');
+                
+            } catch (error) {
+                console.error('Error generando lista de compras Excel:', error);
+                showNotification('Error al generar la lista de compras en Excel', 'error');
+            }
+        }
+
+        // --- FUNCIONES DE GENERACIÓN DE REPORTES ---
+        function generatePDFReport(reportType) {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            // Configuración del documento
+            doc.setFontSize(20);
+            doc.text(getReportTitle(reportType), 20, 20);
+            doc.setFontSize(12);
+            doc.text(`Fecha de generación: ${new Date().toLocaleDateString()}`, 20, 30);
+            doc.text(`Generado por: ${state.currentUser?.email || 'Usuario'}`, 20, 35);
+            
+            let y = 50;
+            const data = getReportData(reportType);
+            
+            if (data.length === 0) {
+                doc.setFontSize(14);
+                doc.text("No hay datos para mostrar en este reporte.", 20, y);
+                doc.save(`${getReportFileName(reportType)}.pdf`);
+                return;
+            }
+            
+            // Generar tabla
+            const headers = getReportHeaders(reportType);
+            const tableData = data.map(row => headers.map(header => row[header.key] || ''));
+            
+            // Agregar encabezados
+            doc.setFontSize(10);
+            let x = 20;
+            headers.forEach((header, index) => {
+                doc.text(header.label, x, y);
+                x += header.width || 40;
+            });
+            y += 10;
+            
+            // Agregar líneas de datos
+            tableData.forEach((row, rowIndex) => {
+                if (y > 280) {
+                    doc.addPage();
+                    y = 20;
+                }
+                x = 20;
+                row.forEach((cell, colIndex) => {
+                    const cellText = String(cell).substring(0, 20); // Limitar longitud
+                    doc.text(cellText, x, y);
+                    x += headers[colIndex].width || 40;
+                });
+                y += 8;
+            });
+            
+            doc.save(`${getReportFileName(reportType)}.pdf`);
+            showNotification(`Reporte ${getReportTitle(reportType)} generado exitosamente`, 'success');
+        }
+
+        function generateExcelReport(reportType) {
+            try {
+                const data = getReportData(reportType);
+                const headers = getReportHeaders(reportType);
+                
+                if (data.length === 0) {
+                    showNotification("No hay datos para mostrar en este reporte.", 'info');
+                    return;
+                }
+                
+                // Preparar datos para Excel
+                const excelData = [
+                    [getReportTitle(reportType)],
+                    [`Fecha de generación: ${new Date().toLocaleDateString()}`],
+                    [`Generado por: ${state.currentUser?.email || 'Usuario'}`],
+                    [''], // Línea vacía
+                    headers.map(h => h.label) // Encabezados
+                ];
+                
+                // Agregar datos
+                data.forEach(row => {
+                    excelData.push(headers.map(header => row[header.key] || ''));
+                });
+                
+                // Crear libro de trabajo
+                const wb = XLSX.utils.book_new();
+                const ws = XLSX.utils.aoa_to_sheet(excelData);
+                
+                // Configurar ancho de columnas
+                const colWidths = headers.map(header => ({ wch: header.width ? header.width / 4 : 15 }));
+                ws['!cols'] = colWidths;
+                
+                // Agregar hoja al libro
+                XLSX.utils.book_append_sheet(wb, ws, 'Reporte');
+                
+                // Generar y descargar archivo
+                XLSX.writeFile(wb, `${getReportFileName(reportType)}.xlsx`);
+                showNotification(`Reporte ${getReportTitle(reportType)} en Excel generado exitosamente`, 'success');
+                
+            } catch (error) {
+                console.error('Error generando reporte Excel:', error);
+                showNotification('Error al generar el reporte Excel', 'error');
+            }
+        }
+
+        function getReportTitle(reportType) {
+            const titles = {
+                'inventory': 'Inventario Completo',
+                'loans': 'Préstamos Activos',
+                'salidas': 'Historial de Salidas',
+                'prestamos': 'Historial de Préstamos',
+                'devoluciones': 'Historial de Devoluciones',
+                'low-stock': 'Reporte de Stock Bajo'
+            };
+            return titles[reportType] || 'Reporte';
+        }
+
+        function getReportFileName(reportType) {
+            const date = new Date().toISOString().split('T')[0];
+            const names = {
+                'inventory': `inventario_completo_${date}`,
+                'loans': `prestamos_activos_${date}`,
+                'salidas': `historial_salidas_${date}`,
+                'prestamos': `historial_prestamos_${date}`,
+                'devoluciones': `historial_devoluciones_${date}`,
+                'low-stock': `stock_bajo_${date}`
+            };
+            return names[reportType] || `reporte_${date}`;
+        }
+
+        function getReportHeaders(reportType) {
+            const headers = {
+                'inventory': [
+                    { key: 'description', label: 'Descripción', width: 60 },
+                    { key: 'category', label: 'Categoría', width: 30 },
+                    { key: 'type', label: 'Tipo', width: 20 },
+                    { key: 'stock', label: 'Stock', width: 15 },
+                    { key: 'unit', label: 'Unidad', width: 15 },
+                    { key: 'minStock', label: 'Stock Mínimo', width: 20 }
+                ],
+                'loans': [
+                    { key: 'itemDescription', label: 'Artículo', width: 50 },
+                    { key: 'borrower', label: 'Prestatario', width: 30 },
+                    { key: 'quantity', label: 'Cantidad', width: 15 },
+                    { key: 'loanDate', label: 'Fecha Préstamo', width: 25 },
+                    { key: 'expectedReturn', label: 'Fecha Esperada', width: 25 }
+                ],
+                'salidas': [
+                    { key: 'itemDescription', label: 'Artículo', width: 50 },
+                    { key: 'quantity', label: 'Cantidad', width: 15 },
+                    { key: 'user', label: 'Usuario', width: 30 },
+                    { key: 'date', label: 'Fecha', width: 25 },
+                    { key: 'reason', label: 'Motivo', width: 40 }
+                ],
+                'prestamos': [
+                    { key: 'itemDescription', label: 'Artículo', width: 50 },
+                    { key: 'borrower', label: 'Prestatario', width: 30 },
+                    { key: 'quantity', label: 'Cantidad', width: 15 },
+                    { key: 'loanDate', label: 'Fecha Préstamo', width: 25 },
+                    { key: 'returnDate', label: 'Fecha Devolución', width: 25 }
+                ],
+                'devoluciones': [
+                    { key: 'itemDescription', label: 'Artículo', width: 50 },
+                    { key: 'borrower', label: 'Prestatario', width: 30 },
+                    { key: 'quantity', label: 'Cantidad', width: 15 },
+                    { key: 'returnDate', label: 'Fecha Devolución', width: 25 },
+                    { key: 'condition', label: 'Condición', width: 20 }
+                ],
+                'low-stock': [
+                    { key: 'description', label: 'Descripción', width: 60 },
+                    { key: 'category', label: 'Categoría', width: 30 },
+                    { key: 'stock', label: 'Stock Actual', width: 20 },
+                    { key: 'minStock', label: 'Stock Mínimo', width: 20 },
+                    { key: 'unit', label: 'Unidad', width: 15 }
+                ]
+            };
+            return headers[reportType] || [];
+        }
+
+        function getReportData(reportType) {
+            switch (reportType) {
+                case 'inventory':
+                    return state.inventory.map(item => ({
+                        ...item,
+                        stock: `${item.stock} ${item.unit}`,
+                        minStock: item.type === 'Consumible' ? item.minStock : 'N/A'
+                    }));
+                
+                case 'loans':
+                    return state.activeLoans.map(loan => ({
+                        ...loan,
+                        loanDate: new Date(loan.loanDate).toLocaleDateString(),
+                        expectedReturn: loan.expectedReturn ? new Date(loan.expectedReturn).toLocaleDateString() : 'No definida'
+                    }));
+                
+                case 'salidas':
+                    return state.transactions
+                        .filter(t => t.type === 'Salida')
+                        .map(t => ({
+                            ...t,
+                            date: new Date(t.date).toLocaleDateString()
+                        }));
+                
+                case 'prestamos':
+                    return state.transactions
+                        .filter(t => t.type === 'Préstamo')
+                        .map(t => ({
+                            ...t,
+                            loanDate: new Date(t.date).toLocaleDateString(),
+                            returnDate: t.returnDate ? new Date(t.returnDate).toLocaleDateString() : 'Pendiente'
+                        }));
+                
+                case 'devoluciones':
+                    return state.transactions
+                        .filter(t => t.type === 'Devolución')
+                        .map(t => ({
+                            ...t,
+                            returnDate: new Date(t.date).toLocaleDateString()
+                        }));
+                
+                case 'low-stock':
+                    return state.inventory
+                        .filter(item => item.type === 'Consumible' && item.stock < item.minStock)
+                        .map(item => ({
+                            ...item,
+                            stock: `${item.stock} ${item.unit}`,
+                            minStock: item.minStock
+                        }));
+                
+                default:
+                    return [];
+            }
+        }
+
+        // --- SISTEMA DE SUGERENCIAS INTELIGENTES ---
+        function getItemUsageStats() {
+            const usageStats = {};
+            
+            // Analizar transacciones de los últimos 30 días
+            const thirtyDaysAgo = new Date();
+            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+            
+            state.transactions
+                .filter(t => new Date(t.date) >= thirtyDaysAgo)
+                .forEach(transaction => {
+                    const itemId = transaction.itemId;
+                    if (!usageStats[itemId]) {
+                        usageStats[itemId] = {
+                            itemId,
+                            description: transaction.itemDescription,
+                            category: transaction.category,
+                            type: transaction.type,
+                            totalUsage: 0,
+                            recentUsage: 0,
+                            lastUsed: new Date(transaction.date),
+                            loanCount: 0,
+                            checkoutCount: 0
+                        };
+                    }
+                    
+                    usageStats[itemId].totalUsage += transaction.quantity || 1;
+                    usageStats[itemId].recentUsage += transaction.quantity || 1;
+                    
+                    if (transaction.type === 'Préstamo') {
+                        usageStats[itemId].loanCount++;
+                    } else if (transaction.type === 'Salida') {
+                        usageStats[itemId].checkoutCount++;
+                    }
+                });
+            
+            return Object.values(usageStats);
+        }
+
+        function getMostUsedItems(limit = 10, itemType = null) {
+            const usageStats = getItemUsageStats();
+            
+            // Filtrar por tipo si se especifica
+            let filteredStats = usageStats;
+            if (itemType) {
+                filteredStats = usageStats.filter(stat => {
+                    const item = state.inventory.find(i => i.id === stat.itemId);
+                    return item && item.type === itemType;
+                });
+            }
+            
+            // Ordenar por uso reciente y total
+            return filteredStats
+                .sort((a, b) => {
+                    // Priorizar uso reciente (últimos 7 días)
+                    const sevenDaysAgo = new Date();
+                    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+                    
+                    const aRecent = a.lastUsed >= sevenDaysAgo ? a.recentUsage : 0;
+                    const bRecent = b.lastUsed >= sevenDaysAgo ? b.recentUsage : 0;
+                    
+                    if (aRecent !== bRecent) {
+                        return bRecent - aRecent;
+                    }
+                    
+                    // Luego por uso total
+                    return b.totalUsage - a.totalUsage;
+                })
+                .slice(0, limit);
+        }
+
+        function getSmartSuggestions(searchTerm = '', itemType = null, limit = 8) {
+            const mostUsed = getMostUsedItems(limit * 2, itemType);
+            const searchLower = searchTerm.toLowerCase();
+            
+            if (!searchTerm) {
+                return mostUsed.slice(0, limit);
+            }
+            
+            // Filtrar por término de búsqueda
+            const filtered = mostUsed.filter(item => 
+                item.description.toLowerCase().includes(searchLower) ||
+                item.category.toLowerCase().includes(searchLower)
+            );
+            
+            // Si no hay suficientes resultados, buscar en todo el inventario
+            if (filtered.length < limit) {
+                const allItems = state.inventory
+                    .filter(item => {
+                        if (itemType && item.type !== itemType) return false;
+                        return item.description.toLowerCase().includes(searchLower) ||
+                               item.category.toLowerCase().includes(searchLower);
+                    })
+                    .map(item => ({
+                        itemId: item.id,
+                        description: item.description,
+                        category: item.category,
+                        type: item.type,
+                        totalUsage: 0,
+                        recentUsage: 0,
+                        lastUsed: null,
+                        loanCount: 0,
+                        checkoutCount: 0
+                    }));
+                
+                // Combinar y eliminar duplicados
+                const combined = [...filtered, ...allItems];
+                const unique = combined.filter((item, index, self) => 
+                    index === self.findIndex(t => t.itemId === item.itemId)
+                );
+                
+                return unique.slice(0, limit);
+            }
+            
+            return filtered.slice(0, limit);
         }
         function generateCharts() {
             if (typeof Chart === 'undefined') {

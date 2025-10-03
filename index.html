@@ -445,6 +445,65 @@
             transform: translateY(0);
         }
 
+        /* Settings CSS */
+        :root {
+            --font-size: 16px;
+        }
+
+        /* Font size settings */
+        body.small-font {
+            font-size: 14px;
+        }
+        body.large-font {
+            font-size: 18px;
+        }
+
+        /* Compact sidebar */
+        .compact-sidebar .sidebar {
+            width: 4rem;
+        }
+        .compact-sidebar .sidebar .nav-text {
+            display: none;
+        }
+        .compact-sidebar .main-content {
+            margin-left: 4rem;
+        }
+
+        /* Table density settings */
+        .table-compact table td,
+        .table-compact table th {
+            padding: 0.5rem;
+        }
+        .table-spacious table td,
+        .table-spacious table th {
+            padding: 1rem;
+        }
+
+        /* Column lines */
+        .no-column-lines table td,
+        .no-column-lines table th {
+            border-right: none;
+        }
+
+        /* Row hover */
+        .no-row-hover table tr:hover {
+            background-color: transparent;
+        }
+
+        /* Animations */
+        .no-animations * {
+            transition: none !important;
+            animation: none !important;
+        }
+
+        /* High contrast mode */
+        .high-contrast {
+            filter: contrast(150%);
+        }
+        .high-contrast .themed-card {
+            border: 2px solid #000;
+        }
+
     </style>
 </head>
 <body class="bg-gray-100">
@@ -705,71 +764,39 @@
                 isInitialized: false,
                 settings: {
                     itemsPerPage: 10,
-                    lowStockNotifications: false,
-                    notificationEmails: '',
                     defaultUnit: 'pza',
                     defaultMinStock: 5,
-                    // Enhanced configuration options
-                    autoReorderEnabled: false,
-                    autoReorderThreshold: 0.2, // 20% of minStock
-                    stockAlertDays: [1, 7, 30], // Days to show stock alerts
-                    enableWorkflowApprovals: false,
-                    approvalThreshold: 100, // Quantity threshold for approvals
-                    dataRetentionDays: 365,
-                    enableScheduledReports: false,
-                    reportSchedule: 'weekly',
-                    supplierManagement: true,
-                    barcodeScanning: false,
                     sessionTimeout: 480, // 8 hours in minutes
                     enableAuditLog: true,
+                    barcodeScanning: false,
                     customValidations: {
                         maxQuantityPerTransaction: 1000,
-                        requireNotesForLargeTransactions: true,
                         preventNegativeStock: true
                     },
-                    // New operator-friendly settings
                     displayPreferences: {
                         tableDensity: 'comfortable', // compact, comfortable, spacious
                         showColumnLines: true,
-                        enableRowHover: true,
-                        defaultView: 'table', // table, grid, list
-                        itemsPerRow: 4, // for grid view
-                        showStockBadges: true,
-                        enableQuickEdit: true
+                        enableRowHover: true
                     },
                     operationalPreferences: {
-                        enableKeyboardShortcuts: true,
-                        autoSaveChanges: false,
                         confirmBeforeDelete: true,
                         defaultTransactionType: 'Salida',
                         showRecentItems: true,
-                        recentItemsCount: 10,
-                        enableBulkOperations: true,
-                        showAdvancedFilters: false
+                        recentItemsCount: 10
                     },
                     dashboardCustomization: {
                         showStockOverview: true,
                         showRecentTransactions: true,
                         showLowStockAlerts: true,
-                        showQuickActions: true,
-                        chartType: 'bar', // bar, line, pie
-                        refreshInterval: 300, // seconds
-                        defaultDateRange: '30days'
+                        showQuickActions: true
                     },
                     interfaceCustomization: {
                         compactSidebar: false,
-                        sidebarPosition: 'left', // left, right
-                        showBreadcrumbs: true,
                         animationsEnabled: true,
-                        highContrastMode: false,
-                        fontSize: 'medium', // small, medium, large
-                        headerStyle: 'modern' // classic, modern, minimal
+                        fontSize: 'medium' // small, medium, large
                     },
                     notificationPreferences: {
-                        lowStockAlert: 'on_login', // always, on_login, never
-                        soundAlerts: true,
-                        popupAlerts: true,
-                        emailNotifications: false
+                        lowStockAlert: 'on_login' // always, on_login, never
                     }
                 }
             };
@@ -986,9 +1013,8 @@
                         state.settings = newSettings;
                         state.itemsPerPage = state.settings.itemsPerPage || 10;
                         
-                        if(oldSettings.interfaceCustomization.compactSidebar !== newSettings.interfaceCustomization.compactSidebar) {
-                            applyInterfaceSettings();
-                        }
+                        // Apply all settings to UI
+                        applySettingsToUI(newSettings);
                         
                         const uniqueCategoriesFromInventory = [...new Set(state.inventory.map(item => item.category))];
                         const categoriesFromSettings = state.settings.categories || [];
@@ -1259,7 +1285,13 @@
                  widgetsContainer.innerHTML = widgetsHTML;
                  generateCharts();
                  if (dashboardCustomization.showQuickActions) {
-                     document.getElementById('quick-add-item').addEventListener('click', showNewItemModal);
+                     document.getElementById('quick-add-item').addEventListener('click', () => {
+                         if (state.userRole === 'admin') {
+                             showNewItemModal();
+                         } else {
+                             showNotification("Solo los administradores pueden agregar artículos.", "info");
+                         }
+                     });
                      document.getElementById('quick-add-entry').addEventListener('click', () => showEntryModal());
                      document.getElementById('quick-add-checkout').addEventListener('click', () => showCheckoutModal());
                  }
@@ -1402,6 +1434,9 @@
                                                             ${isAdmin ? `
                                                                 <button class="action-btn p-2 text-purple-600 hover:text-purple-700 hover:bg-purple-100 dark:hover:bg-purple-900/30 rounded-lg transition-colors" data-action="edit" data-id="${item.id}" title="Editar Artículo">
                                                                     <i data-lucide="pencil" class="h-4 w-4"></i>
+                                                                </button>
+                                                                <button class="action-btn p-2 text-orange-600 hover:text-orange-700 hover:bg-orange-100 dark:hover:bg-orange-900/30 rounded-lg transition-colors" data-action="edit-stock" data-id="${item.id}" title="Editar Stock">
+                                                                    <i data-lucide="edit-3" class="h-4 w-4"></i>
                                                                 </button>
                                                                 <button class="action-btn p-2 text-red-600 hover:text-red-700 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition-colors" data-action="delete" data-id="${item.id}" title="Eliminar Artículo">
                                                                     <i data-lucide="trash-2" class="h-4 w-4"></i>
@@ -1830,18 +1865,6 @@
                             <a href="#" class="settings-tab-link whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm border-transparent themed-text-light hover:text-indigo-500 transition-all duration-200" data-tab="dashboard">
                                 <i data-lucide="layout-dashboard" class="w-4 h-4 inline mr-2"></i>Inicio
                             </a>
-                            <a href="#" class="settings-tab-link whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm border-transparent themed-text-light hover:text-indigo-500 transition-all duration-200" data-tab="stock">
-                                <i data-lucide="package" class="w-4 h-4 inline mr-2"></i>Inventario
-                            </a>
-                            <a href="#" class="settings-tab-link whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm border-transparent themed-text-light hover:text-indigo-500 transition-all duration-200" data-tab="notifications">
-                                <i data-lucide="bell" class="w-4 h-4 inline mr-2"></i>Avisos
-                            </a>
-                            <a href="#" class="settings-tab-link whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm border-transparent themed-text-light hover:text-indigo-500 transition-all duration-200" data-tab="workflow">
-                                <i data-lucide="workflow" class="w-4 h-4 inline mr-2"></i>Procesos
-                            </a>
-                            <a href="#" class="settings-tab-link whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm border-transparent themed-text-light hover:text-indigo-500 transition-all duration-200" data-tab="operator">
-                                <i data-lucide="user" class="w-4 h-4 inline mr-2"></i>Para Operadores
-                            </a>
                             <a href="#" class="settings-tab-link whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm border-transparent themed-text-light hover:text-indigo-500 transition-all duration-200" data-tab="categories">
                                 <i data-lucide="folder" class="w-4 h-4 inline mr-2"></i>Categorías
                             </a>
@@ -1961,15 +1984,6 @@
                                             </select>
                                             <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Cuánto espacio hay entre las filas</p>
                                         </div>
-                                        <div>
-                                            <label for="default-view" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Formato de vista</label>
-                                            <select id="default-view" class="themed-input w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors">
-                                                <option value="table" ${state.settings.displayPreferences?.defaultView === 'table' ? 'selected' : ''}>Tabla</option>
-                                                <option value="grid" ${state.settings.displayPreferences?.defaultView === 'grid' ? 'selected' : ''}>Cuadrícula</option>
-                                                <option value="list" ${state.settings.displayPreferences?.defaultView === 'list' ? 'selected' : ''}>Lista</option>
-                                            </select>
-                                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Cómo quieres ver el inventario</p>
-                                        </div>
                                         <div class="flex items-center justify-between p-4 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-gray-600">
                                             <div>
                                                 <label for="show-column-lines" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Mostrar líneas entre columnas</label>
@@ -2010,15 +2024,6 @@
                                                 <option value="large" ${state.settings.interfaceCustomization?.fontSize === 'large' ? 'selected' : ''}>Grande</option>
                                             </select>
                                             <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Cambia el tamaño del texto</p>
-                                        </div>
-                                        <div>
-                                            <label for="header-style" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Estilo del encabezado</label>
-                                            <select id="header-style" class="themed-input w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors">
-                                                <option value="classic" ${state.settings.interfaceCustomization?.headerStyle === 'classic' ? 'selected' : ''}>Clásico</option>
-                                                <option value="modern" ${state.settings.interfaceCustomization?.headerStyle === 'modern' ? 'selected' : ''}>Moderno</option>
-                                                <option value="minimal" ${state.settings.interfaceCustomization?.headerStyle === 'minimal' ? 'selected' : ''}>Minimalista</option>
-                                            </select>
-                                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Cambia cómo se ve la parte de arriba</p>
                                         </div>
                                         <div class="flex items-center justify-between p-4 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-gray-600">
                                             <div>
@@ -2075,43 +2080,11 @@
                                         </div>
                                         <div class="flex items-center justify-between p-4 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-gray-600">
                                             <div>
-                                                <label for="enable-keyboard-shortcuts" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Atajos de teclado</label>
-                                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Habilita atajos de teclado para acciones comunes</p>
-                                            </div>
-                                            <label class="switch">
-                                                <input type="checkbox" id="enable-keyboard-shortcuts" ${state.settings.operationalPreferences?.enableKeyboardShortcuts ? 'checked' : ''}>
-                                                <span class="slider"></span>
-                                            </label>
-                                        </div>
-                                        <div class="flex items-center justify-between p-4 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-gray-600">
-                                            <div>
                                                 <label for="show-recent-items" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Mostrar elementos recientes</label>
                                                 <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Muestra una lista de elementos utilizados recientemente</p>
                                             </div>
                                             <label class="switch">
                                                 <input type="checkbox" id="show-recent-items" ${state.settings.operationalPreferences?.showRecentItems ? 'checked' : ''}>
-                                                <span class="slider"></span>
-                                            </label>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <!-- Workflow Preferences -->
-                                <div class="bg-gradient-to-br from-teal-50 to-emerald-50 dark:from-slate-800 dark:to-slate-700 rounded-xl p-6 border border-teal-200 dark:border-slate-600">
-                                    <div class="flex items-center mb-4">
-                                        <div class="p-2 bg-teal-100 dark:bg-teal-900 rounded-lg mr-3">
-                                            <i data-lucide="workflow" class="w-5 h-5 text-teal-600 dark:text-teal-400"></i>
-                                        </div>
-                                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Preferencias de Flujo de Trabajo</h3>
-                                    </div>
-                                    <div class="space-y-5">
-                                        <div class="flex items-center justify-between p-4 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-gray-600">
-                                            <div>
-                                                <label for="auto-save-changes" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Guardado automático</label>
-                                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Guarda automáticamente los cambios sin confirmación</p>
-                                            </div>
-                                            <label class="switch">
-                                                <input type="checkbox" id="auto-save-changes" ${state.settings.operationalPreferences?.autoSaveChanges ? 'checked' : ''}>
                                                 <span class="slider"></span>
                                             </label>
                                         </div>
@@ -2122,26 +2095,6 @@
                                             </div>
                                             <label class="switch">
                                                 <input type="checkbox" id="confirm-before-delete" ${state.settings.operationalPreferences?.confirmBeforeDelete ? 'checked' : ''}>
-                                                <span class="slider"></span>
-                                            </label>
-                                        </div>
-                                        <div class="flex items-center justify-between p-4 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-gray-600">
-                                            <div>
-                                                <label for="enable-bulk-operations" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Operaciones en lote</label>
-                                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Permite realizar acciones en múltiples elementos a la vez</p>
-                                            </div>
-                                            <label class="switch">
-                                                <input type="checkbox" id="enable-bulk-operations" ${state.settings.operationalPreferences?.enableBulkOperations ? 'checked' : ''}>
-                                                <span class="slider"></span>
-                                            </label>
-                                        </div>
-                                        <div class="flex items-center justify-between p-4 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-gray-600">
-                                            <div>
-                                                <label for="show-advanced-filters" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Filtros avanzados</label>
-                                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Muestra opciones de filtrado avanzadas por defecto</p>
-                                            </div>
-                                            <label class="switch">
-                                                <input type="checkbox" id="show-advanced-filters" ${state.settings.operationalPreferences?.showAdvancedFilters ? 'checked' : ''}>
                                                 <span class="slider"></span>
                                             </label>
                                         </div>
@@ -2964,6 +2917,7 @@
                     else showLoanModal(item);
                     break;
                 case 'edit': showEditItemModal(item); break;
+                case 'edit-stock': showEditStockModal(item); break;
                 case 'delete': handleDeleteItem(item); break;
                 case 'add-to-cart': showAddToCartModal(item); break;
             }
@@ -3520,6 +3474,77 @@
             });
         }
 
+        function showEditStockModal(item) {
+            const content = `
+                <form id="edit-stock-form">
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium themed-text-light mb-2">Artículo</label>
+                        <div class="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                            <div class="font-medium text-gray-900 dark:text-white">${item.description}</div>
+                            <div class="text-sm text-gray-500 dark:text-gray-400">${item.category} • ${item.type}</div>
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <label for="current-stock" class="block text-sm font-medium themed-text-light mb-2">Stock Actual</label>
+                        <div class="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                            <div class="text-lg font-semibold text-blue-700 dark:text-blue-300">${item.stock} ${item.unit}</div>
+                        </div>
+                    </div>
+                    <div class="mb-6">
+                        <label for="new-stock" class="block text-sm font-medium themed-text-light mb-2">Nuevo Stock Total</label>
+                        <input type="number" id="new-stock" value="${item.stock}" min="0" required class="themed-input mt-1 block w-full px-3 py-2 border rounded-md shadow-sm">
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Ingresa el nuevo total de stock para este artículo</p>
+                    </div>
+                    <div class="mb-4">
+                        <label for="stock-reason" class="block text-sm font-medium themed-text-light mb-2">Motivo del Ajuste</label>
+                        <textarea id="stock-reason" rows="3" placeholder="Ej: Inventario físico, corrección de error, etc." class="themed-input mt-1 block w-full px-3 py-2 border rounded-md shadow-sm"></textarea>
+                    </div>
+                    <div class="flex justify-end mt-6">
+                        <button type="submit" class="bg-orange-600 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded flex items-center space-x-2">
+                             <span id="save-btn-text">Actualizar Stock</span>
+                             <i id="save-spinner" data-lucide="loader" class="h-5 w-5 animate-spin hidden"></i>
+                        </button>
+                    </div>
+                </form>
+            `;
+            showModal('Editar Stock', content);
+            
+            document.getElementById('edit-stock-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const saveBtnText = document.getElementById('save-btn-text');
+                const saveSpinner = document.getElementById('save-spinner');
+                saveBtnText.classList.add('hidden');
+                saveSpinner.classList.remove('hidden');
+
+                const newStock = parseInt(e.target['new-stock'].value);
+                const reason = e.target['stock-reason'].value || 'Ajuste de stock por administrador';
+                const stockDifference = newStock - item.stock;
+
+                try {
+                    // Update the stock in the database
+                    await updateDoc(doc(db, 'inventory', item.id), { stock: newStock });
+                    
+                    // Add transaction record
+                    await addDoc(collection(db, 'transactions'), {
+                        itemId: item.id,
+                        itemDescription: item.description,
+                        type: stockDifference > 0 ? 'Ajuste Positivo' : 'Ajuste Negativo',
+                        quantity: Math.abs(stockDifference),
+                        timestamp: serverTimestamp(),
+                        user: state.currentUser.email,
+                        notes: reason
+                    });
+                    
+                    showNotification(`Stock actualizado de ${item.stock} a ${newStock} ${item.unit}.`, 'success');
+                    closeModal();
+                } catch(error) {
+                    showNotification('Error al actualizar el stock.', 'error');
+                    saveBtnText.classList.remove('hidden');
+                    saveSpinner.classList.add('hidden');
+                }
+            });
+        }
+
         function showNewItemModal() {
              const content = `
                 <form id="new-item-form">
@@ -3592,7 +3617,12 @@
                     });
                     showNotification('Artículo creado con éxito.', 'success');
                     closeModal();
+                    // Force refresh the inventory view if we're on the inventory page
+                    if (window.location.hash.substring(1) === 'inventory') {
+                        renderInventoryView();
+                    }
                 } catch(error) {
+                    console.error('Error creating article:', error);
                     showNotification('Error al crear el artículo.', 'error');
                     saveBtnText.classList.remove('hidden');
                     saveSpinner.classList.add('hidden');
@@ -3601,6 +3631,83 @@
         }
 
         // --- LÓGICA DE AJUSTES ---
+        
+        function applySettingsToUI(settings) {
+            // Apply items per page setting
+            state.itemsPerPage = settings.itemsPerPage || 10;
+            
+            // Apply interface customization settings
+            if (settings.interfaceCustomization) {
+                const { fontSize, compactSidebar, animationsEnabled, highContrastMode } = settings.interfaceCustomization;
+                
+                // Apply font size
+                if (fontSize) {
+                    document.body.classList.remove('small-font', 'large-font');
+                    if (fontSize === 'small') {
+                        document.body.classList.add('small-font');
+                    } else if (fontSize === 'large') {
+                        document.body.classList.add('large-font');
+                    }
+                }
+                
+                // Apply compact sidebar
+                if (compactSidebar) {
+                    document.body.classList.add('compact-sidebar');
+                } else {
+                    document.body.classList.remove('compact-sidebar');
+                }
+                
+                // Apply animations
+                if (!animationsEnabled) {
+                    document.body.classList.add('no-animations');
+                } else {
+                    document.body.classList.remove('no-animations');
+                }
+                
+                // Apply high contrast mode
+                if (highContrastMode) {
+                    document.body.classList.add('high-contrast');
+                } else {
+                    document.body.classList.remove('high-contrast');
+                }
+            }
+            
+            // Apply display preferences
+            if (settings.displayPreferences) {
+                const { tableDensity, showColumnLines, enableRowHover } = settings.displayPreferences;
+                
+                // Apply table density
+                if (tableDensity) {
+                    document.body.classList.remove('table-compact', 'table-comfortable', 'table-spacious');
+                    document.body.classList.add(`table-${tableDensity}`);
+                }
+                
+                // Apply column lines
+                if (!showColumnLines) {
+                    document.body.classList.add('no-column-lines');
+                } else {
+                    document.body.classList.remove('no-column-lines');
+                }
+                
+                // Apply row hover
+                if (!enableRowHover) {
+                    document.body.classList.add('no-row-hover');
+                } else {
+                    document.body.classList.remove('no-row-hover');
+                }
+            }
+            
+            // Refresh current view to apply settings
+            const currentPage = window.location.hash.substring(1) || 'dashboard';
+            if (currentPage === 'dashboard') {
+                renderDashboardView();
+            } else if (currentPage === 'inventory') {
+                renderInventoryView();
+            } else if (currentPage === 'settings') {
+                renderSettingsTab(document.querySelector('.settings-tab-link.border-indigo-500')?.dataset.tab || 'general');
+            }
+        }
+        
         async function handleSaveSettings() {
             // Helper function to safely parse integers, falling back to a default if NaN
             const safeParseInt = (value, fallback) => {
@@ -3647,6 +3754,16 @@
             const enableRowHoverEl = document.getElementById('enable-row-hover');
             if (enableRowHoverEl) updatedSettings.displayPreferences.enableRowHover = enableRowHoverEl.checked;
 
+            // Missing display preferences settings
+            const itemsPerRowEl = document.getElementById('items-per-row');
+            if (itemsPerRowEl) updatedSettings.displayPreferences.itemsPerRow = safeParseInt(itemsPerRowEl.value, updatedSettings.displayPreferences.itemsPerRow);
+
+            const showStockBadgesEl = document.getElementById('show-stock-badges');
+            if (showStockBadgesEl) updatedSettings.displayPreferences.showStockBadges = showStockBadgesEl.checked;
+
+            const enableQuickEditEl = document.getElementById('enable-quick-edit');
+            if (enableQuickEditEl) updatedSettings.displayPreferences.enableQuickEdit = enableQuickEditEl.checked;
+
             const fontSizeEl = document.getElementById('font-size');
             if (fontSizeEl) updatedSettings.interfaceCustomization.fontSize = fontSizeEl.value;
             
@@ -3658,6 +3775,16 @@
             
             const animationsEnabledEl = document.getElementById('animations-enabled');
             if (animationsEnabledEl) updatedSettings.interfaceCustomization.animationsEnabled = animationsEnabledEl.checked;
+
+            // Missing interface customization settings
+            const sidebarPositionEl = document.getElementById('sidebar-position');
+            if (sidebarPositionEl) updatedSettings.interfaceCustomization.sidebarPosition = sidebarPositionEl.value;
+
+            const showBreadcrumbsEl = document.getElementById('show-breadcrumbs');
+            if (showBreadcrumbsEl) updatedSettings.interfaceCustomization.showBreadcrumbs = showBreadcrumbsEl.checked;
+
+            const highContrastModeEl = document.getElementById('high-contrast-mode');
+            if (highContrastModeEl) updatedSettings.interfaceCustomization.highContrastMode = highContrastModeEl.checked;
 
             // Operational Tab
             const defaultTransactionTypeEl = document.getElementById('default-transaction-type');
@@ -3790,6 +3917,19 @@
             const operatorPopupAlertsEl = document.getElementById('operator-popup-alerts');
             if (operatorPopupAlertsEl) updatedSettings.notificationPreferences.popupAlerts = operatorPopupAlertsEl.checked;
 
+            // Missing notification preferences
+            const lowStockAlertEl = document.getElementById('low-stock-alert');
+            if (lowStockAlertEl) updatedSettings.notificationPreferences.lowStockAlert = lowStockAlertEl.value;
+
+            const soundAlertsEl = document.getElementById('sound-alerts');
+            if (soundAlertsEl) updatedSettings.notificationPreferences.soundAlerts = soundAlertsEl.checked;
+
+            const popupAlertsEl = document.getElementById('popup-alerts');
+            if (popupAlertsEl) updatedSettings.notificationPreferences.popupAlerts = popupAlertsEl.checked;
+
+            const emailNotificationsEl = document.getElementById('email-notifications');
+            if (emailNotificationsEl) updatedSettings.notificationPreferences.emailNotifications = emailNotificationsEl.checked;
+
             // Operator Tab - Apariencia
             const operatorFontSizeEl = document.getElementById('operator-font-size');
             if (operatorFontSizeEl) updatedSettings.interfaceCustomization.fontSize = operatorFontSizeEl.value;
@@ -3815,6 +3955,10 @@
             try {
                 // Save the fully merged and updated settings object
                 await setDoc(doc(db, 'settings', 'global'), updatedSettings);
+                
+                // Apply settings to the UI immediately
+                applySettingsToUI(updatedSettings);
+                
                 showNotification('Ajustes guardados con éxito.', 'success');
 
             } catch (error) {

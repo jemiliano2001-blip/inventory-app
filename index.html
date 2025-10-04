@@ -753,11 +753,11 @@
                     </div>
                     <span class="font-medium">Usuarios</span>
                 </a>
-                <a href="#settings" id="settings-nav-link" class="nav-link flex items-center space-x-3 py-3 px-4 rounded-xl transition-all duration-200 group hidden">
+                <a href="#settings" id="settings-nav-link" class="nav-link flex items-center space-x-3 py-3 px-4 rounded-xl transition-all duration-200 group">
                     <div class="h-8 w-8 rounded-lg bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors">
                         <i data-lucide="settings" class="h-4 w-4"></i>
                     </div>
-                    <span class="font-medium">Ajustes</span>
+                    <span class="font-medium">Configuración</span>
                 </a>
             </nav>
 
@@ -987,7 +987,7 @@
                         
                         const isAdmin = state.userRole === 'admin';
                         document.getElementById('users-nav-link').classList.toggle('hidden', !isAdmin);
-                        document.getElementById('settings-nav-link').classList.toggle('hidden', !isAdmin);
+                        // Settings link is now visible for both admins and operators
                     } catch (error) {
                         console.error("Firebase Initialization Error:", error);
                         if (error.code === 'permission-denied') {
@@ -1196,10 +1196,8 @@
                     } else { window.location.hash = 'dashboard'; }
                     break;
                 case 'settings':
-                    if (state.userRole === 'admin') {
-                        if (!isRefresh) pageTitle.textContent = 'Ajustes';
-                        renderSettingsView();
-                    } else { window.location.hash = 'dashboard'; }
+                    if (!isRefresh) pageTitle.textContent = state.userRole === 'admin' ? 'Ajustes' : 'Configuración';
+                    renderSettingsView();
                     break;
                 default:
                     window.location.hash = 'dashboard';
@@ -1448,12 +1446,10 @@
                             <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Inventario</h2>
                             <p class="text-gray-500 dark:text-gray-400">Gestiona tu inventario de forma eficiente</p>
                         </div>
-                        ${isAdmin ? `
-                            <button id="new-item-btn" class="bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white font-medium py-3 px-6 rounded-xl flex items-center space-x-2 transition-all duration-200 transform hover:scale-105">
-                                <i data-lucide="plus" class="h-4 w-4"></i>
-                                <span>Nuevo Artículo</span>
-                            </button>
-                        ` : ''}
+                        <button id="new-item-btn" class="bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white font-medium py-3 px-6 rounded-xl flex items-center space-x-2 transition-all duration-200 transform hover:scale-105">
+                            <i data-lucide="plus" class="h-4 w-4"></i>
+                            <span>Nuevo Artículo</span>
+                        </button>
                     </div>
 
                     <!-- Filters and Categories -->
@@ -1461,7 +1457,12 @@
                         <!-- Categories Sidebar -->
                         <div class="lg:w-1/4">
                             <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700">
-                                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Categorías</h3>
+                                <div class="flex items-center justify-between mb-4">
+                                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Categorías</h3>
+                                    <button id="add-category-btn-inventory" class="bg-emerald-600 hover:bg-emerald-700 text-white p-2 rounded-lg transition-colors" title="Agregar nueva categoría">
+                                        <i data-lucide="plus" class="h-4 w-4"></i>
+                                    </button>
+                                </div>
                                 <ul id="category-list" class="space-y-2">
                                     <li>
                                         <a href="#" class="category-filter flex items-center px-3 py-2 rounded-lg transition-colors ${state.activeCategory === 'Todas' ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 font-medium' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'}" data-category="Todas">
@@ -1546,7 +1547,7 @@
                                                             <button class="action-btn p-2 text-green-600 hover:text-green-700 hover:bg-green-100 dark:hover:bg-green-900/30 rounded-lg transition-colors" data-action="entry" data-id="${item.id}" title="Registrar Entrada">
                                                                 <i data-lucide="plus-circle" class="h-4 w-4"></i>
                                                             </button>
-                                                            <button class="action-btn p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-lg transition-colors" data-action="checkout" data-id="${item.id}" title="${item.type === 'Consumible' ? 'Registrar Salida' : 'Registrar Préstamo'}">
+                                                            <button class="action-btn p-2 ${item.type === 'Retornable' && item.stock <= 0 ? 'text-gray-400 cursor-not-allowed opacity-50' : 'text-blue-600 hover:text-blue-700 hover:bg-blue-100 dark:hover:bg-blue-900/30'} rounded-lg transition-colors" data-action="checkout" data-id="${item.id}" title="${item.type === 'Consumible' ? 'Registrar Salida' : (item.stock <= 0 ? 'Sin Stock Disponible' : 'Registrar Préstamo')}" ${item.type === 'Retornable' && item.stock <= 0 ? 'disabled' : ''}>
                                                                 <i data-lucide="arrow-right-left" class="h-4 w-4"></i>
                                                             </button>
                                                             <button class="action-btn p-2 text-yellow-600 hover:text-yellow-700 hover:bg-yellow-100 dark:hover:bg-yellow-900/30 rounded-lg transition-colors" data-action="add-to-cart" data-id="${item.id}" title="Añadir a Lista de Compras">
@@ -1691,7 +1692,7 @@
                                     <td class="px-6 py-4 whitespace-nowrap">${t.type}</td>
                                     <td class="px-6 py-4 whitespace-nowrap">${t.itemDescription}</td>
                                     <td class="px-6 py-4 whitespace-nowrap">${t.quantity}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap">${(t.supplier || t.user || t.borrower) || 'N/A'}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">${t.type === 'Devolución' ? (t.borrower || 'N/A') : (t.supplier || t.user || t.borrower) || 'N/A'}</td>
                                     <td class="px-6 py-4 whitespace-nowrap">${t.notes || ''}</td>
                                 </tr>
                             `).join('') : `<tr><td colspan="${headers.length}" class="text-center py-10 themed-text-light">No hay registros.</td></tr>`}
@@ -1957,19 +1958,23 @@
         
         function renderSettingsView() {
             const mainContent = document.getElementById('main-content');
+            const isAdmin = state.userRole === 'admin';
+            
             mainContent.innerHTML = `
             <div class="max-w-7xl mx-auto space-y-6">
                 <!-- Header -->
                 <div class="flex items-center justify-between">
                     <div>
-                        <h1 class="text-3xl font-bold themed-text">Ajustes del Sistema</h1>
-                        <p class="text-lg themed-text-light mt-1">Cambia cómo funciona la aplicación para que sea más fácil de usar</p>
+                        <h1 class="text-3xl font-bold themed-text">${isAdmin ? 'Ajustes del Sistema' : 'Configuración Personal'}</h1>
+                        <p class="text-lg themed-text-light mt-1">${isAdmin ? 'Cambia cómo funciona la aplicación para que sea más fácil de usar' : 'Personaliza tu experiencia de usuario'}</p>
                     </div>
                     <div class="flex items-center space-x-3">
-                        <button id="reset-settings-btn" class="bg-gray-500 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded-lg flex items-center space-x-2">
-                            <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
-                            <span>Restablecer</span>
-                        </button>
+                        ${isAdmin ? `
+                            <button id="reset-settings-btn" class="bg-gray-500 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded-lg flex items-center space-x-2">
+                                <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+                                <span>Restablecer</span>
+                            </button>
+                        ` : ''}
                         <button id="save-settings-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-lg flex items-center space-x-2">
                             <i data-lucide="save" class="w-4 h-4"></i>
                             <span>Guardar Cambios</span>
@@ -1981,28 +1986,40 @@
                 <div class="themed-card rounded-xl shadow-lg border border-opacity-20">
                     <div class="border-b border-opacity-10 px-6 py-4">
                         <nav class="flex space-x-8 overflow-x-auto scrollbar-hide" aria-label="Settings Tabs">
-                            <a href="#" class="settings-tab-link whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm border-indigo-500 text-indigo-600 transition-all duration-200" data-tab="general">
-                                <i data-lucide="settings" class="w-4 h-4 inline mr-2"></i>Básico
-                            </a>
-                            <a href="#" class="settings-tab-link whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm border-transparent themed-text-light hover:text-indigo-500 transition-all duration-200" data-tab="display">
-                                <i data-lucide="monitor" class="w-4 h-4 inline mr-2"></i>Apariencia
-                            </a>
-                            <a href="#" class="settings-tab-link whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm border-transparent themed-text-light hover:text-indigo-500 transition-all duration-200" data-tab="operational">
-                                <i data-lucide="zap" class="w-4 h-4 inline mr-2"></i>Funcionamiento
-                            </a>
-                            <a href="#" class="settings-tab-link whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm border-transparent themed-text-light hover:text-indigo-500 transition-all duration-200" data-tab="dashboard">
-                                <i data-lucide="layout-dashboard" class="w-4 h-4 inline mr-2"></i>Inicio
-                            </a>
-                            <a href="#" class="settings-tab-link whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm border-transparent themed-text-light hover:text-indigo-500 transition-all duration-200" data-tab="categories">
-                                <i data-lucide="folder" class="w-4 h-4 inline mr-2"></i>Categorías
-                            </a>
+                            ${isAdmin ? `
+                                <a href="#" class="settings-tab-link whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm border-indigo-500 text-indigo-600 transition-all duration-200" data-tab="general">
+                                    <i data-lucide="settings" class="w-4 h-4 inline mr-2"></i>Básico
+                                </a>
+                                <a href="#" class="settings-tab-link whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm border-transparent themed-text-light hover:text-indigo-500 transition-all duration-200" data-tab="display">
+                                    <i data-lucide="monitor" class="w-4 h-4 inline mr-2"></i>Apariencia
+                                </a>
+                                <a href="#" class="settings-tab-link whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm border-transparent themed-text-light hover:text-indigo-500 transition-all duration-200" data-tab="operational">
+                                    <i data-lucide="zap" class="w-4 h-4 inline mr-2"></i>Funcionamiento
+                                </a>
+                                <a href="#" class="settings-tab-link whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm border-transparent themed-text-light hover:text-indigo-500 transition-all duration-200" data-tab="dashboard">
+                                    <i data-lucide="layout-dashboard" class="w-4 h-4 inline mr-2"></i>Inicio
+                                </a>
+                                <a href="#" class="settings-tab-link whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm border-transparent themed-text-light hover:text-indigo-500 transition-all duration-200" data-tab="categories">
+                                    <i data-lucide="folder" class="w-4 h-4 inline mr-2"></i>Categorías
+                                </a>
+                            ` : `
+                                <a href="#" class="settings-tab-link whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm border-indigo-500 text-indigo-600 transition-all duration-200" data-tab="operator-display">
+                                    <i data-lucide="monitor" class="w-4 h-4 inline mr-2"></i>Apariencia
+                                </a>
+                                <a href="#" class="settings-tab-link whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm border-transparent themed-text-light hover:text-indigo-500 transition-all duration-200" data-tab="operator-workflow">
+                                    <i data-lucide="zap" class="w-4 h-4 inline mr-2"></i>Trabajo Diario
+                                </a>
+                                <a href="#" class="settings-tab-link whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm border-transparent themed-text-light hover:text-indigo-500 transition-all duration-200" data-tab="operator-system">
+                                    <i data-lucide="settings" class="w-4 h-4 inline mr-2"></i>Ajustes del Sistema
+                                </a>
+                            `}
                         </nav>
                     </div>
                     <div id="settings-tab-content" class="p-8"></div>
                 </div>
             </div>
             `;
-            renderSettingsTab('general');
+            renderSettingsTab(isAdmin ? 'general' : 'operator-display');
             safeCreateIcons();
         }
 
@@ -2874,6 +2891,283 @@
                         </div>
                     `;
                     break;
+                case 'operator-display':
+                    content.innerHTML = `
+                        <div class="space-y-8">
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-8">
+                                <!-- Display Preferences -->
+                                <div class="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-slate-800 dark:to-slate-700 rounded-xl p-6 border border-blue-200 dark:border-slate-600">
+                                    <div class="flex items-center mb-4">
+                                        <div class="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg mr-3">
+                                            <i data-lucide="monitor" class="w-5 h-5 text-blue-600 dark:text-blue-400"></i>
+                                        </div>
+                                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Preferencias de Visualización</h3>
+                                    </div>
+                                    <div class="space-y-4">
+                                        <div>
+                                            <label for="operator-items-per-page" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Artículos por página</label>
+                                            <input type="number" id="operator-items-per-page" value="${state.settings.itemsPerPage || 10}" min="5" max="50" step="5" class="themed-input w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Cuántos artículos mostrar en cada página</p>
+                                        </div>
+                                        <div>
+                                            <label for="operator-view-type" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tipo de vista</label>
+                                            <select id="operator-view-type" class="themed-input w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                                                <option value="table" ${state.settings.displayPreferences?.defaultView === 'table' ? 'selected' : ''}>Tabla</option>
+                                                <option value="grid" ${state.settings.displayPreferences?.defaultView === 'grid' ? 'selected' : ''}>Cuadrícula</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label for="operator-table-density" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Densidad de tabla</label>
+                                            <select id="operator-table-density" class="themed-input w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                                                <option value="compact" ${state.settings.displayPreferences?.tableDensity === 'compact' ? 'selected' : ''}>Compacta</option>
+                                                <option value="comfortable" ${state.settings.displayPreferences?.tableDensity === 'comfortable' ? 'selected' : ''}>Cómoda</option>
+                                                <option value="spacious" ${state.settings.displayPreferences?.tableDensity === 'spacious' ? 'selected' : ''}>Espaciosa</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Interface Settings -->
+                                <div class="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-slate-800 dark:to-slate-700 rounded-xl p-6 border border-purple-200 dark:border-slate-600">
+                                    <div class="flex items-center mb-4">
+                                        <div class="p-2 bg-purple-100 dark:bg-purple-900 rounded-lg mr-3">
+                                            <i data-lucide="palette" class="w-5 h-5 text-purple-600 dark:text-purple-400"></i>
+                                        </div>
+                                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Interfaz</h3>
+                                    </div>
+                                    <div class="space-y-4">
+                                        <div class="flex items-center justify-between p-3 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-gray-600">
+                                            <div>
+                                                <label for="operator-show-lines" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Mostrar líneas de tabla</label>
+                                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Mostrar líneas divisorias en las tablas</p>
+                                            </div>
+                                            <label class="switch">
+                                                <input type="checkbox" id="operator-show-lines" ${state.settings.displayPreferences?.showColumnLines ? 'checked' : ''}>
+                                                <span class="slider"></span>
+                                            </label>
+                                        </div>
+                                        <div class="flex items-center justify-between p-3 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-gray-600">
+                                            <div>
+                                                <label for="operator-enable-hover" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Efecto hover en filas</label>
+                                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Resaltar filas al pasar el mouse</p>
+                                            </div>
+                                            <label class="switch">
+                                                <input type="checkbox" id="operator-enable-hover" ${state.settings.displayPreferences?.enableRowHover ? 'checked' : ''}>
+                                                <span class="slider"></span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    break;
+                case 'operator-workflow':
+                    content.innerHTML = `
+                        <div class="space-y-8">
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-8">
+                                <!-- Workflow Preferences -->
+                                <div class="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-slate-800 dark:to-slate-700 rounded-xl p-6 border border-green-200 dark:border-slate-600">
+                                    <div class="flex items-center mb-4">
+                                        <div class="p-2 bg-green-100 dark:bg-green-900 rounded-lg mr-3">
+                                            <i data-lucide="zap" class="w-5 h-5 text-green-600 dark:text-green-400"></i>
+                                        </div>
+                                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Preferencias de Trabajo</h3>
+                                    </div>
+                                    <div class="space-y-4">
+                                        <div>
+                                            <label for="operator-default-action" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Acción por defecto</label>
+                                            <select id="operator-default-action" class="themed-input w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors">
+                                                <option value="entry" ${state.settings.operationalPreferences?.defaultTransactionType === 'Entrada' ? 'selected' : ''}>Entrada</option>
+                                                <option value="exit" ${state.settings.operationalPreferences?.defaultTransactionType === 'Salida' ? 'selected' : ''}>Salida</option>
+                                                <option value="adjustment" ${state.settings.operationalPreferences?.defaultTransactionType === 'Ajuste' ? 'selected' : ''}>Ajuste</option>
+                                            </select>
+                                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Acción que se selecciona por defecto en los formularios</p>
+                                        </div>
+                                        <div class="flex items-center justify-between p-3 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-gray-600">
+                                            <div>
+                                                <label for="operator-confirm-delete" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Confirmar antes de eliminar</label>
+                                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Pedir confirmación antes de eliminar artículos</p>
+                                            </div>
+                                            <label class="switch">
+                                                <input type="checkbox" id="operator-confirm-delete" ${state.settings.operationalPreferences?.confirmBeforeDelete ? 'checked' : ''}>
+                                                <span class="slider"></span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Quick Actions -->
+                                <div class="bg-gradient-to-br from-orange-50 to-red-50 dark:from-slate-800 dark:to-slate-700 rounded-xl p-6 border border-orange-200 dark:border-slate-600">
+                                    <div class="flex items-center mb-4">
+                                        <div class="p-2 bg-orange-100 dark:bg-orange-900 rounded-lg mr-3">
+                                            <i data-lucide="clock" class="w-5 h-5 text-orange-600 dark:text-orange-400"></i>
+                                        </div>
+                                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Acciones Rápidas</h3>
+                                    </div>
+                                    <div class="space-y-4">
+                                        <div class="flex items-center justify-between p-3 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-gray-600">
+                                            <div>
+                                                <label for="operator-show-recent" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Mostrar artículos recientes</label>
+                                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Mostrar lista de artículos usados recientemente</p>
+                                            </div>
+                                            <label class="switch">
+                                                <input type="checkbox" id="operator-show-recent" ${state.settings.operationalPreferences?.showRecentItems ? 'checked' : ''}>
+                                                <span class="slider"></span>
+                                            </label>
+                                        </div>
+                                        <div>
+                                            <label for="operator-recent-count" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Cantidad de artículos recientes</label>
+                                            <input type="number" id="operator-recent-count" value="${state.settings.operationalPreferences?.recentItemsCount || 10}" min="5" max="20" class="themed-input w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors">
+                                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Cuántos artículos mostrar en la lista de recientes</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    break;
+                case 'operator-system':
+                    content.innerHTML = `
+                        <div class="space-y-8">
+                            <!-- Informational Banner -->
+                            <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-6">
+                                <div class="flex items-center">
+                                    <div class="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg mr-3">
+                                        <i data-lucide="info" class="w-5 h-5 text-blue-600 dark:text-blue-400"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-lg font-semibold text-blue-900 dark:text-blue-100">Configuración del Sistema</h3>
+                                        <p class="text-sm text-blue-700 dark:text-blue-300 mt-1">Esta información muestra la configuración actual del sistema establecida por el administrador.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-8">
+                                <!-- Basic System Settings -->
+                                <div class="bg-gradient-to-br from-gray-50 to-slate-50 dark:from-slate-800 dark:to-slate-700 rounded-xl p-6 border border-gray-200 dark:border-slate-600">
+                                    <div class="flex items-center mb-4">
+                                        <div class="p-2 bg-gray-100 dark:bg-gray-900 rounded-lg mr-3">
+                                            <i data-lucide="settings" class="w-5 h-5 text-gray-600 dark:text-gray-400"></i>
+                                        </div>
+                                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Configuración Básica</h3>
+                                    </div>
+                                    <div class="space-y-4">
+                                        <div class="p-3 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-gray-600">
+                                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Unidad por defecto</label>
+                                            <div class="text-lg font-semibold text-gray-900 dark:text-white">${state.settings.defaultUnit || 'pza'}</div>
+                                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Unidad que se asigna automáticamente a nuevos artículos</p>
+                                        </div>
+                                        <div class="p-3 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-gray-600">
+                                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Stock mínimo por defecto</label>
+                                            <div class="text-lg font-semibold text-gray-900 dark:text-white">${state.settings.defaultMinStock || 5}</div>
+                                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Cantidad mínima establecida para nuevos artículos</p>
+                                        </div>
+                                        <div class="p-3 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-gray-600">
+                                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tiempo de sesión</label>
+                                            <div class="text-lg font-semibold text-gray-900 dark:text-white">${Math.floor((state.settings.sessionTimeout || 480) / 60)} horas</div>
+                                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Tiempo antes de cerrar sesión automáticamente</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Security Settings -->
+                                <div class="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-slate-800 dark:to-slate-700 rounded-xl p-6 border border-green-200 dark:border-slate-600">
+                                    <div class="flex items-center mb-4">
+                                        <div class="p-2 bg-green-100 dark:bg-green-900 rounded-lg mr-3">
+                                            <i data-lucide="shield" class="w-5 h-5 text-green-600 dark:text-green-400"></i>
+                                        </div>
+                                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Configuración de Seguridad</h3>
+                                    </div>
+                                    <div class="space-y-4">
+                                        <div class="p-3 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-gray-600">
+                                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Registro de auditoría</label>
+                                            <div class="flex items-center">
+                                                <div class="text-lg font-semibold text-gray-900 dark:text-white mr-2">${state.settings.enableAuditLog ? 'Habilitado' : 'Deshabilitado'}</div>
+                                                <div class="w-3 h-3 rounded-full ${state.settings.enableAuditLog ? 'bg-green-500' : 'bg-red-500'}"></div>
+                                            </div>
+                                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Registro de todas las acciones del sistema</p>
+                                        </div>
+                                        <div class="p-3 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-gray-600">
+                                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Escaneo de códigos</label>
+                                            <div class="flex items-center">
+                                                <div class="text-lg font-semibold text-gray-900 dark:text-white mr-2">${state.settings.barcodeScanning ? 'Habilitado' : 'Deshabilitado'}</div>
+                                                <div class="w-3 h-3 rounded-full ${state.settings.barcodeScanning ? 'bg-green-500' : 'bg-red-500'}"></div>
+                                            </div>
+                                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Funcionalidad de escaneo de códigos de barras</p>
+                                        </div>
+                                        <div class="p-3 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-gray-600">
+                                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Prevenir stock negativo</label>
+                                            <div class="flex items-center">
+                                                <div class="text-lg font-semibold text-gray-900 dark:text-white mr-2">${state.settings.customValidations?.preventNegativeStock ? 'Habilitado' : 'Deshabilitado'}</div>
+                                                <div class="w-3 h-3 rounded-full ${state.settings.customValidations?.preventNegativeStock ? 'bg-green-500' : 'bg-red-500'}"></div>
+                                            </div>
+                                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Evita transacciones que resulten en stock negativo</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Operational Settings -->
+                                <div class="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-slate-800 dark:to-slate-700 rounded-xl p-6 border border-purple-200 dark:border-slate-600">
+                                    <div class="flex items-center mb-4">
+                                        <div class="p-2 bg-purple-100 dark:bg-purple-900 rounded-lg mr-3">
+                                            <i data-lucide="zap" class="w-5 h-5 text-purple-600 dark:text-purple-400"></i>
+                                        </div>
+                                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Configuración Operacional</h3>
+                                    </div>
+                                    <div class="space-y-4">
+                                        <div class="p-3 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-gray-600">
+                                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Cantidad máxima por transacción</label>
+                                            <div class="text-lg font-semibold text-gray-900 dark:text-white">${state.settings.customValidations?.maxQuantityPerTransaction || 1000}</div>
+                                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Límite máximo de cantidad en una sola transacción</p>
+                                        </div>
+                                        <div class="p-3 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-gray-600">
+                                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Notificaciones de stock bajo</label>
+                                            <div class="flex items-center">
+                                                <div class="text-lg font-semibold text-gray-900 dark:text-white mr-2">${state.settings.lowStockNotifications ? 'Habilitado' : 'Deshabilitado'}</div>
+                                                <div class="w-3 h-3 rounded-full ${state.settings.lowStockNotifications ? 'bg-green-500' : 'bg-red-500'}"></div>
+                                            </div>
+                                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Alertas cuando el stock está por debajo del mínimo</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Dashboard Settings -->
+                                <div class="bg-gradient-to-br from-indigo-50 to-blue-50 dark:from-slate-800 dark:to-slate-700 rounded-xl p-6 border border-indigo-200 dark:border-slate-600">
+                                    <div class="flex items-center mb-4">
+                                        <div class="p-2 bg-indigo-100 dark:bg-indigo-900 rounded-lg mr-3">
+                                            <i data-lucide="layout-dashboard" class="w-5 h-5 text-indigo-600 dark:text-indigo-400"></i>
+                                        </div>
+                                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Configuración del Dashboard</h3>
+                                    </div>
+                                    <div class="space-y-4">
+                                        <div class="p-3 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-gray-600">
+                                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Vista general de stock</label>
+                                            <div class="flex items-center">
+                                                <div class="text-lg font-semibold text-gray-900 dark:text-white mr-2">${state.settings.dashboardCustomization?.showStockOverview ? 'Habilitado' : 'Deshabilitado'}</div>
+                                                <div class="w-3 h-3 rounded-full ${state.settings.dashboardCustomization?.showStockOverview ? 'bg-green-500' : 'bg-red-500'}"></div>
+                                            </div>
+                                        </div>
+                                        <div class="p-3 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-gray-600">
+                                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Transacciones recientes</label>
+                                            <div class="flex items-center">
+                                                <div class="text-lg font-semibold text-gray-900 dark:text-white mr-2">${state.settings.dashboardCustomization?.showRecentTransactions ? 'Habilitado' : 'Deshabilitado'}</div>
+                                                <div class="w-3 h-3 rounded-full ${state.settings.dashboardCustomization?.showRecentTransactions ? 'bg-green-500' : 'bg-red-500'}"></div>
+                                            </div>
+                                        </div>
+                                        <div class="p-3 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-gray-600">
+                                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Alertas de stock bajo</label>
+                                            <div class="flex items-center">
+                                                <div class="text-lg font-semibold text-gray-900 dark:text-white mr-2">${state.settings.dashboardCustomization?.showLowStockAlerts ? 'Habilitado' : 'Deshabilitado'}</div>
+                                                <div class="w-3 h-3 rounded-full ${state.settings.dashboardCustomization?.showLowStockAlerts ? 'bg-green-500' : 'bg-red-500'}"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    break;
             }
             safeCreateIcons();
         }
@@ -3010,6 +3304,9 @@
                     if (deleteBtn) { handleDeleteCategory(deleteBtn.dataset.category); return; }
                 }
                 
+                const addCategoryBtnInventory = target.closest('#add-category-btn-inventory');
+                if (addCategoryBtnInventory) { showAddCategoryModal(); return; }
+
                 const categoryFilter = target.closest('.category-filter');
                 if (categoryFilter) { e.preventDefault(); state.activeCategory = categoryFilter.dataset.category; state.currentPage = 1; renderInventoryView(); return; }
 
@@ -3083,7 +3380,13 @@
                 case 'entry': showEntryModal(item); break;
                 case 'checkout':
                     if (item.type === 'Consumible') showCheckoutModal(item);
-                    else showLoanModal(item);
+                    else {
+                        if (item.stock <= 0) {
+                            showNotification('No hay stock disponible para este artículo.', 'error');
+                            return;
+                        }
+                        showLoanModal(item);
+                    }
                     break;
                 case 'edit': showEditItemModal(item); break;
                 case 'edit-stock': showEditStockModal(item); break;
@@ -3129,7 +3432,8 @@
                 batch.set(transactionRef, {
                     itemId: itemId, itemDescription: itemDoc.data().description, type: 'Devolución',
                     quantity: 1, borrower: loanDoc.data().borrower,
-                    timestamp: serverTimestamp(), user: state.currentUser.email
+                    timestamp: serverTimestamp(), user: state.currentUser.email,
+                    returnedBy: state.currentUser.email
                 });
                 await batch.commit();
                 showNotification('Devolución guardada.', 'success');
@@ -3358,12 +3662,17 @@
                         </div>
                     `;
                 } else { // Retornable
+                    const hasStock = selectedItem.stock > 0;
                     formContainer.innerHTML = `
                         <div class="mb-4">
                             <label for="borrower" class="block text-sm font-medium themed-text-light">Nombre de quien solicita</label>
-                            <input type="text" id="borrower" name="borrower" required class="themed-input mt-1 block w-full px-3 py-2 border rounded-md shadow-sm">
+                            <input type="text" id="borrower" name="borrower" required class="themed-input mt-1 block w-full px-3 py-2 border rounded-md shadow-sm" ${!hasStock ? 'disabled' : ''}>
                         </div>
-                        <div class="flex justify-end"><button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded">Registrar Préstamo</button></div>
+                        <div class="flex justify-end">
+                            <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded ${!hasStock ? 'opacity-50 cursor-not-allowed' : ''}" ${!hasStock ? 'disabled' : ''}>
+                                ${hasStock ? 'Registrar Préstamo' : 'Sin Stock Disponible'}
+                            </button>
+                        </div>
                     `;
                 }
             };
@@ -3408,6 +3717,11 @@
                     showNotification('Salida guardada.', 'success');
                 } else {
                     // Logic for Retornable
+                    if (selectedItem.stock <= 0) {
+                        showNotification('No hay stock disponible para este artículo.', 'error');
+                        return;
+                    }
+                    
                     const borrower = e.target.borrower.value;
                     const batch = writeBatch(db);
                     batch.update(doc(db, 'inventory', selectedItem.id), { stock: selectedItem.stock - 1 });
@@ -3848,6 +4162,73 @@
             });
         }
 
+        function showAddCategoryModal() {
+            const content = `
+                <form id="add-category-form">
+                    <div class="space-y-4">
+                        <div>
+                            <label for="new-category-name-modal" class="block text-sm font-medium themed-text-light">Nombre de la Categoría</label>
+                            <input type="text" id="new-category-name-modal" required placeholder="Ej: Herramientas, Materiales, etc." class="themed-input mt-1 block w-full px-3 py-2 border rounded-md shadow-sm">
+                        </div>
+                        <div class="flex justify-end space-x-3">
+                            <button type="button" id="cancel-category-btn" class="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors">
+                                Cancelar
+                            </button>
+                            <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded flex items-center space-x-2">
+                                <span id="save-category-btn-text">Crear Categoría</span>
+                                <i id="save-category-spinner" data-lucide="loader" class="h-5 w-5 animate-spin hidden"></i>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            `;
+            showModal('Crear Nueva Categoría', content, 'max-w-md');
+            
+            document.getElementById('add-category-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const saveBtnText = document.getElementById('save-category-btn-text');
+                const saveSpinner = document.getElementById('save-category-spinner');
+                saveBtnText.classList.add('hidden');
+                saveSpinner.classList.remove('hidden');
+
+                const input = document.getElementById('new-category-name-modal');
+                const newCategory = input.value.trim();
+                
+                if (!newCategory) {
+                    showNotification('El nombre de la categoría no puede estar vacío.', 'error');
+                    saveBtnText.classList.remove('hidden');
+                    saveSpinner.classList.add('hidden');
+                    return;
+                }
+                
+                if (state.categories.includes(newCategory)) {
+                    showNotification('Esa categoría ya existe.', 'info');
+                    saveBtnText.classList.remove('hidden');
+                    saveSpinner.classList.add('hidden');
+                    return;
+                }
+                
+                const updatedCategories = [...state.categories.filter(c => c !== 'Todas'), newCategory].sort();
+                
+                try {
+                    await setDoc(doc(db, 'settings', 'global'), { categories: updatedCategories }, { merge: true });
+                    showNotification('Categoría creada exitosamente.', 'success');
+                    closeModal();
+                    // Refresh the inventory view to show the new category
+                    if (window.location.hash.substring(1) === 'inventory') {
+                        renderInventoryView();
+                    }
+                } catch (error) {
+                    console.error('Error creating category:', error);
+                    showNotification('Error al crear la categoría.', 'error');
+                    saveBtnText.classList.remove('hidden');
+                    saveSpinner.classList.add('hidden');
+                }
+            });
+            
+            document.getElementById('cancel-category-btn').addEventListener('click', closeModal);
+        }
+
         // --- LÓGICA DE AJUSTES ---
         
         function applySettingsToUI(settings) {
@@ -4124,6 +4505,16 @@
 
             const operatorKeyboardShortcutsEl = document.getElementById('operator-keyboard-shortcuts');
             if (operatorKeyboardShortcutsEl) updatedSettings.operationalPreferences.enableKeyboardShortcuts = operatorKeyboardShortcutsEl.checked;
+
+            // Operator-specific settings
+            const operatorConfirmDeleteEl = document.getElementById('operator-confirm-delete');
+            if (operatorConfirmDeleteEl) updatedSettings.operationalPreferences.confirmBeforeDelete = operatorConfirmDeleteEl.checked;
+
+            const operatorRecentCountEl = document.getElementById('operator-recent-count');
+            if (operatorRecentCountEl) updatedSettings.operationalPreferences.recentItemsCount = safeParseInt(operatorRecentCountEl.value, updatedSettings.operationalPreferences.recentItemsCount);
+
+            const operatorEnableHoverEl = document.getElementById('operator-enable-hover');
+            if (operatorEnableHoverEl) updatedSettings.displayPreferences.enableRowHover = operatorEnableHoverEl.checked;
 
             // Operator Tab - Alertas
             const operatorLowStockAlertEl = document.getElementById('operator-low-stock-alert');
@@ -5060,7 +5451,7 @@
                 default:
                     title = `Historial de ${type}`; headers = ['Fecha', 'Tipo', 'Articulo', 'Cantidad', 'Responsable', 'Notas'];
                     data = state.transactions.filter(t => typeMap[type].includes(t.type)).sort((a,b) => b.timestamp.seconds - a.timestamp.seconds)
-                        .map(t => [t.timestamp?.seconds ? new Date(t.timestamp.seconds * 1000).toLocaleString() : '', t.type, t.itemDescription, t.quantity, t.user || t.borrower || 'N/A', t.notes || '']);
+                        .map(t => [t.timestamp?.seconds ? new Date(t.timestamp.seconds * 1000).toLocaleString() : '', t.type, t.itemDescription, t.quantity, t.type === 'Devolución' ? (t.borrower || 'N/A') : (t.user || t.borrower || 'N/A'), t.notes || '']);
             }
             showReportPreviewModal(title, headers, data, type);
         }

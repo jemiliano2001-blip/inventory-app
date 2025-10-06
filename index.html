@@ -697,7 +697,7 @@
         <aside id="sidebar" class="themed-sidebar w-72 space-y-6 py-6 px-4 absolute inset-y-0 left-0 transform -translate-x-full md:relative md:translate-x-0 transition-all duration-300 ease-in-out z-30 flex flex-col">
             <!-- Logo Section -->
             <div class="px-2">
-                <a href="#" class="flex items-center space-x-3 px-3 py-2 rounded-xl hover:bg-white/10 transition-all duration-200">
+                <a href="#" class="flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-white/10 transition-all duration-200">
                     <div class="h-10 w-10 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 flex items-center justify-center">
                         <i data-lucide="package" class="h-6 w-6 text-white"></i>
                     </div>
@@ -1341,17 +1341,14 @@
                             <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Acciones Rápidas</h3>
                         </div>
                         <div class="space-y-3">
-                            <button id="quick-add-item" class="w-full bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white font-medium py-3 px-4 rounded-xl flex items-center justify-center space-x-2 transition-all duration-200 transform hover:scale-105">
-                                <i data-lucide="plus" class="h-4 w-4"></i>
-                                <span>Nuevo Artículo</span>
+                            <button id="quick-add-item" class="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-medium py-4 px-6 rounded-xl flex items-center justify-center transition-all duration-200 transform hover:scale-105 min-h-[60px]">
+                                <i data-lucide="plus" class="h-8 w-8"></i>
                             </button>
-                            <button id="quick-add-entry" class="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-medium py-3 px-4 rounded-xl flex items-center justify-center space-x-2 transition-all duration-200 transform hover:scale-105">
-                                <i data-lucide="plus-circle" class="h-4 w-4"></i>
-                                <span>Registrar Entrada</span>
+                            <button id="quick-add-entry" class="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-medium py-4 px-6 rounded-xl flex items-center justify-center transition-all duration-200 transform hover:scale-105 min-h-[60px]">
+                                <i data-lucide="plus-circle" class="h-8 w-8"></i>
                             </button>
-                            <button id="quick-add-checkout" class="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-medium py-3 px-4 rounded-xl flex items-center justify-center space-x-2 transition-all duration-200 transform hover:scale-105">
-                                <i data-lucide="arrow-right-left" class="h-4 w-4"></i>
-                                <span>Registrar Salida/Préstamo</span>
+                            <button id="quick-add-checkout" class="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-medium py-4 px-6 rounded-xl flex items-center justify-center transition-all duration-200 transform hover:scale-105 min-h-[60px]">
+                                <i data-lucide="arrow-right-left" class="h-8 w-8"></i>
                             </button>
                         </div>
                     </div>
@@ -1456,9 +1453,8 @@
                             <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Inventario</h2>
                             <p class="text-gray-500 dark:text-gray-400">Gestiona tu inventario de forma eficiente</p>
                         </div>
-                        <button id="new-item-btn" class="bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white font-medium py-3 px-6 rounded-xl flex items-center space-x-2 transition-all duration-200 transform hover:scale-105">
-                            <i data-lucide="plus" class="h-4 w-4"></i>
-                            <span>Nuevo Artículo</span>
+                        <button id="new-item-btn" class="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-medium py-4 px-8 rounded-xl flex items-center justify-center transition-all duration-200 transform hover:scale-105 min-h-[60px] min-w-[60px]">
+                            <i data-lucide="plus" class="h-8 w-8"></i>
                         </button>
                     </div>
 
@@ -1469,20 +1465,20 @@
                             <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700">
                                 <div class="flex items-center justify-between mb-4">
                                     <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Categorías</h3>
-                                    <button id="add-category-btn-inventory" class="bg-emerald-600 hover:bg-emerald-700 text-white p-2 rounded-lg transition-colors" title="Agregar nueva categoría">
-                                        <i data-lucide="plus" class="h-4 w-4"></i>
+                                    <button id="add-category-btn-inventory" class="bg-green-600 hover:bg-green-700 text-white p-3 rounded-lg transition-colors min-h-[48px] min-w-[48px] flex items-center justify-center" title="Agregar nueva categoría">
+                                        <i data-lucide="plus" class="h-6 w-6"></i>
                                     </button>
                                 </div>
                                 <ul id="category-list" class="space-y-2">
                                     <li>
-                                        <a href="#" class="category-filter flex items-center px-3 py-2 rounded-lg transition-colors ${state.activeCategory === 'Todas' ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 font-medium' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'}" data-category="Todas">
+                                        <a href="#" class="category-filter flex items-center px-4 py-3 rounded-lg transition-colors ${state.activeCategory === 'Todas' ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 font-medium' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'}" data-category="Todas">
                                             <i data-lucide="grid-3x3" class="h-4 w-4 mr-3"></i>
                                             Todas
                                         </a>
                                     </li>
                                     ${state.categories.map(cat => `
                                         <li>
-                                            <a href="#" class="category-filter flex items-center px-3 py-2 rounded-lg transition-colors ${state.activeCategory === cat ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 font-medium' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'}" data-category="${cat}">
+                                            <a href="#" class="category-filter flex items-center px-4 py-3 rounded-lg transition-colors ${state.activeCategory === cat ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 font-medium' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'}" data-category="${cat}">
                                                 <i data-lucide="folder" class="h-4 w-4 mr-3"></i>
                                                 ${cat}
                                             </a>
@@ -1553,25 +1549,25 @@
                                                         ${item.type === 'Consumible' ? `<div class="text-xs text-gray-500 dark:text-gray-400">Min: ${item.minStock}</div>` : ''}
                                                     </td>
                                                     <td class="px-6 py-4 text-center">
-                                                        <div class="flex items-center justify-center space-x-2">
-                                                            <button class="action-btn p-2 text-green-600 hover:text-green-700 hover:bg-green-100 dark:hover:bg-green-900/30 rounded-lg transition-colors" data-action="entry" data-id="${item.id}" title="Registrar Entrada">
-                                                                <i data-lucide="plus-circle" class="h-4 w-4"></i>
+                                                        <div class="flex items-center justify-center space-x-3">
+                                                            <button class="action-btn p-3 text-green-600 hover:text-green-700 hover:bg-green-100 dark:hover:bg-green-900/30 rounded-lg transition-colors min-h-[48px] min-w-[48px] flex items-center justify-center" data-action="entry" data-id="${item.id}" title="Registrar Entrada">
+                                                                <i data-lucide="plus-circle" class="h-6 w-6"></i>
                                                             </button>
-                                                            <button class="action-btn p-2 ${item.type === 'Retornable' && item.stock <= 0 ? 'text-gray-400 cursor-not-allowed opacity-50' : 'text-blue-600 hover:text-blue-700 hover:bg-blue-100 dark:hover:bg-blue-900/30'} rounded-lg transition-colors" data-action="checkout" data-id="${item.id}" title="${item.type === 'Consumible' ? 'Registrar Salida' : (item.stock <= 0 ? 'Sin Stock Disponible' : 'Registrar Préstamo')}" ${item.type === 'Retornable' && item.stock <= 0 ? 'disabled' : ''}>
-                                                                <i data-lucide="arrow-right-left" class="h-4 w-4"></i>
+                                                            <button class="action-btn p-3 ${item.type === 'Retornable' && item.stock <= 0 ? 'text-gray-400 cursor-not-allowed opacity-50' : 'text-blue-600 hover:text-blue-700 hover:bg-blue-100 dark:hover:bg-blue-900/30'} rounded-lg transition-colors min-h-[48px] min-w-[48px] flex items-center justify-center" data-action="checkout" data-id="${item.id}" title="${item.type === 'Consumible' ? 'Registrar Salida' : (item.stock <= 0 ? 'Sin Stock Disponible' : 'Registrar Préstamo')}" ${item.type === 'Retornable' && item.stock <= 0 ? 'disabled' : ''}>
+                                                                <i data-lucide="arrow-right-left" class="h-6 w-6"></i>
                                                             </button>
-                                                            <button class="action-btn p-2 text-yellow-600 hover:text-yellow-700 hover:bg-yellow-100 dark:hover:bg-yellow-900/30 rounded-lg transition-colors" data-action="add-to-cart" data-id="${item.id}" title="Añadir a Lista de Compras">
-                                                                <i data-lucide="shopping-cart" class="h-4 w-4"></i>
+                                                            <button class="action-btn p-3 text-yellow-600 hover:text-yellow-700 hover:bg-yellow-100 dark:hover:bg-yellow-900/30 rounded-lg transition-colors min-h-[48px] min-w-[48px] flex items-center justify-center" data-action="add-to-cart" data-id="${item.id}" title="Añadir a Lista de Compras">
+                                                                <i data-lucide="shopping-cart" class="h-6 w-6"></i>
                                                             </button>
                                                             ${isAdmin ? `
-                                                                <button class="action-btn p-2 text-purple-600 hover:text-purple-700 hover:bg-purple-100 dark:hover:bg-purple-900/30 rounded-lg transition-colors" data-action="edit" data-id="${item.id}" title="Editar Artículo">
-                                                                    <i data-lucide="pencil" class="h-4 w-4"></i>
+                                                                <button class="action-btn p-3 text-purple-600 hover:text-purple-700 hover:bg-purple-100 dark:hover:bg-purple-900/30 rounded-lg transition-colors min-h-[48px] min-w-[48px] flex items-center justify-center" data-action="edit" data-id="${item.id}" title="Editar Artículo">
+                                                                    <i data-lucide="pencil" class="h-6 w-6"></i>
                                                                 </button>
-                                                                <button class="action-btn p-2 text-orange-600 hover:text-orange-700 hover:bg-orange-100 dark:hover:bg-orange-900/30 rounded-lg transition-colors" data-action="edit-stock" data-id="${item.id}" title="Editar Stock">
-                                                                    <i data-lucide="edit-3" class="h-4 w-4"></i>
+                                                                <button class="action-btn p-3 text-orange-600 hover:text-orange-700 hover:bg-orange-100 dark:hover:bg-orange-900/30 rounded-lg transition-colors min-h-[48px] min-w-[48px] flex items-center justify-center" data-action="edit-stock" data-id="${item.id}" title="Editar Stock">
+                                                                    <i data-lucide="edit-3" class="h-6 w-6"></i>
                                                                 </button>
-                                                                <button class="action-btn p-2 text-red-600 hover:text-red-700 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition-colors" data-action="delete" data-id="${item.id}" title="Eliminar Artículo">
-                                                                    <i data-lucide="trash-2" class="h-4 w-4"></i>
+                                                                <button class="action-btn p-3 text-red-600 hover:text-red-700 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition-colors min-h-[48px] min-w-[48px] flex items-center justify-center" data-action="delete" data-id="${item.id}" title="Eliminar Artículo">
+                                                                    <i data-lucide="trash-2" class="h-6 w-6"></i>
                                                                 </button>
                                                             ` : ''}
                                                         </div>
@@ -1609,35 +1605,85 @@
                 loan.borrower.toLowerCase().includes(state.searchTerm.toLowerCase())
             );
 
+            // Check if user has seen the onboarding tooltip before
+            const hasSeenOnboarding = localStorage.getItem('devoluciones-onboarding-seen') === 'true';
+            const showOnboarding = !hasSeenOnboarding && filteredLoans.length > 0;
+
             mainContent.innerHTML = `
-                <div class="themed-card rounded-lg shadow-md overflow-x-auto">
-                    <div class="mobile-table-container">
-                        <table class="min-w-full themed-divide divide-y mobile-table">
-                        <thead class="themed-table-header">
-                            <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium themed-text-light uppercase tracking-wider">Artículo</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium themed-text-light uppercase tracking-wider">Prestado a</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium themed-text-light uppercase tracking-wider">Fecha de Préstamo</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium themed-text-light uppercase tracking-wider">Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody class="themed-table-body themed-divide divide-y">
-                            ${filteredLoans.length > 0 ? filteredLoans.map(loan => `
+                <div class="relative">
+                    ${showOnboarding ? `
+                        <div id="onboarding-tooltip" class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 bg-yellow-400 border-4 border-yellow-600 rounded-2xl p-6 shadow-2xl max-w-sm mx-auto">
+                            <div class="flex items-start space-x-3">
+                                <div class="text-4xl">💡</div>
+                                <div class="flex-1">
+                                    <h3 class="text-lg font-bold text-gray-800 mb-2">Primera vez aquí?</h3>
+                                    <div class="text-gray-700 text-sm space-y-1">
+                                        <p><strong>1.</strong> Toque aquí para escanear el artículo</p>
+                                        <p><strong>2.</strong> Toque el botón verde para confirmar</p>
+                                    </div>
+                                </div>
+                                <button id="close-tooltip" class="text-gray-600 hover:text-gray-800 text-xl font-bold">&times;</button>
+                            </div>
+                        </div>
+                        <div id="tooltip-overlay" class="fixed inset-0 bg-black bg-opacity-30 z-40"></div>
+                    ` : ''}
+                    
+                    <div class="themed-card rounded-lg shadow-md overflow-x-auto">
+                        <div class="mobile-table-container">
+                            <table class="min-w-full themed-divide divide-y mobile-table">
+                            <thead class="themed-table-header">
                                 <tr>
-                                    <td class="px-6 py-4 whitespace-nowrap">${loan.itemDescription}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap">${loan.borrower}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap">${new Date(loan.loanedAt.seconds * 1000).toLocaleString()}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                                        <button class="return-btn bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-3 rounded" data-loan-id="${loan.id}" data-item-id="${loan.itemId}">Devolución</button>
-                                        <button class="report-loss-btn bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-3 rounded" data-loan-id="${loan.id}" data-item-id="${loan.itemId}">Pérdida</button>
-                                    </td>
+                                    <th class="px-6 py-3 text-left text-xs font-medium themed-text-light uppercase tracking-wider">Artículo</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium themed-text-light uppercase tracking-wider">Prestado a</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium themed-text-light uppercase tracking-wider">Fecha de Préstamo</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium themed-text-light uppercase tracking-wider">Acciones</th>
                                 </tr>
-                            `).join('') : `<tr><td colspan="4" class="text-center py-10 themed-text-light">No hay préstamos activos.</td></tr>`}
-                        </tbody>
-                        </table>
+                            </thead>
+                            <tbody class="themed-table-body themed-divide divide-y">
+                                ${filteredLoans.length > 0 ? filteredLoans.map(loan => `
+                                    <tr>
+                                        <td class="px-6 py-4 whitespace-nowrap">${loan.itemDescription}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">${loan.borrower}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">${new Date(loan.loanedAt.seconds * 1000).toLocaleString()}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-3">
+                                            <button class="return-btn bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg min-h-[48px] min-w-[48px] flex items-center justify-center transition-all duration-200" data-loan-id="${loan.id}" data-item-id="${loan.itemId}" title="Devolución">
+                                                <i data-lucide="rotate-ccw" class="h-6 w-6"></i>
+                                            </button>
+                                            <button class="report-loss-btn bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-lg min-h-[48px] min-w-[48px] flex items-center justify-center transition-all duration-200" data-loan-id="${loan.id}" data-item-id="${loan.itemId}" title="Pérdida">
+                                                <i data-lucide="x-circle" class="h-6 w-6"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                `).join('') : `<tr><td colspan="4" class="text-center py-10 themed-text-light">No hay préstamos activos.</td></tr>`}
+                            </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             `;
+            
+            // Add event listeners for onboarding tooltip
+            if (showOnboarding) {
+                const tooltip = document.getElementById('onboarding-tooltip');
+                const overlay = document.getElementById('tooltip-overlay');
+                const closeBtn = document.getElementById('close-tooltip');
+                
+                const dismissTooltip = () => {
+                    tooltip.style.display = 'none';
+                    overlay.style.display = 'none';
+                    localStorage.setItem('devoluciones-onboarding-seen', 'true');
+                };
+                
+                closeBtn.addEventListener('click', dismissTooltip);
+                overlay.addEventListener('click', dismissTooltip);
+                
+                // Dismiss when user performs any action
+                const actionButtons = document.querySelectorAll('.return-btn, .report-loss-btn');
+                actionButtons.forEach(btn => {
+                    btn.addEventListener('click', dismissTooltip);
+                });
+            }
+            
             safeCreateIcons();
         }
 
@@ -2779,7 +2825,7 @@
                                 <h3 class="text-lg font-semibold flex items-center"><i data-lucide="upload" class="mr-2"></i>Importar Datos</h3>
                                 <div>
                                     <label for="import-file" class="block text-sm font-medium themed-text-light mb-1">Importar inventario desde CSV</label>
-                                    <input type="file" id="import-file" accept=".csv" class="themed-input w-full border rounded-md px-3 py-2">
+                                    <input type="file" id="import-file" accept=".csv" class="themed-input w-full border rounded-md px-4 py-3">
                                     <p class="text-xs themed-text-light mt-1">Formato: descripción, categoría, tipo, stock, unidad, minStock</p>
                                 </div>
                                 <button id="import-data-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded flex items-center space-x-2">
@@ -2871,13 +2917,13 @@
                                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                                                     <div>
                                                         <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Categoría</label>
-                                                        <select id="bulk-category-select" class="themed-input w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-colors">
+                                                        <select id="bulk-category-select" class="themed-input w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-colors">
                                                             ${state.categories.filter(c => c !== 'Todas').map(cat => `<option value="${cat}">${cat}</option>`).join('')}
                                                         </select>
                                                     </div>
                                                     <div>
                                                         <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Nuevo Tipo</label>
-                                                        <select id="bulk-type-select" class="themed-input w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-colors">
+                                                        <select id="bulk-type-select" class="themed-input w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-colors">
                                                             <option value="Consumible">Consumible</option>
                                                             <option value="Retornable">Retornable</option>
                                                         </select>
@@ -2899,7 +2945,7 @@
                                             <div class="space-y-3">
                                                 <div>
                                                     <label class="block text-xs text-red-600 dark:text-red-400 mb-1">Seleccionar categoría a eliminar</label>
-                                                    <select id="bulk-delete-category-select" class="themed-input w-full border border-red-300 dark:border-red-600 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors">
+                                                    <select id="bulk-delete-category-select" class="themed-input w-full border border-red-300 dark:border-red-600 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors">
                                                         <option value="" selected disabled>Seleccionar categoría...</option>
                                                         ${state.categories.filter(c => c !== 'Todas').map(cat => `<option value="${cat}">${cat}</option>`).join('')}
                                                     </select>
@@ -3563,7 +3609,7 @@
             const itemSelector = !item ? `
                 <div class="mb-4">
                     <label for="item-select" class="block text-sm font-medium themed-text-light">Seleccionar Artículo</label>
-                    <select id="item-select" name="item-select" required class="themed-input mt-1 block w-full px-3 py-2 border rounded-md shadow-sm">
+                    <select id="item-select" name="item-select" required class="themed-input mt-1 block w-full px-4 py-3 border rounded-md shadow-sm">
                         <option value="" disabled selected>Elige un artículo...</option>
                         ${state.inventory.map(i => `<option value="${i.id}">${i.description}</option>`).join('')}
                     </select>
@@ -3574,18 +3620,21 @@
                 <form id="entry-form">
                     <div class="mb-4">
                         <label for="quantity" class="block text-sm font-medium themed-text-light">Cantidad</label>
-                        <input type="number" id="quantity" name="quantity" min="1" required class="themed-input mt-1 block w-full px-3 py-2 border rounded-md shadow-sm">
+                        <input type="number" id="quantity" name="quantity" min="1" required class="themed-input mt-1 block w-full px-4 py-3 border rounded-md shadow-sm">
                     </div>
                     <div class="mb-4">
                         <label for="supplier" class="block text-sm font-medium themed-text-light">Proveedor (Opcional)</label>
-                        <input type="text" id="supplier" name="supplier" class="themed-input mt-1 block w-full px-3 py-2 border rounded-md shadow-sm">
+                        <input type="text" id="supplier" name="supplier" class="themed-input mt-1 block w-full px-4 py-3 border rounded-md shadow-sm">
                     </div>
                     <div class="mb-4">
                         <label for="notes" class="block text-sm font-medium themed-text-light">Notas (Opcional)</label>
-                        <textarea id="notes" name="notes" rows="2" class="themed-input mt-1 block w-full px-3 py-2 border rounded-md shadow-sm"></textarea>
+                        <textarea id="notes" name="notes" rows="2" class="themed-input mt-1 block w-full px-4 py-3 border rounded-md shadow-sm"></textarea>
                     </div>
                     <div class="flex justify-end">
-                        <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded">Registrar Entrada</button>
+                        <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-8 rounded-lg min-h-[56px] flex items-center justify-center transition-all duration-200">
+                            <i data-lucide="plus-circle" class="h-6 w-6 mr-2"></i>
+                            Registrar Entrada
+                        </button>
                     </div>
                 </form>`;
             showModal('Registrar Entrada', content, 'max-w-md');
@@ -3615,7 +3664,7 @@
                     <!-- Búsqueda inteligente -->
                     <div class="relative mb-3">
                         <input type="text" id="item-search" placeholder="Buscar..." 
-                               class="themed-input w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                               class="themed-input w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
                         <div class="absolute inset-y-0 right-0 flex items-center pr-3">
                             <i data-lucide="search" class="h-4 w-4 text-gray-400"></i>
                         </div>
@@ -3633,7 +3682,7 @@
                     </div>
                     
                     <!-- Selector tradicional -->
-                    <select id="item-select" name="item-select" required class="themed-input mt-1 block w-full px-3 py-2 border rounded-md shadow-sm">
+                    <select id="item-select" name="item-select" required class="themed-input mt-1 block w-full px-4 py-3 border rounded-md shadow-sm">
                         <option value="" disabled selected>O elige de la lista...</option>
                         ${state.inventory.map(i => `<option value="${i.id}">${i.description} (${i.type})</option>`).join('')}
                     </select>
@@ -3668,12 +3717,12 @@
                     formContainer.innerHTML = `
                         <div class="mb-4">
                             <label for="quantity" class="block text-sm font-medium themed-text-light">Cantidad</label>
-                            <input type="number" id="quantity" name="quantity" min="1" max="${maxQuantity}" required class="themed-input mt-1 block w-full px-3 py-2 border rounded-md shadow-sm">
+                            <input type="number" id="quantity" name="quantity" min="1" max="${maxQuantity}" required class="themed-input mt-1 block w-full px-4 py-3 border rounded-md shadow-sm">
                             <p class="text-xs themed-text-light mt-1">Máximo: ${maxQuantity} ${selectedItem.unit}</p>
                         </div>
                         <div class="mb-4">
                             <label for="user" class="block text-sm font-medium themed-text-light">Nombre de quien retira</label>
-                            <input type="text" id="user" name="user" required class="themed-input mt-1 block w-full px-3 py-2 border rounded-md shadow-sm">
+                            <input type="text" id="user" name="user" required class="themed-input mt-1 block w-full px-4 py-3 border rounded-md shadow-sm">
                         </div>
                         ${isEndmill ? `
                         <div class="mb-4">
@@ -3685,10 +3734,13 @@
                         </div>` : ''}
                         <div class="mb-4" id="notes-container" ${requireNotes ? '' : 'style="display:none"'}>
                             <label for="notes" class="block text-sm font-medium themed-text-light">Notas ${requireNotes ? '(Requerido para cantidades grandes)' : '(Opcional)'}</label>
-                            <textarea id="notes" name="notes" rows="2" class="themed-input mt-1 block w-full px-3 py-2 border rounded-md shadow-sm"></textarea>
+                            <textarea id="notes" name="notes" rows="2" class="themed-input mt-1 block w-full px-4 py-3 border rounded-md shadow-sm"></textarea>
                         </div>
                         <div class="flex justify-end">
-                            <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded">Registrar Salida</button>
+                            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-lg min-h-[56px] flex items-center justify-center transition-all duration-200">
+                                <i data-lucide="arrow-right-left" class="h-6 w-6 mr-2"></i>
+                                Registrar Salida
+                            </button>
                         </div>
                     `;
                 } else { // Retornable
@@ -3696,10 +3748,11 @@
                     formContainer.innerHTML = `
                         <div class="mb-4">
                             <label for="borrower" class="block text-sm font-medium themed-text-light">Nombre de quien solicita</label>
-                            <input type="text" id="borrower" name="borrower" required class="themed-input mt-1 block w-full px-3 py-2 border rounded-md shadow-sm" ${!hasStock ? 'disabled' : ''}>
+                            <input type="text" id="borrower" name="borrower" required class="themed-input mt-1 block w-full px-4 py-3 border rounded-md shadow-sm" ${!hasStock ? 'disabled' : ''}>
                         </div>
                         <div class="flex justify-end">
-                            <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded ${!hasStock ? 'opacity-50 cursor-not-allowed' : ''}" ${!hasStock ? 'disabled' : ''}>
+                            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-lg min-h-[56px] flex items-center justify-center transition-all duration-200 ${!hasStock ? 'opacity-50 cursor-not-allowed' : ''}" ${!hasStock ? 'disabled' : ''}>
+                                <i data-lucide="arrow-right-left" class="h-6 w-6 mr-2"></i>
                                 ${hasStock ? 'Registrar Préstamo' : 'Sin Stock Disponible'}
                             </button>
                         </div>
@@ -3925,9 +3978,12 @@
                 <form id="report-loss-form">
                     <div class="mb-4">
                         <label for="reason" class="block text-sm font-medium themed-text-light">Motivo de Pérdida</label>
-                        <input type="text" id="reason" name="reason" value="Perdido durante préstamo" required class="themed-input mt-1 block w-full px-3 py-2 border rounded-md shadow-sm">
+                        <input type="text" id="reason" name="reason" value="Perdido durante préstamo" required class="themed-input mt-1 block w-full px-4 py-3 border rounded-md shadow-sm">
                     </div>
-                    <div class="flex justify-end"><button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">Confirmar Pérdida</button></div>
+                    <div class="flex justify-end"><button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-bold py-4 px-8 rounded-lg min-h-[56px] flex items-center justify-center transition-all duration-200">
+                        <i data-lucide="x-circle" class="h-6 w-6 mr-2"></i>
+                        Confirmar Pérdida
+                    </button></div>
                 </form>`;
             showModal('Reportar Herramienta Perdida', content, 'max-w-md');
             document.getElementById('report-loss-form').addEventListener('submit', async (e) => {
@@ -3951,9 +4007,12 @@
                 <form id="add-to-cart-form">
                     <div class="mb-4">
                         <label for="quantity" class="block text-sm font-medium themed-text-light">Cantidad</label>
-                        <input type="number" id="quantity" name="quantity" min="1" value="1" required class="themed-input mt-1 block w-full px-3 py-2 border rounded-md shadow-sm">
+                        <input type="number" id="quantity" name="quantity" min="1" value="1" required class="themed-input mt-1 block w-full px-4 py-3 border rounded-md shadow-sm">
                     </div>
-                    <div class="flex justify-end"><button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded">Añadir a la Lista</button></div>
+                    <div class="flex justify-end"><button type="submit" class="bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-4 px-8 rounded-lg min-h-[56px] flex items-center justify-center transition-all duration-200">
+                        <i data-lucide="shopping-cart" class="h-6 w-6 mr-2"></i>
+                        Añadir a la Lista
+                    </button></div>
                 </form>`;
             showModal('Añadir a Lista de Compras', content, 'max-w-md');
             document.getElementById('add-to-cart-form').addEventListener('submit', async (e) => {
@@ -3978,32 +4037,33 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div class="md:col-span-2">
                             <label for="description" class="block text-sm font-medium themed-text-light">Descripción</label>
-                            <input type="text" id="description" value="${item.description}" required class="themed-input mt-1 block w-full px-3 py-2 border rounded-md shadow-sm">
+                            <input type="text" id="description" value="${item.description}" required class="themed-input mt-1 block w-full px-4 py-3 border rounded-md shadow-sm">
                         </div>
                         <div>
                             <label for="category" class="block text-sm font-medium themed-text-light">Categoría</label>
-                            <select id="category" class="themed-input mt-1 block w-full px-3 py-2 border rounded-md shadow-sm">${getCategoryOptions(item.category)}</select>
+                            <select id="category" class="themed-input mt-1 block w-full px-4 py-3 border rounded-md shadow-sm">${getCategoryOptions(item.category)}</select>
                         </div>
                         <div>
                             <label for="type" class="block text-sm font-medium themed-text-light">Tipo</label>
-                            <select id="type" class="themed-input mt-1 block w-full px-3 py-2 border rounded-md shadow-sm">
+                            <select id="type" class="themed-input mt-1 block w-full px-4 py-3 border rounded-md shadow-sm">
                                 <option value="Consumible" ${isConsumable ? 'selected' : ''}>Consumible</option>
                                 <option value="Retornable" ${!isConsumable ? 'selected' : ''}>Retornable</option>
                             </select>
                         </div>
                         <div id="min-stock-container" class="${isConsumable ? '' : 'hidden'}">
                             <label for="minStock" class="block text-sm font-medium themed-text-light">Stock Mínimo</label>
-                            <input type="number" id="minStock" value="${item.minStock || 0}" min="0" class="themed-input mt-1 block w-full px-3 py-2 border rounded-md shadow-sm">
+                            <input type="number" id="minStock" value="${item.minStock || 0}" min="0" class="themed-input mt-1 block w-full px-4 py-3 border rounded-md shadow-sm">
                         </div>
                          <div>
                             <label for="unit" class="block text-sm font-medium themed-text-light">Unidad</label>
-                            <input type="text" id="unit" value="${item.unit || 'pza'}" required class="themed-input mt-1 block w-full px-3 py-2 border rounded-md shadow-sm">
+                            <input type="text" id="unit" value="${item.unit || 'pza'}" required class="themed-input mt-1 block w-full px-4 py-3 border rounded-md shadow-sm">
                         </div>
                     </div>
                     <div class="flex justify-end mt-6">
-                        <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded flex items-center space-x-2">
+                        <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-8 rounded-lg min-h-[56px] flex items-center justify-center transition-all duration-200">
+                             <i data-lucide="save" class="h-6 w-6 mr-2"></i>
                              <span id="save-btn-text">Guardar Cambios</span>
-                             <i id="save-spinner" data-lucide="loader" class="h-5 w-5 animate-spin hidden"></i>
+                             <i id="save-spinner" data-lucide="loader" class="h-5 w-5 animate-spin hidden ml-2"></i>
                         </button>
                     </div>
                 </form>
@@ -4054,17 +4114,18 @@
                     </div>
                     <div class="mb-6">
                         <label for="new-stock" class="block text-sm font-medium themed-text-light mb-2">Nuevo Stock Total</label>
-                        <input type="number" id="new-stock" value="${item.stock}" min="0" required class="themed-input mt-1 block w-full px-3 py-2 border rounded-md shadow-sm">
+                        <input type="number" id="new-stock" value="${item.stock}" min="0" required class="themed-input mt-1 block w-full px-4 py-3 border rounded-md shadow-sm">
                         <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Ingresa el nuevo total de stock para este artículo</p>
                     </div>
                     <div class="mb-4">
                         <label for="stock-reason" class="block text-sm font-medium themed-text-light mb-2">Motivo del Ajuste</label>
-                        <textarea id="stock-reason" rows="3" placeholder="Ej: Inventario físico, corrección de error, etc." class="themed-input mt-1 block w-full px-3 py-2 border rounded-md shadow-sm"></textarea>
+                        <textarea id="stock-reason" rows="3" placeholder="Ej: Inventario físico, corrección de error, etc." class="themed-input mt-1 block w-full px-4 py-3 border rounded-md shadow-sm"></textarea>
                     </div>
                     <div class="flex justify-end mt-6">
-                        <button type="submit" class="bg-orange-600 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded flex items-center space-x-2">
+                        <button type="submit" class="bg-orange-600 hover:bg-orange-700 text-white font-bold py-4 px-8 rounded-lg min-h-[56px] flex items-center justify-center transition-all duration-200">
+                             <i data-lucide="edit-3" class="h-6 w-6 mr-2"></i>
                              <span id="save-btn-text">Actualizar Stock</span>
-                             <i id="save-spinner" data-lucide="loader" class="h-5 w-5 animate-spin hidden"></i>
+                             <i id="save-spinner" data-lucide="loader" class="h-5 w-5 animate-spin hidden ml-2"></i>
                         </button>
                     </div>
                 </form>
@@ -4113,36 +4174,37 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div class="md:col-span-2">
                             <label for="description" class="block text-sm font-medium themed-text-light">Descripción</label>
-                            <input type="text" id="description" required class="themed-input mt-1 block w-full px-3 py-2 border rounded-md shadow-sm">
+                            <input type="text" id="description" required class="themed-input mt-1 block w-full px-4 py-3 border rounded-md shadow-sm">
                         </div>
                         <div>
                             <label for="category" class="block text-sm font-medium themed-text-light">Categoría</label>
-                            <select id="category" class="themed-input mt-1 block w-full px-3 py-2 border rounded-md shadow-sm">${getCategoryOptions('')}</select>
+                            <select id="category" class="themed-input mt-1 block w-full px-4 py-3 border rounded-md shadow-sm">${getCategoryOptions('')}</select>
                         </div>
                         <div>
                             <label for="type" class="block text-sm font-medium themed-text-light">Tipo</label>
-                            <select id="type" class="themed-input mt-1 block w-full px-3 py-2 border rounded-md shadow-sm">
+                            <select id="type" class="themed-input mt-1 block w-full px-4 py-3 border rounded-md shadow-sm">
                                 <option value="Consumible" selected>Consumible</option>
                                 <option value="Retornable">Retornable</option>
                             </select>
                         </div>
                         <div>
                             <label for="stock" class="block text-sm font-medium themed-text-light">Stock Inicial</label>
-                            <input type="number" id="stock" value="0" min="0" required class="themed-input mt-1 block w-full px-3 py-2 border rounded-md shadow-sm">
+                            <input type="number" id="stock" value="0" min="0" required class="themed-input mt-1 block w-full px-4 py-3 border rounded-md shadow-sm">
                         </div>
                         <div id="min-stock-container">
                             <label for="minStock" class="block text-sm font-medium themed-text-light">Stock Mínimo</label>
-                            <input type="number" id="minStock" value="${state.settings.defaultMinStock || 5}" min="0" class="themed-input mt-1 block w-full px-3 py-2 border rounded-md shadow-sm">
+                            <input type="number" id="minStock" value="${state.settings.defaultMinStock || 5}" min="0" class="themed-input mt-1 block w-full px-4 py-3 border rounded-md shadow-sm">
                         </div>
                          <div>
                             <label for="unit" class="block text-sm font-medium themed-text-light">Unidad</label>
-                            <input type="text" id="unit" value="${state.settings.defaultUnit || 'pza'}" required class="themed-input mt-1 block w-full px-3 py-2 border rounded-md shadow-sm">
+                            <input type="text" id="unit" value="${state.settings.defaultUnit || 'pza'}" required class="themed-input mt-1 block w-full px-4 py-3 border rounded-md shadow-sm">
                         </div>
                     </div>
                     <div class="flex justify-end mt-6">
-                        <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded flex items-center space-x-2">
+                        <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-8 rounded-lg min-h-[56px] flex items-center justify-center transition-all duration-200">
+                             <i data-lucide="plus" class="h-6 w-6 mr-2"></i>
                              <span id="save-btn-text">Crear Artículo</span>
-                             <i id="save-spinner" data-lucide="loader" class="h-5 w-5 animate-spin hidden"></i>
+                             <i id="save-spinner" data-lucide="loader" class="h-5 w-5 animate-spin hidden ml-2"></i>
                         </button>
                     </div>
                 </form>
@@ -4198,15 +4260,17 @@
                     <div class="space-y-4">
                         <div>
                             <label for="new-category-name-modal" class="block text-sm font-medium themed-text-light">Nombre de la Categoría</label>
-                            <input type="text" id="new-category-name-modal" required placeholder="Ej: Herramientas, Materiales, etc." class="themed-input mt-1 block w-full px-3 py-2 border rounded-md shadow-sm">
+                            <input type="text" id="new-category-name-modal" required placeholder="Ej: Herramientas, Materiales, etc." class="themed-input mt-1 block w-full px-4 py-3 border rounded-md shadow-sm">
                         </div>
                         <div class="flex justify-end space-x-3">
-                            <button type="button" id="cancel-category-btn" class="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors">
+                            <button type="button" id="cancel-category-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-4 px-8 rounded-lg min-h-[56px] flex items-center justify-center transition-all duration-200">
+                                <i data-lucide="x" class="h-6 w-6 mr-2"></i>
                                 Cancelar
                             </button>
-                            <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded flex items-center space-x-2">
+                            <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-8 rounded-lg min-h-[56px] flex items-center justify-center transition-all duration-200">
+                                <i data-lucide="plus" class="h-6 w-6 mr-2"></i>
                                 <span id="save-category-btn-text">Crear Categoría</span>
-                                <i id="save-category-spinner" data-lucide="loader" class="h-5 w-5 animate-spin hidden"></i>
+                                <i id="save-category-spinner" data-lucide="loader" class="h-5 w-5 animate-spin hidden ml-2"></i>
                             </button>
                         </div>
                     </div>
@@ -5078,8 +5142,8 @@
             Object.keys(inventoryByCategory).sort().forEach(category => {
                 const items = inventoryByCategory[category];
                 
-                // Agregar título de categoría
-                if (y > 250) {
+                // Agregar título de categoría (verificar espacio para título + al menos un artículo)
+                if (y > 240) {
                     doc.addPage();
                     y = 20;
                     currentPage++;
@@ -5101,7 +5165,9 @@
                 y += 8;
                 
                 items.forEach(item => {
-                    if (y > 280) {
+                    // Verificar si necesitamos nueva página antes de agregar el artículo
+                    const itemHeight = item.description.length > 35 ? 10 : 6;
+                    if (y + itemHeight > 280) {
                         doc.addPage();
                         y = 20;
                         currentPage++;
@@ -5120,9 +5186,32 @@
                     
                     doc.setFontSize(8);
                     
-                    // Nombre del artículo (truncado si es muy largo)
-                    const itemName = item.description.length > 25 ? item.description.substring(0, 25) + '...' : item.description;
-                    doc.text(itemName, 20, y);
+                    // Nombre del artículo con mejor manejo de texto largo
+                    let itemName = item.description;
+                    if (itemName.length > 35) {
+                        // Si es muy largo, dividir en múltiples líneas
+                        const words = itemName.split(' ');
+                        let line1 = '';
+                        let line2 = '';
+                        
+                        for (let word of words) {
+                            if ((line1 + ' ' + word).length <= 35) {
+                                line1 += (line1 ? ' ' : '') + word;
+                            } else if ((line2 + ' ' + word).length <= 35) {
+                                line2 += (line2 ? ' ' : '') + word;
+                            } else {
+                                line2 += '...';
+                                break;
+                            }
+                        }
+                        
+                        doc.text(line1, 20, y);
+                        if (line2) {
+                            doc.text(line2, 20, y + 4);
+                        }
+                    } else {
+                        doc.text(itemName, 20, y);
+                    }
                     
                     // Stock del sistema
                     doc.text(item.stock.toString(), 80, y);
@@ -5136,7 +5225,8 @@
                     // Espacio para observaciones
                     doc.text("_________________", 170, y);
                     
-                    y += 6;
+                    // Ajustar altura según si hay texto en dos líneas
+                    y += itemName.length > 35 ? 10 : 6;
                 });
                 
                 y += 5; // Espacio entre categorías

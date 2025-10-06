@@ -988,6 +988,15 @@
                         const isAdmin = state.userRole === 'admin';
                         document.getElementById('users-nav-link').classList.toggle('hidden', !isAdmin);
                         // Settings link is now visible for both admins and operators
+                        
+                        // Manejar visibilidad del enlace de IA
+                        const aiNavLink = document.getElementById('ai-nav-link');
+                        if (aiNavLink) {
+                            aiNavLink.classList.toggle('hidden', !isAdmin);
+                        } else if (isAdmin) {
+                            // Si es admin y no existe el enlace, agregarlo
+                            addAINavigation();
+                        }
                     } catch (error) {
                         console.error("Firebase Initialization Error:", error);
                         if (error.code === 'permission-denied') {
@@ -1051,6 +1060,7 @@
             navigateTo(page); 
             await checkAndLoadInitialData();
             setupRealtimeListeners();
+            addAINavigation(); // Agregar navegación de IA
         }
 
         async function checkAndLoadInitialData() {
@@ -1835,6 +1845,25 @@
                                 <button data-type="devoluciones" data-format="excel" class="report-btn flex-1 bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg flex items-center justify-center space-x-2 transition-all duration-200">
                                     <i data-lucide="file-spreadsheet" class="h-4 w-4"></i>
                                     <span>Excel</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Inventario Manual -->
+                        <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 hover:shadow-xl transition-all duration-300">
+                            <div class="flex items-center mb-4">
+                                <div class="h-12 w-12 rounded-xl bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center mr-4">
+                                    <i data-lucide="clipboard-check" class="h-6 w-6 text-yellow-600 dark:text-yellow-400"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Inventario Manual</h3>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">Formulario para conteo físico</p>
+                                </div>
+                            </div>
+                            <div class="flex space-x-2">
+                                <button id="generate-manual-inventory-pdf" class="flex-1 bg-yellow-600 hover:bg-yellow-700 text-white font-medium py-2 px-4 rounded-lg flex items-center justify-center space-x-2 transition-all duration-200">
+                                    <i data-lucide="file-text" class="h-4 w-4"></i>
+                                    <span>Generar PDF</span>
                                 </button>
                             </div>
                         </div>
@@ -3345,6 +3374,7 @@
                 
                 if (target.id === 'generate-pdf-btn') { generateShoppingListPDF(); return; }
                 if (target.id === 'generate-excel-btn') { generateShoppingListExcel(); return; }
+                if (target.id === 'generate-manual-inventory-pdf') { generateManualInventoryPDF(); return; }
             });
             
             // Keyboard shortcuts listener
@@ -4994,6 +5024,152 @@
             doc.save("lista_de_compras.pdf");
         }
 
+        function generateManualInventoryPDF() {
+            if (state.inventory.length === 0) {
+                showNotification('No hay artículos en el inventario para generar el formulario.', 'info');
+                return;
+            }
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            // Configuración del documento
+            doc.setFontSize(20);
+            doc.text("Formulario de Inventario Manual", 20, 20);
+            doc.setFontSize(12);
+            doc.text(`Fecha: ${new Date().toLocaleDateString()}`, 20, 30);
+            doc.text(`Generado por: ${state.currentUser?.email || 'Usuario'}`, 20, 35);
+            doc.text(`Total de artículos: ${state.inventory.length}`, 20, 40);
+            
+            // Instrucciones
+            doc.setFontSize(10);
+            doc.text("Instrucciones:", 20, 50);
+            doc.text("• Marque con ✓ los artículos que encuentre en el almacén", 25, 55);
+            doc.text("• Anote la cantidad real encontrada en la columna 'Cantidad Real'", 25, 60);
+            doc.text("• Compare con el stock registrado en el sistema", 25, 65);
+            
+            let y = 75;
+            const itemsPerPage = 25;
+            let currentPage = 1;
+            
+            // Agregar encabezados de tabla
+            doc.setFontSize(8);
+            doc.text("Artículo", 20, y);
+            doc.text("Stock Sistema", 80, y);
+            doc.text("Cantidad Real", 120, y);
+            doc.text("✓", 160, y);
+            doc.text("Observaciones", 170, y);
+            y += 5;
+            
+            // Dibujar línea separadora
+            doc.line(20, y, 190, y);
+            y += 8;
+            
+            // Agrupar inventario por categorías
+            const inventoryByCategory = {};
+            state.inventory.forEach(item => {
+                if (!inventoryByCategory[item.category]) {
+                    inventoryByCategory[item.category] = [];
+                }
+                inventoryByCategory[item.category].push(item);
+            });
+            
+            // Generar formulario por categorías
+            Object.keys(inventoryByCategory).sort().forEach(category => {
+                const items = inventoryByCategory[category];
+                
+                // Agregar título de categoría
+                if (y > 250) {
+                    doc.addPage();
+                    y = 20;
+                    currentPage++;
+                    
+                    // Repetir encabezados en nueva página
+                    doc.setFontSize(8);
+                    doc.text("Artículo", 20, y);
+                    doc.text("Stock Sistema", 80, y);
+                    doc.text("Cantidad Real", 120, y);
+                    doc.text("✓", 160, y);
+                    doc.text("Observaciones", 170, y);
+                    y += 5;
+                    doc.line(20, y, 190, y);
+                    y += 8;
+                }
+                
+                doc.setFontSize(9);
+                doc.text(`CATEGORÍA: ${category.toUpperCase()}`, 20, y);
+                y += 8;
+                
+                items.forEach(item => {
+                    if (y > 280) {
+                        doc.addPage();
+                        y = 20;
+                        currentPage++;
+                        
+                        // Repetir encabezados en nueva página
+                        doc.setFontSize(8);
+                        doc.text("Artículo", 20, y);
+                        doc.text("Stock Sistema", 80, y);
+                        doc.text("Cantidad Real", 120, y);
+                        doc.text("✓", 160, y);
+                        doc.text("Observaciones", 170, y);
+                        y += 5;
+                        doc.line(20, y, 190, y);
+                        y += 8;
+                    }
+                    
+                    doc.setFontSize(8);
+                    
+                    // Nombre del artículo (truncado si es muy largo)
+                    const itemName = item.description.length > 25 ? item.description.substring(0, 25) + '...' : item.description;
+                    doc.text(itemName, 20, y);
+                    
+                    // Stock del sistema
+                    doc.text(item.stock.toString(), 80, y);
+                    
+                    // Espacio para cantidad real (línea en blanco)
+                    doc.text("_____", 120, y);
+                    
+                    // Checkbox
+                    doc.text("□", 160, y);
+                    
+                    // Espacio para observaciones
+                    doc.text("_________________", 170, y);
+                    
+                    y += 6;
+                });
+                
+                y += 5; // Espacio entre categorías
+            });
+            
+            // Agregar pie de página con información adicional
+            if (y > 250) {
+                doc.addPage();
+                y = 20;
+            }
+            
+            doc.setFontSize(10);
+            doc.text("Información adicional:", 20, y);
+            y += 8;
+            doc.text("• Fecha de conteo: _________________", 25, y);
+            y += 5;
+            doc.text("• Responsable del conteo: _________________", 25, y);
+            y += 5;
+            doc.text("• Supervisor: _________________", 25, y);
+            y += 5;
+            doc.text("• Observaciones generales:", 25, y);
+            y += 5;
+            doc.text("_________________________________________________", 25, y);
+            y += 5;
+            doc.text("_________________________________________________", 25, y);
+            
+            // Guardar el PDF
+            const fileName = `inventario_manual_${new Date().toISOString().split('T')[0]}.pdf`;
+            doc.save(fileName);
+            
+            showNotification('Formulario de inventario manual generado exitosamente', 'success');
+        }
+
         function generateShoppingListExcel() {
             if (state.shoppingList.length === 0) {
                 showNotification("La lista de compras está vacía.", 'info');
@@ -5503,7 +5679,749 @@
                 { description: 'Taladro Inalámbrico Dewalt', category: 'Herramienta Eléctrica', type: 'Retornable', stock: 3, unit: 'pza', minStock: 0 },
             ];
         }
+        // ============================================================================
+// 🤖 SISTEMA DE INTELIGENCIA ARTIFICIAL PARA INVENTARIO
+// ============================================================================
 
+// --- 1. DETECCIÓN DE PATRONES Y ANOMALÍAS ---
+
+class InventoryAIAnalyzer {
+    constructor() {
+        this.patterns = [];
+        this.anomalies = [];
+        this.predictions = [];
+    }
+
+    // Analizar patrones de uso de artículos
+    async analyzeUsagePatterns() {
+        const transactions = (state.transactions || []).filter(t => t.description && t.description.trim() !== '');
+        const items = (state.items || []).filter(i => i.description && i.description.trim() !== '');
+        
+        const usagePatterns = {};
+        
+        // Agrupar transacciones por artículo
+        transactions.forEach(trans => {
+            if (!usagePatterns[trans.description]) {
+                usagePatterns[trans.description] = {
+                    entries: [],
+                    exits: [],
+                    adjustments: [],
+                    users: new Set(),
+                    timestamps: []
+                };
+            }
+            
+            const pattern = usagePatterns[trans.description];
+            pattern.timestamps.push(new Date(trans.timestamp));
+            pattern.users.add(trans.userName || 'Desconocido');
+            
+            if (trans.type === 'Entrada') pattern.entries.push(trans.quantity);
+            else if (trans.type === 'Salida') pattern.exits.push(trans.quantity);
+            else if (trans.type === 'Ajuste') pattern.adjustments.push(trans.quantity);
+        });
+        
+        // Analizar patrones
+        const analyzedPatterns = Object.entries(usagePatterns).map(([item, data]) => {
+            const avgEntry = data.entries.length > 0 
+                ? data.entries.reduce((a, b) => a + b, 0) / data.entries.length 
+                : 0;
+            const avgExit = data.exits.length > 0 
+                ? data.exits.reduce((a, b) => a + b, 0) / data.exits.length 
+                : 0;
+            
+            // Calcular frecuencia de uso (transacciones por día)
+            const dayRange = this.getDayRange(data.timestamps);
+            const frequency = data.timestamps.length / (dayRange || 1);
+            
+            // Detectar patrón estacional
+            const seasonal = this.detectSeasonality(data.timestamps);
+            
+            return {
+                item,
+                avgEntry,
+                avgExit,
+                frequency,
+                totalTransactions: data.timestamps.length,
+                uniqueUsers: data.users.size,
+                seasonal,
+                trend: avgExit > avgEntry ? 'Descendente' : 'Ascendente'
+            };
+        });
+        
+        this.patterns = analyzedPatterns;
+        return analyzedPatterns;
+    }
+
+    // Detectar anomalías en el inventario
+    async detectAnomalies() {
+        const transactions = (state.transactions || []).filter(t => t.description && t.description.trim() !== '');
+        const items = (state.items || []).filter(i => i.description && i.description.trim() !== '');
+        const anomalies = [];
+        
+        // 1. Transacciones de cantidad inusual
+        transactions.forEach(trans => {
+            const itemTransactions = transactions.filter(t => t.description === trans.description);
+            const quantities = itemTransactions.map(t => t.quantity);
+            const avg = quantities.reduce((a, b) => a + b, 0) / quantities.length;
+            const stdDev = Math.sqrt(quantities.reduce((sq, n) => sq + Math.pow(n - avg, 2), 0) / quantities.length);
+            
+            // Si la cantidad está 2 desviaciones estándar por encima de la media
+            if (trans.quantity > avg + (2 * stdDev)) {
+                anomalies.push({
+                    type: 'Cantidad Inusual',
+                    severity: 'Media',
+                    description: `${trans.description}: Cantidad de ${trans.quantity} es ${((trans.quantity / avg - 1) * 100).toFixed(0)}% mayor que el promedio`,
+                    timestamp: trans.timestamp,
+                    item: trans.description
+                });
+            }
+        });
+        
+        // 2. Stock bajo repentino
+        items.forEach(item => {
+            if (item.stock < item.minStock) {
+                const recentTransactions = transactions
+                    .filter(t => t.description === item.description)
+                    .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+                    .slice(0, 5);
+                
+                const recentExits = recentTransactions.filter(t => t.type === 'Salida').length;
+                
+                if (recentExits >= 3) {
+                    anomalies.push({
+                        type: 'Stock Bajo Repentino',
+                        severity: 'Alta',
+                        description: `${item.description}: Stock bajo (${item.stock}) con ${recentExits} salidas recientes`,
+                        timestamp: new Date().toISOString(),
+                        item: item.description
+                    });
+                }
+            }
+        });
+        
+        // 3. Actividad fuera de horario normal
+        const normalHours = { start: 7, end: 18 };
+        transactions.forEach(trans => {
+            const hour = new Date(trans.timestamp).getHours();
+            if (hour < normalHours.start || hour > normalHours.end) {
+                anomalies.push({
+                    type: 'Actividad Fuera de Horario',
+                    severity: 'Baja',
+                    description: `${trans.description}: Transacción a las ${hour}:00 (fuera de horario 7:00-18:00)`,
+                    timestamp: trans.timestamp,
+                    item: trans.description
+                });
+            }
+        });
+        
+        // 4. Múltiples ajustes consecutivos
+        const adjustments = transactions.filter(t => t.type === 'Ajuste');
+        adjustments.forEach((adj, idx) => {
+            if (idx > 0 && adjustments[idx - 1].description === adj.description) {
+                const timeDiff = new Date(adj.timestamp) - new Date(adjustments[idx - 1].timestamp);
+                const hoursDiff = timeDiff / (1000 * 60 * 60);
+                
+                if (hoursDiff < 24) {
+                    anomalies.push({
+                        type: 'Ajustes Consecutivos',
+                        severity: 'Media',
+                        description: `${adj.description}: Múltiples ajustes en menos de 24 horas`,
+                        timestamp: adj.timestamp,
+                        item: adj.description
+                    });
+                }
+            }
+        });
+        
+        this.anomalies = anomalies;
+        return anomalies;
+    }
+
+    // Predecir demanda futura
+    async predictDemand(daysAhead = 30) {
+        const transactions = (state.transactions || []).filter(t => t.description && t.description.trim() !== '');
+        const items = (state.items || []).filter(i => i.description && i.description.trim() !== '');
+        const predictions = [];
+        
+        items.forEach(item => {
+            const itemTransactions = transactions
+                .filter(t => t.description === item.description && t.type === 'Salida')
+                .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+            
+            if (itemTransactions.length < 2) {
+                predictions.push({
+                    item: item.description,
+                    predicted: 'Insuficientes datos',
+                    confidence: 0
+                });
+                return;
+            }
+            
+            // Calcular tasa de uso diaria
+            const firstDate = new Date(itemTransactions[0].timestamp);
+            const lastDate = new Date(itemTransactions[itemTransactions.length - 1].timestamp);
+            const daysDiff = (lastDate - firstDate) / (1000 * 60 * 60 * 24) || 1;
+            const totalUsed = itemTransactions.reduce((sum, t) => sum + t.quantity, 0);
+            const dailyRate = totalUsed / daysDiff;
+            
+            // Predecir stock futuro
+            const predictedUsage = dailyRate * daysAhead;
+            const predictedStock = item.stock - predictedUsage;
+            
+            // Calcular cuándo se agotará
+            const daysUntilEmpty = item.stock / dailyRate;
+            const emptyDate = new Date();
+            emptyDate.setDate(emptyDate.getDate() + daysUntilEmpty);
+            
+            // Calcular confianza basada en consistencia de datos
+            const consistency = this.calculateConsistency(itemTransactions);
+            
+            predictions.push({
+                item: item.description,
+                currentStock: item.stock,
+                dailyUsageRate: Math.round(dailyRate * 100) / 100,
+                predictedStockIn30Days: Math.round(predictedStock),
+                daysUntilEmpty: Math.round(daysUntilEmpty),
+                emptyDate: emptyDate.toLocaleDateString('es-MX'),
+                needsRestock: predictedStock < item.minStock,
+                suggestedOrderQuantity: predictedStock < item.minStock 
+                    ? Math.ceil((item.minStock * 2) - predictedStock) 
+                    : 0,
+                confidence: consistency,
+                trend: dailyRate > 0 ? 'Consumo constante' : 'Sin movimiento'
+            });
+        });
+        
+        this.predictions = predictions;
+        return predictions;
+    }
+
+    // Optimizar niveles de stock
+    async optimizeStockLevels() {
+        const patterns = this.patterns.length > 0 ? this.patterns : await this.analyzeUsagePatterns();
+        const predictions = this.predictions.length > 0 ? this.predictions : await this.predictDemand();
+        const items = (state.items || []).filter(i => i.description && i.description.trim() !== '');
+        
+        const optimizations = items.map(item => {
+            const pattern = patterns.find(p => p.item === item.description);
+            const prediction = predictions.find(p => p.item === item.description);
+            
+            if (!pattern || !prediction) {
+                return {
+                    item: item.description,
+                    currentMinStock: item.minStock,
+                    suggestedMinStock: item.minStock,
+                    reason: 'Insuficientes datos para optimización'
+                };
+            }
+            
+            // Calcular nuevo nivel mínimo basado en:
+            // 1. Tasa de uso diaria
+            // 2. Frecuencia de transacciones
+            // 3. Tiempo de reabastecimiento estimado (asumiendo 7 días)
+            const leadTime = 7; // días
+            const safetyStock = Math.ceil(prediction.dailyUsageRate * 3); // 3 días de seguridad
+            const suggestedMin = Math.ceil((prediction.dailyUsageRate * leadTime) + safetyStock);
+            
+            let reason = '';
+            if (suggestedMin > item.minStock) {
+                reason = `Incrementar para cubrir ${leadTime} días de reabastecimiento + ${3} días de seguridad`;
+            } else if (suggestedMin < item.minStock) {
+                reason = `Reducir por baja frecuencia de uso (${pattern.frequency.toFixed(2)} trans/día)`;
+            } else {
+                reason = 'Nivel actual es óptimo';
+            }
+            
+            return {
+                item: item.description,
+                currentMinStock: item.minStock,
+                suggestedMinStock: suggestedMin,
+                difference: suggestedMin - item.minStock,
+                reason,
+                impact: suggestedMin > item.minStock ? 'Mejoraría disponibilidad' : 'Reduciría costos de almacenamiento'
+            };
+        });
+        
+        return optimizations;
+    }
+
+    // Métodos auxiliares
+    getDayRange(timestamps) {
+        if (timestamps.length === 0) return 0;
+        const sorted = timestamps.sort((a, b) => a - b);
+        const daysDiff = (sorted[sorted.length - 1] - sorted[0]) / (1000 * 60 * 60 * 24);
+        return daysDiff || 1;
+    }
+
+    detectSeasonality(timestamps) {
+        if (timestamps.length < 10) return false;
+        
+        // Agrupar por día de la semana
+        const byDayOfWeek = {};
+        timestamps.forEach(ts => {
+            const day = ts.getDay();
+            byDayOfWeek[day] = (byDayOfWeek[day] || 0) + 1;
+        });
+        
+        const values = Object.values(byDayOfWeek);
+        const avg = values.reduce((a, b) => a + b, 0) / values.length;
+        const variance = values.reduce((sum, val) => sum + Math.pow(val - avg, 2), 0) / values.length;
+        
+        // Si hay alta varianza, hay estacionalidad
+        return variance > avg;
+    }
+
+    calculateConsistency(transactions) {
+        if (transactions.length < 3) return 0.3;
+        
+        const quantities = transactions.map(t => t.quantity);
+        const avg = quantities.reduce((a, b) => a + b, 0) / quantities.length;
+        const variance = quantities.reduce((sum, q) => sum + Math.pow(q - avg, 2), 0) / quantities.length;
+        const coefficientOfVariation = Math.sqrt(variance) / avg;
+        
+        // Convertir a confianza (menor variación = mayor confianza)
+        const confidence = Math.max(0, Math.min(1, 1 - coefficientOfVariation));
+        return Math.round(confidence * 100) / 100;
+    }
+}
+
+// Instancia global del analizador de IA
+const aiAnalyzer = new InventoryAIAnalyzer();
+
+// --- 2. FUNCIONES DE INTERFAZ PARA INSIGHTS DE IA ---
+
+async function renderAIInsightsView() {
+    const mainContent = document.getElementById('main-content');
+    
+    mainContent.innerHTML = `
+        <div class="max-w-7xl mx-auto space-y-6">
+            <!-- Header -->
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold themed-text flex items-center">
+                        <i data-lucide="brain" class="w-8 h-8 mr-3 text-indigo-600"></i>
+                        Insights Inteligentes
+                    </h1>
+                    <p class="text-lg themed-text-light mt-1">Análisis impulsado por inteligencia artificial</p>
+                </div>
+                <button id="refresh-ai-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-lg flex items-center space-x-2">
+                    <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                    <span>Actualizar Análisis</span>
+                </button>
+            </div>
+
+            <!-- Loading State -->
+            <div id="ai-loading" class="flex items-center justify-center py-12">
+                <div class="text-center">
+                    <i data-lucide="loader" class="w-12 h-12 animate-spin text-indigo-600 mx-auto mb-4"></i>
+                    <p class="text-lg themed-text-light">Analizando datos con IA...</p>
+                </div>
+            </div>
+
+            <!-- AI Content -->
+            <div id="ai-content" class="hidden space-y-6">
+                <!-- Tabs -->
+                <div class="themed-card rounded-xl shadow-lg">
+                    <div class="border-b border-opacity-10 px-6 py-4">
+                        <nav class="flex space-x-8" aria-label="AI Tabs">
+                            <a href="#" class="ai-tab-link whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm border-indigo-500 text-indigo-600" data-tab="anomalies">
+                                <i data-lucide="alert-triangle" class="w-4 h-4 inline mr-2"></i>Anomalías
+                            </a>
+                            <a href="#" class="ai-tab-link whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm border-transparent themed-text-light hover:text-indigo-500" data-tab="patterns">
+                                <i data-lucide="activity" class="w-4 h-4 inline mr-2"></i>Patrones
+                            </a>
+                            <a href="#" class="ai-tab-link whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm border-transparent themed-text-light hover:text-indigo-500" data-tab="predictions">
+                                <i data-lucide="trending-up" class="w-4 h-4 inline mr-2"></i>Predicciones
+                            </a>
+                            <a href="#" class="ai-tab-link whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm border-transparent themed-text-light hover:text-indigo-500" data-tab="optimization">
+                                <i data-lucide="zap" class="w-4 h-4 inline mr-2"></i>Optimización
+                            </a>
+                        </nav>
+                    </div>
+                    <div id="ai-tab-content" class="p-8"></div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    safeCreateIcons();
+    await loadAIInsights();
+    
+    // Event listeners para tabs
+    document.querySelectorAll('.ai-tab-link').forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const tab = e.currentTarget.dataset.tab;
+            renderAITab(tab);
+            
+            // Update active tab
+            document.querySelectorAll('.ai-tab-link').forEach(l => {
+                l.classList.remove('border-indigo-500', 'text-indigo-600');
+                l.classList.add('border-transparent', 'themed-text-light');
+            });
+            e.currentTarget.classList.remove('border-transparent', 'themed-text-light');
+            e.currentTarget.classList.add('border-indigo-500', 'text-indigo-600');
+        });
+    });
+    
+    // Refresh button
+    document.getElementById('refresh-ai-btn').addEventListener('click', async () => {
+        document.getElementById('ai-content').classList.add('hidden');
+        document.getElementById('ai-loading').classList.remove('hidden');
+        await loadAIInsights();
+    });
+}
+
+async function loadAIInsights() {
+    try {
+        // Ejecutar análisis en paralelo
+        await Promise.all([
+            aiAnalyzer.detectAnomalies(),
+            aiAnalyzer.analyzeUsagePatterns(),
+            aiAnalyzer.predictDemand(),
+            aiAnalyzer.optimizeStockLevels()
+        ]);
+        
+        document.getElementById('ai-loading').classList.add('hidden');
+        document.getElementById('ai-content').classList.remove('hidden');
+        
+        renderAITab('anomalies');
+    } catch (error) {
+        console.error('Error loading AI insights:', error);
+        showNotification('Error al cargar los insights de IA', 'error');
+    }
+}
+
+function renderAITab(tab) {
+    const content = document.getElementById('ai-tab-content');
+    
+    switch (tab) {
+        case 'anomalies':
+            renderAnomaliesTab(content);
+            break;
+        case 'patterns':
+            renderPatternsTab(content);
+            break;
+        case 'predictions':
+            renderPredictionsTab(content);
+            break;
+        case 'optimization':
+            renderOptimizationTab(content);
+            break;
+    }
+    
+    safeCreateIcons();
+}
+
+function renderAnomaliesTab(content) {
+    const anomalies = aiAnalyzer.anomalies;
+    
+    if (anomalies.length === 0) {
+        content.innerHTML = `
+            <div class="text-center py-12">
+                <i data-lucide="check-circle" class="w-16 h-16 text-green-500 mx-auto mb-4"></i>
+                <h3 class="text-xl font-semibold themed-text">¡No se detectaron anomalías!</h3>
+                <p class="themed-text-light mt-2">El sistema está funcionando normalmente</p>
+            </div>
+        `;
+        safeCreateIcons();
+        return;
+    }
+    
+    const severityColors = {
+        'Alta': 'red',
+        'Media': 'yellow',
+        'Baja': 'blue'
+    };
+    
+    content.innerHTML = `
+        <div class="space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div class="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg">
+                    <div class="flex items-center">
+                        <i data-lucide="alert-circle" class="w-8 h-8 text-red-600 mr-3"></i>
+                        <div>
+                            <p class="text-2xl font-bold text-red-600">${anomalies.filter(a => a.severity === 'Alta').length}</p>
+                            <p class="text-sm text-red-700 dark:text-red-300">Alta Prioridad</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg">
+                    <div class="flex items-center">
+                        <i data-lucide="alert-triangle" class="w-8 h-8 text-yellow-600 mr-3"></i>
+                        <div>
+                            <p class="text-2xl font-bold text-yellow-600">${anomalies.filter(a => a.severity === 'Media').length}</p>
+                            <p class="text-sm text-yellow-700 dark:text-yellow-300">Media Prioridad</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+                    <div class="flex items-center">
+                        <i data-lucide="info" class="w-8 h-8 text-blue-600 mr-3"></i>
+                        <div>
+                            <p class="text-2xl font-bold text-blue-600">${anomalies.filter(a => a.severity === 'Baja').length}</p>
+                            <p class="text-sm text-blue-700 dark:text-blue-300">Baja Prioridad</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            ${anomalies.map(anomaly => `
+                <div class="themed-card p-4 rounded-lg border-l-4 border-${severityColors[anomaly.severity]}-500">
+                    <div class="flex items-start justify-between">
+                        <div class="flex-1">
+                            <div class="flex items-center">
+                                <span class="px-2 py-1 rounded text-xs font-semibold bg-${severityColors[anomaly.severity]}-100 text-${severityColors[anomaly.severity]}-800 mr-2">
+                                    ${anomaly.severity}
+                                </span>
+                                <h4 class="font-semibold themed-text">${anomaly.type}</h4>
+                            </div>
+                            <p class="themed-text-light mt-2">${anomaly.description || 'Descripción no disponible'}</p>
+                            <div class="flex items-center mt-2 text-sm themed-text-light">
+                                <i data-lucide="clock" class="w-4 h-4 mr-1"></i>
+                                ${new Date(anomaly.timestamp).toLocaleString('es-MX')}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('')}
+        </div>
+    `;
+    safeCreateIcons();
+}
+
+function renderPatternsTab(content) {
+    const patterns = aiAnalyzer.patterns;
+    
+    if (patterns.length === 0) {
+        content.innerHTML = `
+            <div class="text-center py-12">
+                <i data-lucide="bar-chart" class="w-16 h-16 themed-text-light mx-auto mb-4"></i>
+                <p class="themed-text-light">No hay suficientes datos para analizar patrones</p>
+            </div>
+        `;
+        safeCreateIcons();
+        return;
+    }
+    
+    content.innerHTML = `
+        <div class="space-y-6">
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead>
+                        <tr class="border-b border-gray-200 dark:border-gray-700">
+                            <th class="px-4 py-3 text-left text-sm font-semibold themed-text">Artículo</th>
+                            <th class="px-4 py-3 text-left text-sm font-semibold themed-text">Frecuencia</th>
+                            <th class="px-4 py-3 text-left text-sm font-semibold themed-text">Promedio Entrada</th>
+                            <th class="px-4 py-3 text-left text-sm font-semibold themed-text">Promedio Salida</th>
+                            <th class="px-4 py-3 text-left text-sm font-semibold themed-text">Usuarios</th>
+                            <th class="px-4 py-3 text-left text-sm font-semibold themed-text">Tendencia</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${patterns.slice(0, 20).map(pattern => `
+                            <tr class="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800">
+                                <td class="px-4 py-3 themed-text">${pattern.item || 'Artículo no disponible'}</td>
+                                <td class="px-4 py-3 themed-text-light">${pattern.frequency.toFixed(2)} trans/día</td>
+                                <td class="px-4 py-3 themed-text-light">${pattern.avgEntry.toFixed(1)}</td>
+                                <td class="px-4 py-3 themed-text-light">${pattern.avgExit.toFixed(1)}</td>
+                                <td class="px-4 py-3 themed-text-light">${pattern.uniqueUsers}</td>
+                                <td class="px-4 py-3">
+                                    <span class="px-2 py-1 rounded text-xs font-semibold ${pattern.trend === 'Ascendente' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                                        ${pattern.trend}
+                                    </span>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    `;
+}
+
+function renderPredictionsTab(content) {
+    const predictions = aiAnalyzer.predictions;
+    
+    if (predictions.length === 0) {
+        content.innerHTML = `
+            <div class="text-center py-12">
+                <i data-lucide="trending-up" class="w-16 h-16 themed-text-light mx-auto mb-4"></i>
+                <p class="themed-text-light">No hay suficientes datos para hacer predicciones</p>
+            </div>
+        `;
+        safeCreateIcons();
+        return;
+    }
+    
+    const needsRestock = predictions.filter(p => p.needsRestock);
+    
+    content.innerHTML = `
+        <div class="space-y-6">
+            ${needsRestock.length > 0 ? `
+                <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
+                    <div class="flex items-center">
+                        <i data-lucide="alert-triangle" class="w-6 h-6 text-amber-600 mr-3"></i>
+                        <div>
+                            <h3 class="font-semibold text-amber-900 dark:text-amber-100">Acción Requerida</h3>
+                            <p class="text-sm text-amber-700 dark:text-amber-300">${needsRestock.length} artículo(s) necesitarán reabastecimiento en los próximos 30 días</p>
+                        </div>
+                    </div>
+                </div>
+            ` : ''}
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                ${predictions.filter(p => typeof p.predicted !== 'string').slice(0, 10).map(pred => `
+                    <div class="themed-card p-4 rounded-lg ${pred.needsRestock ? 'border-l-4 border-amber-500' : ''}">
+                        <div class="flex items-start justify-between">
+                            <div class="flex-1">
+                                <h4 class="font-semibold themed-text">${pred.item || 'Artículo no disponible'}</h4>
+                                <div class="mt-3 space-y-2 text-sm">
+                                    <div class="flex justify-between">
+                                        <span class="themed-text-light">Stock actual:</span>
+                                        <span class="themed-text font-medium">${pred.currentStock}</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="themed-text-light">Uso diario:</span>
+                                        <span class="themed-text font-medium">${pred.dailyUsageRate}</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="themed-text-light">Stock en 30 días:</span>
+                                        <span class="themed-text font-medium ${pred.predictedStockIn30Days < 0 ? 'text-red-600' : ''}">${pred.predictedStockIn30Days}</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="themed-text-light">Se agota en:</span>
+                                        <span class="themed-text font-medium">${pred.daysUntilEmpty} días</span>
+                                    </div>
+                                    ${pred.needsRestock ? `
+                                        <div class="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                                            <div class="flex items-center justify-between">
+                                                <span class="text-amber-700 dark:text-amber-300 font-medium">Ordenar:</span>
+                                                <span class="text-amber-900 dark:text-amber-100 font-bold">${pred.suggestedOrderQuantity} unidades</span>
+                                            </div>
+                                        </div>
+                                    ` : ''}
+                                </div>
+                                <div class="mt-3">
+                                    <div class="flex items-center text-xs text-gray-500 dark:text-gray-400">
+                                        <i data-lucide="target" class="w-3 h-3 mr-1"></i>
+                                        Confianza: ${(pred.confidence * 100).toFixed(0)}%
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    `;
+    safeCreateIcons();
+}
+
+async function renderOptimizationTab(content) {
+    const optimizations = await aiAnalyzer.optimizeStockLevels();
+    
+    if (optimizations.length === 0) {
+        content.innerHTML = `
+            <div class="text-center py-12">
+                <i data-lucide="zap" class="w-16 h-16 themed-text-light mx-auto mb-4"></i>
+                <p class="themed-text-light">No hay datos suficientes para optimización</p>
+            </div>
+        `;
+        safeCreateIcons();
+        return;
+    }
+    
+    const needsAdjustment = optimizations.filter(o => o.difference !== 0);
+    
+    content.innerHTML = `
+        <div class="space-y-6">
+            <div class="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-lg p-4">
+                <div class="flex items-center">
+                    <i data-lucide="lightbulb" class="w-6 h-6 text-indigo-600 mr-3"></i>
+                    <div>
+                        <h3 class="font-semibold text-indigo-900 dark:text-indigo-100">Sugerencias de Optimización</h3>
+                        <p class="text-sm text-indigo-700 dark:text-indigo-300">${needsAdjustment.length} artículo(s) podrían optimizarse</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="space-y-3">
+                ${optimizations.slice(0, 15).map(opt => `
+                    <div class="themed-card p-4 rounded-lg ${opt.difference !== 0 ? 'border-l-4 border-indigo-500' : ''}">
+                        <div class="flex items-center justify-between">
+                            <div class="flex-1">
+                                <h4 class="font-semibold themed-text">${opt.item || 'Artículo no disponible'}</h4>
+                                <p class="text-sm themed-text-light mt-1">${opt.reason}</p>
+                                ${opt.difference !== 0 ? `
+                                    <div class="mt-3 flex items-center space-x-4 text-sm">
+                                        <div>
+                                            <span class="themed-text-light">Actual:</span>
+                                            <span class="themed-text font-medium ml-1">${opt.currentMinStock}</span>
+                                        </div>
+                                        <i data-lucide="arrow-right" class="w-4 h-4 themed-text-light"></i>
+                                        <div>
+                                            <span class="themed-text-light">Sugerido:</span>
+                                            <span class="themed-text font-bold ml-1">${opt.suggestedMinStock}</span>
+                                        </div>
+                                        <span class="px-2 py-1 rounded text-xs font-semibold ${opt.difference > 0 ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}">
+                                            ${opt.difference > 0 ? '+' : ''}${opt.difference}
+                                        </span>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    `;
+    safeCreateIcons();
+}
+
+// --- 3. AGREGAR AL SISTEMA DE NAVEGACIÓN ---
+
+// Agregar link de IA en la navegación (llamar esto en initApp o después de cargar la app)
+function addAINavigation() {
+    const navLinks = document.querySelector('nav');
+    const isAdmin = state.userRole === 'admin';
+    
+    if (navLinks && !document.getElementById('ai-nav-link') && isAdmin) {
+        const aiNavHTML = `
+            <a href="#ai-insights" id="ai-nav-link" class="nav-link flex items-center space-x-3 py-3 px-4 rounded-xl transition-all duration-200 group">
+                <div class="h-8 w-8 rounded-lg bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors">
+                    <i data-lucide="brain" class="h-4 w-4"></i>
+                </div>
+                <span class="font-medium">IA Insights</span>
+            </a>
+        `;
+        
+        // Insertar antes del link de configuración
+        const settingsLink = document.getElementById('settings-nav-link');
+        if (settingsLink) {
+            settingsLink.insertAdjacentHTML('beforebegin', aiNavHTML);
+            safeCreateIcons();
+        }
+    }
+}
+
+// Modificar navigateTo para incluir la nueva vista de IA
+const originalNavigateTo = navigateTo;
+navigateTo = function(page, isRefresh = false) {
+    if (page === 'ai-insights') {
+        if (state.userRole === 'admin') {
+            const pageTitle = document.getElementById('page-title');
+            if (!isRefresh) pageTitle.textContent = 'IA Insights';
+            renderAIInsightsView();
+            return;
+        } else {
+            // Si no es admin, redirigir al dashboard
+            window.location.hash = 'dashboard';
+            return;
+        }
+    }
+    return originalNavigateTo(page, isRefresh);
+};
     </script>
 </body>
 </html>

@@ -1,0 +1,20 @@
+{
+  "name": "my-inventory-app",
+  "version": "1.0.0",
+  "description": "Inventory management application with AI integration",
+  "main": "index.html",
+  "scripts": {
+    "dev": "vercel dev",
+    "build": "echo 'No build step required for static site'",
+    "start": "vercel dev"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.2.1"
+  },
+  "devDependencies": {
+    "vercel": "^32.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

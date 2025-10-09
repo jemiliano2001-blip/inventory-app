@@ -141,11 +141,16 @@ Formato: Título, Resumen Ejecutivo, Métricas Principales, Análisis Detallado,
 
     } catch (error) {
         console.error('Error in Gemini API handler:', error);
+        console.error('Error stack:', error.stack);
         
         return res.status(500).json({ 
             error: 'Internal server error',
             success: false,
-            details: process.env.NODE_ENV === 'development' ? error.message : undefined
+            details: process.env.NODE_ENV === 'development' ? error.message : 'Check server logs for details',
+            debug: {
+                message: error.message,
+                type: error.constructor.name
+            }
         });
     }
 }

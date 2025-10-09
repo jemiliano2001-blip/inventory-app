@@ -19,10 +19,12 @@ export default async function handler(req, res) {
         
         if (!apiKey) {
             console.error('GEMINI_API_KEY not found in environment variables');
+            console.error('Available env vars:', Object.keys(process.env).filter(key => key.includes('GEMINI')));
             return res.status(200).json({ 
                 error: 'API Key not configured. Please add GEMINI_API_KEY to Vercel environment variables.',
                 success: false,
-                message: 'Para habilitar las funciones de IA, configura la variable GEMINI_API_KEY en Vercel.'
+                message: 'Para habilitar las funciones de IA, configura la variable GEMINI_API_KEY en Vercel.',
+                debug: 'Variable GEMINI_API_KEY no encontrada en las variables de entorno'
             });
         }
 

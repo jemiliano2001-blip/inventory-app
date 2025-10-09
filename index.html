@@ -940,6 +940,7 @@
                 shoppingList: [],
                 categories: [],
                 allUsers: [],
+                searchIndex: new Map(), // Índice para búsqueda rápida
                 currentUser: null,
                 userRole: 'operator',
                 currentPage: 1,
@@ -1004,6 +1005,50 @@
         }
         
         // --- UTILITY FUNCTIONS ---
+        
+        // --- FUNCIONES DE BÚSQUEDA OPTIMIZADA ---
+        
+        // Construir índice de búsqueda para acceso rápido
+        function buildSearchIndex() {
+            const index = new Map();
+            state.inventory.forEach(item => {
+                const searchText = `${item.description} ${item.category}`.toLowerCase();
+                const words = searchText.split(/\s+/);
+                const itemData = {
+                    id: item.id,
+                    description: item.description,
+                    category: item.category,
+                    searchText: searchText,
+                    words: words
+                };
+                index.set(item.id, itemData);
+            });
+            state.searchIndex = index;
+        }
+        
+        // Algoritmo de fuzzy matching optimizado
+        function fuzzyMatch(search, target, threshold = 0.6) {
+            search = search.toLowerCase();
+            target = target.toLowerCase();
+            
+            // Coincidencia exacta
+            if (target.includes(search)) return 1.0;
+            
+            // Búsqueda por palabras individuales
+            const searchWords = search.split(/\s+/);
+            const targetWords = target.split(/\s+/);
+            
+            let matches = 0;
+            searchWords.forEach(sw => {
+                if (targetWords.some(tw => tw.startsWith(sw) || tw.includes(sw))) {
+                    matches++;
+                }
+            });
+            
+            const score = matches / searchWords.length;
+            return score >= threshold ? score : 0;
+        }
+        
         function safeCreateIcons() {
             if (window.lucide) {
                 try {
@@ -1222,6 +1267,9 @@
                 });
                 await batch.commit();
                 showNotification('Inventario cargado correctamente.', 'success');
+                
+                // Construir índice de búsqueda después de cargar inventario inicial
+                buildSearchIndex();
             }
         }
         
@@ -1233,6 +1281,9 @@
 
             const unsubscribeInventory = onSnapshot(collection(db, 'inventory'), (snapshot) => {
                 state.inventory = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })).sort((a, b) => a.description.localeCompare(b.description));
+                
+                // Reconstruir índice de búsqueda cuando cambia el inventario
+                buildSearchIndex();
                 
                 const uniqueCategoriesFromInventory = [...new Set(state.inventory.map(item => item.category))];
                 const categoriesFromSettings = state.settings.categories || [];
@@ -1395,7 +1446,7 @@
             const mainContent = document.getElementById('main-content');
             const { dashboardCustomization } = state.settings;
 
-            const lowStockCount = state.inventory.filter(item => item.type === 'Consumible' && item.stock < item.minStock).length;
+            const lowStockCount = state.inventory.filter(item => item.stock < item.minStock).length;
             const activeLoansCount = state.activeLoans.length;
             const totalTransactions = state.transactions.length;
 
@@ -1504,7 +1555,7 @@
                             <div class="h-8 w-8 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center mr-3">
                                 <i data-lucide="bar-chart-3" class="h-4 w-4 text-blue-600"></i>
                             </div>
-                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Consumibles Más Utilizados</h3>
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Artículos Más Utilizados</h3>
                         </div>
                         <canvas id="topConsumablesChart" class="w-full h-64"></canvas>
                     </div>`;
@@ -1569,14 +1620,29 @@
         function renderInventoryView() {
             const mainContent = document.getElementById('main-content');
             
-            let filteredInventory = state.inventory
-                .filter(item => state.activeCategory === 'Todas' || item.category === state.activeCategory)
-                .filter(item => item.description.toLowerCase().includes(state.searchTerm.toLowerCase()));
+            let filteredInventory = state.inventory;
+
+            // Filtro de categoría (rápido con índice)
+            if (state.activeCategory !== 'Todas') {
+                filteredInventory = filteredInventory.filter(item => item.category === state.activeCategory);
+            }
+
+            // Búsqueda con fuzzy matching
+            if (state.searchTerm) {
+                const searchLower = state.searchTerm.toLowerCase();
+                filteredInventory = filteredInventory
+                    .map(item => {
+                        const indexData = state.searchIndex.get(item.id);
+                        const score = fuzzyMatch(searchLower, indexData.searchText);
+                        return { item, score };
+                    })
+                    .filter(({ score }) => score > 0)
+                    .sort((a, b) => b.score - a.score)
+                    .map(({ item }) => item);
+            }
 
             if (state.inventoryFilter === 'low') {
-                filteredInventory = filteredInventory.filter(item => item.type === 'Consumible' && item.stock < item.minStock);
-            } else if (state.inventoryFilter === 'returnable') {
-                filteredInventory = filteredInventory.filter(item => item.type === 'Retornable');
+                filteredInventory = filteredInventory.filter(item => item.stock < item.minStock);
             }
 
             const totalPages = Math.ceil(filteredInventory.length / state.itemsPerPage);
@@ -1642,10 +1708,6 @@
                                     <i data-lucide="alert-triangle" class="h-4 w-4 mr-2"></i>
                                     Stock Bajo
                                 </button>
-                                <button class="inventory-filter-btn px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${state.inventoryFilter === 'returnable' ? 'bg-green-600 text-white shadow-lg' : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 border border-gray-200 dark:border-gray-600'}" data-filter="returnable">
-                                    <i data-lucide="rotate-ccw" class="h-4 w-4 mr-2"></i>
-                                    Retornables
-                                </button>
                             </div>
 
                             <!-- Inventory Table -->
@@ -1657,14 +1719,13 @@
                                             <tr>
                                                 <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">Artículo</th>
                                                 <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">Categoría</th>
-                                                <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">Tipo</th>
                                                 <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">Stock</th>
                                                 <th class="px-6 py-4 text-center text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">Acciones</th>
                                             </tr>
                                         </thead>
                                         <tbody id="inventory-table-body" class="divide-y divide-gray-200 dark:divide-gray-600">
                                             ${paginatedInventory.length > 0 ? paginatedInventory.map(item => `
-                                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${item.type === 'Consumible' && item.stock < item.minStock ? 'bg-red-50 dark:bg-red-900/20' : ''}">
+                                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${item.stock < item.minStock ? 'bg-red-50 dark:bg-red-900/20' : ''}">
                                                     <td class="px-6 py-4">
                                                         <div class="flex items-center">
                                                             <div class="h-10 w-10 rounded-lg bg-gray-100 dark:bg-gray-600 flex items-center justify-center mr-4">
@@ -1672,7 +1733,7 @@
                                                             </div>
                                                             <div>
                                                                 <div class="text-sm font-medium text-gray-900 dark:text-white">${item.description}</div>
-                                                                ${item.type === 'Consumible' && item.stock < item.minStock ? '<div class="text-xs text-red-600">Stock bajo</div>' : ''}
+                                                                ${item.stock < item.minStock ? '<div class="text-xs text-red-600">Stock bajo</div>' : ''}
                                                             </div>
                                                         </div>
                                                     </td>
@@ -1682,20 +1743,15 @@
                                                         </span>
                                                     </td>
                                                     <td class="px-6 py-4">
-                                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${item.type === 'Consumible' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300' : 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300'}">
-                                                            ${item.type}
-                                                        </span>
-                                                    </td>
-                                                    <td class="px-6 py-4">
                                                         <div class="text-sm font-medium text-gray-900 dark:text-white">${item.stock} ${item.unit}</div>
-                                                        ${item.type === 'Consumible' ? `<div class="text-xs text-gray-500 dark:text-gray-400">Min: ${item.minStock}</div>` : ''}
+                                                        <div class="text-xs text-gray-500 dark:text-gray-400">Min: ${item.minStock}</div>
                                                     </td>
                                                     <td class="px-6 py-4 text-center">
                                                         <div class="flex items-center justify-center space-x-3">
                                                             <button class="action-btn p-3 text-green-600 hover:text-green-700 hover:bg-green-100 dark:hover:bg-green-900/30 rounded-lg transition-colors min-h-[48px] min-w-[48px] flex items-center justify-center" data-action="entry" data-id="${item.id}" title="Registrar Entrada">
                                                                 <i data-lucide="plus-circle" class="h-6 w-6"></i>
                                                             </button>
-                                                            <button class="action-btn p-3 ${item.type === 'Retornable' && item.stock <= 0 ? 'text-gray-400 cursor-not-allowed opacity-50' : 'text-blue-600 hover:text-blue-700 hover:bg-blue-100 dark:hover:bg-blue-900/30'} rounded-lg transition-colors min-h-[48px] min-w-[48px] flex items-center justify-center" data-action="checkout" data-id="${item.id}" title="${item.type === 'Consumible' ? 'Registrar Salida' : (item.stock <= 0 ? 'Sin Stock Disponible' : 'Registrar Préstamo')}" ${item.type === 'Retornable' && item.stock <= 0 ? 'disabled' : ''}>
+                                                            <button class="action-btn p-3 ${item.stock <= 0 ? 'text-gray-400 cursor-not-allowed opacity-50' : 'text-blue-600 hover:text-blue-700 hover:bg-blue-100 dark:hover:bg-blue-900/30'} rounded-lg transition-colors min-h-[48px] min-w-[48px] flex items-center justify-center" data-action="checkout" data-id="${item.id}" title="${item.stock <= 0 ? 'Sin Stock Disponible' : 'Registrar Salida/Préstamo'}" ${item.stock <= 0 ? 'disabled' : ''}>
                                                                 <i data-lucide="arrow-right-left" class="h-6 w-6"></i>
                                                             </button>
                                                             <button class="action-btn p-3 text-yellow-600 hover:text-yellow-700 hover:bg-yellow-100 dark:hover:bg-yellow-900/30 rounded-lg transition-colors min-h-[48px] min-w-[48px] flex items-center justify-center" data-action="add-to-cart" data-id="${item.id}" title="Añadir a Lista de Compras">
@@ -1742,10 +1798,22 @@
 
         function renderActiveLoansView() {
             const mainContent = document.getElementById('main-content');
-            const filteredLoans = state.activeLoans.filter(loan => 
-                loan.itemDescription.toLowerCase().includes(state.searchTerm.toLowerCase()) ||
-                loan.borrower.toLowerCase().includes(state.searchTerm.toLowerCase())
-            );
+            
+            let filteredLoans = state.activeLoans;
+            
+            // Búsqueda optimizada con fuzzy matching
+            if (state.searchTerm) {
+                const searchLower = state.searchTerm.toLowerCase();
+                filteredLoans = filteredLoans
+                    .map(loan => {
+                        const searchText = `${loan.itemDescription} ${loan.borrower}`.toLowerCase();
+                        const score = fuzzyMatch(searchLower, searchText);
+                        return { loan, score };
+                    })
+                    .filter(({ score }) => score > 0)
+                    .sort((a, b) => b.score - a.score)
+                    .map(({ loan }) => loan);
+            }
 
             // Check if user has seen the onboarding tooltip before
             const hasSeenOnboarding = localStorage.getItem('devoluciones-onboarding-seen') === 'true';
@@ -1835,11 +1903,11 @@
                 <div class="themed-card rounded-lg shadow-md">
                     <div class="p-4">
                         <nav class="-mb-px flex space-x-8 overflow-x-auto" aria-label="Tabs">
-                            <a href="#" class="tab-link whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm" data-type="salidas">Salidas</a>
-                            <a href="#" class="tab-link whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm" data-type="prestamos">Préstamos</a>
-                            <a href="#" class="tab-link whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm" data-type="devoluciones">Devoluciones</a>
-                            <a href="#" class="tab-link whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm" data-type="bajas">Bajas</a>
-                            <a href="#" class="tab-link whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm" data-type="entradas">Entradas</a>
+                            <a href="#" class="tab-link whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm themed-text-light dark:text-gray-300" data-type="salidas">Salidas</a>
+                            <a href="#" class="tab-link whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm themed-text-light dark:text-gray-300" data-type="prestamos">Préstamos</a>
+                            <a href="#" class="tab-link whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm themed-text-light dark:text-gray-300" data-type="devoluciones">Devoluciones</a>
+                            <a href="#" class="tab-link whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm themed-text-light dark:text-gray-300" data-type="bajas">Bajas</a>
+                            <a href="#" class="tab-link whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm themed-text-light dark:text-gray-300" data-type="entradas">Entradas</a>
                         </nav>
                     </div>
                     <div id="history-content" class="p-4"></div>
@@ -1853,8 +1921,10 @@
                 const isSelected = tab.dataset.type === tabType;
                 tab.classList.toggle('border-indigo-500', isSelected);
                 tab.classList.toggle('text-indigo-600', isSelected);
+                tab.classList.toggle('dark:text-indigo-400', isSelected);
                 tab.classList.toggle('border-transparent', !isSelected);
                 tab.classList.toggle('themed-text-light', !isSelected);
+                tab.classList.toggle('dark:text-gray-300', !isSelected);
             });
 
             const content = document.getElementById('history-content');
@@ -1864,15 +1934,22 @@
             };
             
             const lowerCaseSearch = state.searchTerm.toLowerCase();
-            const data = state.transactions
-                .filter(t => typeMap[tabType].includes(t.type))
-                .filter(t => 
-                    t.itemDescription.toLowerCase().includes(lowerCaseSearch) ||
-                    (t.user && t.user.toLowerCase().includes(lowerCaseSearch)) ||
-                    (t.borrower && t.borrower.toLowerCase().includes(lowerCaseSearch)) ||
-                    (t.supplier && t.supplier.toLowerCase().includes(lowerCaseSearch))
-                )
-                .sort((a,b) => b.timestamp.seconds - a.timestamp.seconds);
+            let data = state.transactions.filter(t => typeMap[tabType].includes(t.type));
+            
+            // Búsqueda optimizada con fuzzy matching
+            if (state.searchTerm) {
+                data = data
+                    .map(t => {
+                        const searchText = `${t.itemDescription} ${t.user || ''} ${t.borrower || ''} ${t.supplier || ''}`.toLowerCase();
+                        const score = fuzzyMatch(lowerCaseSearch, searchText);
+                        return { transaction: t, score };
+                    })
+                    .filter(({ score }) => score > 0)
+                    .sort((a, b) => b.score - a.score)
+                    .map(({ transaction }) => transaction);
+            }
+            
+            data = data.sort((a,b) => b.timestamp.seconds - a.timestamp.seconds);
             
             const headers = ['Fecha', 'Tipo', 'Artículo', 'Cantidad', 'Responsable', 'Notas'];
 
@@ -2204,29 +2281,29 @@
                     <div class="border-b border-opacity-10 px-6 py-4">
                         <nav class="flex space-x-8 overflow-x-auto scrollbar-hide" aria-label="Settings Tabs">
                             ${isAdmin ? `
-                                <a href="#" class="settings-tab-link whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm border-indigo-500 text-indigo-600 transition-all duration-200" data-tab="general">
+                                <a href="#" class="settings-tab-link whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm border-indigo-500 text-indigo-600 dark:text-indigo-400 transition-all duration-200" data-tab="general">
                                     <i data-lucide="settings" class="w-4 h-4 inline mr-2"></i>Básico
                                 </a>
-                                <a href="#" class="settings-tab-link whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm border-transparent themed-text-light hover:text-indigo-500 transition-all duration-200" data-tab="display">
+                                <a href="#" class="settings-tab-link whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm border-transparent themed-text-light dark:text-gray-300 hover:text-indigo-500 dark:hover:text-indigo-400 transition-all duration-200" data-tab="display">
                                     <i data-lucide="monitor" class="w-4 h-4 inline mr-2"></i>Apariencia
                                 </a>
-                                <a href="#" class="settings-tab-link whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm border-transparent themed-text-light hover:text-indigo-500 transition-all duration-200" data-tab="operational">
+                                <a href="#" class="settings-tab-link whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm border-transparent themed-text-light dark:text-gray-300 hover:text-indigo-500 dark:hover:text-indigo-400 transition-all duration-200" data-tab="operational">
                                     <i data-lucide="zap" class="w-4 h-4 inline mr-2"></i>Funcionamiento
                                 </a>
-                                <a href="#" class="settings-tab-link whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm border-transparent themed-text-light hover:text-indigo-500 transition-all duration-200" data-tab="dashboard">
+                                <a href="#" class="settings-tab-link whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm border-transparent themed-text-light dark:text-gray-300 hover:text-indigo-500 dark:hover:text-indigo-400 transition-all duration-200" data-tab="dashboard">
                                     <i data-lucide="layout-dashboard" class="w-4 h-4 inline mr-2"></i>Inicio
                                 </a>
-                                <a href="#" class="settings-tab-link whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm border-transparent themed-text-light hover:text-indigo-500 transition-all duration-200" data-tab="categories">
+                                <a href="#" class="settings-tab-link whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm border-transparent themed-text-light dark:text-gray-300 hover:text-indigo-500 dark:hover:text-indigo-400 transition-all duration-200" data-tab="categories">
                                     <i data-lucide="folder" class="w-4 h-4 inline mr-2"></i>Categorías
                                 </a>
                             ` : `
-                                <a href="#" class="settings-tab-link whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm border-indigo-500 text-indigo-600 transition-all duration-200" data-tab="operator-display">
+                                <a href="#" class="settings-tab-link whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm border-indigo-500 text-indigo-600 dark:text-indigo-400 transition-all duration-200" data-tab="operator-display">
                                     <i data-lucide="monitor" class="w-4 h-4 inline mr-2"></i>Apariencia
                                 </a>
-                                <a href="#" class="settings-tab-link whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm border-transparent themed-text-light hover:text-indigo-500 transition-all duration-200" data-tab="operator-workflow">
+                                <a href="#" class="settings-tab-link whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm border-transparent themed-text-light dark:text-gray-300 hover:text-indigo-500 dark:hover:text-indigo-400 transition-all duration-200" data-tab="operator-workflow">
                                     <i data-lucide="zap" class="w-4 h-4 inline mr-2"></i>Trabajo Diario
                                 </a>
-                                <a href="#" class="settings-tab-link whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm border-transparent themed-text-light hover:text-indigo-500 transition-all duration-200" data-tab="operator-system">
+                                <a href="#" class="settings-tab-link whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm border-transparent themed-text-light dark:text-gray-300 hover:text-indigo-500 dark:hover:text-indigo-400 transition-all duration-200" data-tab="operator-system">
                                     <i data-lucide="settings" class="w-4 h-4 inline mr-2"></i>Ajustes del Sistema
                                 </a>
                             `}
@@ -2246,8 +2323,10 @@
                 const isSelected = tab.dataset.tab === tabName;
                 tab.classList.toggle('border-indigo-500', isSelected);
                 tab.classList.toggle('text-indigo-600', isSelected);
+                tab.classList.toggle('dark:text-indigo-400', isSelected);
                 tab.classList.toggle('border-transparent', !isSelected);
                 tab.classList.toggle('themed-text-light', !isSelected);
+                tab.classList.toggle('dark:text-gray-300', !isSelected);
             });
 
             const content = document.getElementById('settings-tab-content');
@@ -2672,7 +2751,7 @@
                                         <div class="flex items-center justify-between p-4 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-gray-600">
                                             <div>
                                                 <label for="show-stock-overview" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Resumen de stock</label>
-                                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Muestra el gráfico de consumibles más utilizados</p>
+                                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Muestra el gráfico de artículos más utilizados</p>
                                             </div>
                                             <label class="switch">
                                                 <input type="checkbox" id="show-stock-overview" ${state.settings.dashboardCustomization?.showStockOverview ? 'checked' : ''}>
@@ -3544,7 +3623,7 @@
                     state.currentPage = 1;
                     const page = window.location.hash.substring(1) || 'dashboard';
                     navigateTo(page, true); // Use true to refresh the current view
-                }, 300); // 300ms delay
+                }, 200); // 200ms delay
             });
             
             document.body.addEventListener('click', (e) => {
@@ -3656,14 +3735,11 @@
             switch (action) {
                 case 'entry': showEntryModal(item); break;
                 case 'checkout':
-                    if (item.type === 'Consumible') showCheckoutModal(item);
-                    else {
-                        if (item.stock <= 0) {
-                            showNotification('No hay stock disponible para este artículo.', 'error');
-                            return;
-                        }
-                        showLoanModal(item);
+                    if (item.stock <= 0) {
+                        showNotification('No hay stock disponible para este artículo.', 'error');
+                        return;
                     }
+                    showCheckoutModal(item);
                     break;
                 case 'edit': showEditItemModal(item); break;
                 case 'edit-stock': showEditStockModal(item); break;
@@ -3885,7 +3961,7 @@
                     <!-- Selector tradicional -->
                     <select id="item-select" name="item-select" required class="themed-input mt-1 block w-full px-4 py-3 border rounded-md shadow-sm">
                         <option value="" disabled selected>O elige de la lista...</option>
-                        ${state.inventory.map(i => `<option value="${i.id}">${i.description} (${i.type})</option>`).join('')}
+                        ${state.inventory.map(i => `<option value="${i.id}">${i.description}</option>`).join('')}
                     </select>
                 </div>` : `<p class="mb-4"><strong>Artículo:</strong> ${item.description}</p>`;
 
@@ -3911,11 +3987,28 @@
                     return;
                 }
                 
-                if (selectedItem.type === 'Consumible') {
-                    const isEndmill = selectedItem.category.toLowerCase().includes('endmill');
-                    const maxQuantity = Math.min(selectedItem.stock, state.settings.customValidations?.maxQuantityPerTransaction || 1000);
-                    const requireNotes = state.settings.customValidations?.requireNotesForLargeTransactions;
-                    formContainer.innerHTML = `
+                const hasStock = selectedItem.stock > 0;
+                const isEndmill = selectedItem.category.toLowerCase().includes('endmill');
+                const maxQuantity = Math.min(selectedItem.stock, state.settings.customValidations?.maxQuantityPerTransaction || 1000);
+                const requireNotes = state.settings.customValidations?.requireNotesForLargeTransactions;
+                
+                formContainer.innerHTML = `
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium themed-text-light">Tipo de Operación</label>
+                        <div class="mt-2 space-x-4">
+                            <label class="inline-flex items-center">
+                                <input type="radio" name="operationType" value="consumible" class="form-radio text-blue-600" checked>
+                                <span class="ml-2 text-sm themed-text-light">Consumible (Salida)</span>
+                            </label>
+                            <label class="inline-flex items-center">
+                                <input type="radio" name="operationType" value="retornable" class="form-radio text-green-600">
+                                <span class="ml-2 text-sm themed-text-light">Retornable (Préstamo)</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- Consumible fields -->
+                    <div id="consumible-fields">
                         <div class="mb-4">
                             <label for="quantity" class="block text-sm font-medium themed-text-light">Cantidad</label>
                             <input type="number" id="quantity" name="quantity" min="1" max="${maxQuantity}" required class="themed-input mt-1 block w-full px-4 py-3 border rounded-md shadow-sm">
@@ -3937,28 +4030,43 @@
                             <label for="notes" class="block text-sm font-medium themed-text-light">Notas ${requireNotes ? '(Requerido para cantidades grandes)' : '(Opcional)'}</label>
                             <textarea id="notes" name="notes" rows="2" class="themed-input mt-1 block w-full px-4 py-3 border rounded-md shadow-sm"></textarea>
                         </div>
-                        <div class="flex justify-end">
-                            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-lg min-h-[56px] flex items-center justify-center transition-all duration-200">
-                                <i data-lucide="arrow-right-left" class="h-6 w-6 mr-2"></i>
-                                Registrar Salida
-                            </button>
-                        </div>
-                    `;
-                } else { // Retornable
-                    const hasStock = selectedItem.stock > 0;
-                    formContainer.innerHTML = `
+                    </div>
+                    
+                    <!-- Retornable fields -->
+                    <div id="retornable-fields" style="display: none;">
                         <div class="mb-4">
                             <label for="borrower" class="block text-sm font-medium themed-text-light">Nombre de quien solicita</label>
                             <input type="text" id="borrower" name="borrower" required class="themed-input mt-1 block w-full px-4 py-3 border rounded-md shadow-sm" ${!hasStock ? 'disabled' : ''}>
                         </div>
-                        <div class="flex justify-end">
-                            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-lg min-h-[56px] flex items-center justify-center transition-all duration-200 ${!hasStock ? 'opacity-50 cursor-not-allowed' : ''}" ${!hasStock ? 'disabled' : ''}>
-                                <i data-lucide="arrow-right-left" class="h-6 w-6 mr-2"></i>
-                                ${hasStock ? 'Registrar Préstamo' : 'Sin Stock Disponible'}
-                            </button>
-                        </div>
-                    `;
-                }
+                    </div>
+                    
+                    <div class="flex justify-end">
+                        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-lg min-h-[56px] flex items-center justify-center transition-all duration-200 ${!hasStock ? 'opacity-50 cursor-not-allowed' : ''}" ${!hasStock ? 'disabled' : ''}>
+                            <i data-lucide="arrow-right-left" class="h-6 w-6 mr-2"></i>
+                            <span id="submit-btn-text">Registrar Salida</span>
+                        </button>
+                    </div>
+                `;
+                
+                // Add event listeners for radio buttons
+                const operationTypeRadios = formContainer.querySelectorAll('input[name="operationType"]');
+                const consumibleFields = document.getElementById('consumible-fields');
+                const retornableFields = document.getElementById('retornable-fields');
+                const submitBtnText = document.getElementById('submit-btn-text');
+                
+                operationTypeRadios.forEach(radio => {
+                    radio.addEventListener('change', (e) => {
+                        if (e.target.value === 'consumible') {
+                            consumibleFields.style.display = 'block';
+                            retornableFields.style.display = 'none';
+                            submitBtnText.textContent = 'Registrar Salida';
+                        } else {
+                            consumibleFields.style.display = 'none';
+                            retornableFields.style.display = 'block';
+                            submitBtnText.textContent = 'Registrar Préstamo';
+                        }
+                    });
+                });
             };
             
             if(item) {
@@ -3978,7 +4086,10 @@
                      return;
                 }
                 
-                if (selectedItem.type === 'Consumible') {
+                // Get the operation type selected by the operator
+                const operationType = e.target.elements.operationType.value;
+                
+                if (operationType === 'consumible') {
                     // Logic for Consumable
                     const { quantity, user, exchange, notes } = e.target.elements;
                     const qty = parseInt(quantity.value);
@@ -4051,7 +4162,7 @@
                         <div class="flex items-center justify-between">
                             <div class="flex-1">
                                 <div class="font-medium text-gray-900 dark:text-white">${suggestion.description}</div>
-                                <div class="text-sm text-gray-500 dark:text-gray-400">${suggestion.category} • ${suggestion.type}</div>
+                                <div class="text-sm text-gray-500 dark:text-gray-400">${suggestion.category}</div>
                             </div>
                             <div class="text-right">
                                 <div class="text-xs text-gray-500 dark:text-gray-400">${usageText}</div>
@@ -4095,7 +4206,7 @@
                     const searchTerm = e.target.value;
                     const suggestions = getSmartSuggestions(searchTerm, null, 8);
                     updateSuggestionsList(suggestions);
-                }, 300);
+                }, 200);
             });
 
             // Limpiar búsqueda al hacer clic fuera
@@ -4134,7 +4245,7 @@
                         <div class="flex items-center justify-between">
                             <div class="flex-1">
                                 <div class="font-medium text-gray-900 dark:text-white">${suggestion.description}</div>
-                                <div class="text-sm text-gray-500 dark:text-gray-400">${suggestion.category} • ${suggestion.type}</div>
+                                <div class="text-sm text-gray-500 dark:text-gray-400">${suggestion.category}</div>
                             </div>
                             <div class="text-right">
                                 <div class="text-xs text-gray-500 dark:text-gray-400">${usageText}</div>
@@ -4167,9 +4278,6 @@
             });
         }
 
-        function showLoanModal(item) {
-             showCheckoutModal(item);
-        }
         
         function showReportLossModal(loan, item) {
             const content = `
@@ -4232,7 +4340,6 @@
         }
 
         function showEditItemModal(item) {
-            const isConsumable = item.type === 'Consumible';
             const content = `
                 <form id="edit-item-form">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -4245,13 +4352,6 @@
                             <select id="category" class="themed-input mt-1 block w-full px-4 py-3 border rounded-md shadow-sm">${getCategoryOptions(item.category)}</select>
                         </div>
                         <div>
-                            <label for="type" class="block text-sm font-medium themed-text-light">Tipo</label>
-                            <select id="type" class="themed-input mt-1 block w-full px-4 py-3 border rounded-md shadow-sm">
-                                <option value="Consumible" ${isConsumable ? 'selected' : ''}>Consumible</option>
-                                <option value="Retornable" ${!isConsumable ? 'selected' : ''}>Retornable</option>
-                            </select>
-                        </div>
-                        <div id="min-stock-container" class="${isConsumable ? '' : 'hidden'}">
                             <label for="minStock" class="block text-sm font-medium themed-text-light">Stock Mínimo</label>
                             <input type="number" id="minStock" value="${item.minStock || 0}" min="0" class="themed-input mt-1 block w-full px-4 py-3 border rounded-md shadow-sm">
                         </div>
@@ -4270,14 +4370,9 @@
                 </form>
             `;
             showModal('Editar Artículo', content);
-            const typeSelect = document.getElementById('type');
-            const minStockContainer = document.getElementById('min-stock-container');
-            typeSelect.addEventListener('change', (e) => {
-                minStockContainer.classList.toggle('hidden', e.target.value !== 'Consumible');
-            });
             document.getElementById('edit-item-form').addEventListener('submit', async (e) => {
                 e.preventDefault();
-                const { description, category, type, minStock, unit } = e.target.elements;
+                const { description, category, minStock, unit } = e.target.elements;
                 const saveBtnText = document.getElementById('save-btn-text');
                 const saveSpinner = document.getElementById('save-spinner');
                 saveBtnText.classList.add('hidden');
@@ -4286,9 +4381,8 @@
                 const updatedData = {
                     description: description.value,
                     category: category.value,
-                    type: type.value,
                     unit: unit.value,
-                    minStock: type.value === 'Consumible' ? parseInt(minStock.value) : 0
+                    minStock: parseInt(minStock.value)
                 };
 
                 await updateDoc(doc(db, 'inventory', item.id), updatedData);
@@ -4304,7 +4398,7 @@
                         <label class="block text-sm font-medium themed-text-light mb-2">Artículo</label>
                         <div class="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
                             <div class="font-medium text-gray-900 dark:text-white">${item.description}</div>
-                            <div class="text-sm text-gray-500 dark:text-gray-400">${item.category} • ${item.type}</div>
+                            <div class="text-sm text-gray-500 dark:text-gray-400">${item.category}</div>
                         </div>
                     </div>
                     <div class="mb-4">
@@ -4382,17 +4476,10 @@
                             <select id="category" class="themed-input mt-1 block w-full px-4 py-3 border rounded-md shadow-sm">${getCategoryOptions('')}</select>
                         </div>
                         <div>
-                            <label for="type" class="block text-sm font-medium themed-text-light">Tipo</label>
-                            <select id="type" class="themed-input mt-1 block w-full px-4 py-3 border rounded-md shadow-sm">
-                                <option value="Consumible" selected>Consumible</option>
-                                <option value="Retornable">Retornable</option>
-                            </select>
-                        </div>
-                        <div>
                             <label for="stock" class="block text-sm font-medium themed-text-light">Stock Inicial</label>
                             <input type="number" id="stock" value="0" min="0" required class="themed-input mt-1 block w-full px-4 py-3 border rounded-md shadow-sm">
                         </div>
-                        <div id="min-stock-container">
+                        <div>
                             <label for="minStock" class="block text-sm font-medium themed-text-light">Stock Mínimo</label>
                             <input type="number" id="minStock" value="${state.settings.defaultMinStock || 5}" min="0" class="themed-input mt-1 block w-full px-4 py-3 border rounded-md shadow-sm">
                         </div>
@@ -4411,11 +4498,6 @@
                 </form>
             `;
             showModal('Crear Nuevo Artículo', content);
-            const typeSelect = document.getElementById('type');
-            const minStockContainer = document.getElementById('min-stock-container');
-            typeSelect.addEventListener('change', (e) => {
-                minStockContainer.classList.toggle('hidden', e.target.value !== 'Consumible');
-            });
 
             document.getElementById('new-item-form').addEventListener('submit', async (e) => {
                 e.preventDefault();
@@ -4424,14 +4506,13 @@
                 saveBtnText.classList.add('hidden');
                 saveSpinner.classList.remove('hidden');
 
-                const { description, category, type, minStock, unit, stock } = e.target.elements;
+                const { description, category, minStock, unit, stock } = e.target.elements;
                 const newItem = {
                     description: description.value,
                     category: category.value,
-                    type: type.value,
                     unit: unit.value,
                     stock: parseInt(stock.value),
-                    minStock: type.value === 'Consumible' ? parseInt(minStock.value) : 0
+                    minStock: parseInt(minStock.value)
                 };
 
                 try {
@@ -5080,10 +5161,10 @@
 
         async function handleExportInventory() {
             const data = state.inventory.map(item => [
-                item.description, item.category, item.type,
+                item.description, item.category,
                 item.stock, item.unit, item.minStock || 0
             ]);
-            const headers = ['Descripción', 'Categoría', 'Tipo', 'Stock', 'Unidad', 'Stock Mínimo'];
+            const headers = ['Descripción', 'Categoría', 'Stock', 'Unidad', 'Stock Mínimo'];
             exportToCSV('inventario_completo', headers, data);
         }
 
@@ -5185,7 +5266,7 @@
             if (totalPages <= 1) return '';
             let pages = '';
             for (let i = 1; i <= totalPages; i++) {
-                pages += `<a href="#" class="page-link px-3 py-1 rounded ${i === state.currentPage ? 'bg-indigo-600 text-white' : 'hover:bg-gray-200 dark:hover:bg-gray-700'}" data-page="${i}">${i}</a>`;
+                pages += `<a href="#" class="page-link px-3 py-1 rounded text-sm font-medium transition-colors ${i === state.currentPage ? 'bg-indigo-600 text-white' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-indigo-600 dark:hover:text-indigo-400'}" data-page="${i}">${i}</a>`;
             }
             return `<div class="flex items-center justify-center space-x-1 flex-wrap">${pages}</div>`;
         }
@@ -5692,7 +5773,7 @@
                     return state.inventory.map(item => ({
                         ...item,
                         stock: `${item.stock} ${item.unit}`,
-                        minStock: item.type === 'Consumible' ? item.minStock : 'N/A'
+                        minStock: item.minStock
                     }));
                 
                 case 'loans':
@@ -5729,7 +5810,7 @@
                 
                 case 'low-stock':
                     return state.inventory
-                        .filter(item => item.type === 'Consumible' && item.stock < item.minStock)
+                        .filter(item => item.stock < item.minStock)
                         .map(item => ({
                             ...item,
                             stock: `${item.stock} ${item.unit}`,
@@ -5785,12 +5866,6 @@
             
             // Filtrar por tipo si se especifica
             let filteredStats = usageStats;
-            if (itemType) {
-                filteredStats = usageStats.filter(stat => {
-                    const item = state.inventory.find(i => i.id === stat.itemId);
-                    return item && item.type === itemType;
-                });
-            }
             
             // Ordenar por uso reciente y total
             return filteredStats
@@ -5814,48 +5889,47 @@
 
         function getSmartSuggestions(searchTerm = '', itemType = null, limit = 8) {
             const mostUsed = getMostUsedItems(limit * 2, itemType);
-            const searchLower = searchTerm.toLowerCase();
             
             if (!searchTerm) {
                 return mostUsed.slice(0, limit);
             }
             
-            // Filtrar por término de búsqueda
-            const filtered = mostUsed.filter(item => 
-                item.description.toLowerCase().includes(searchLower) ||
-                item.category.toLowerCase().includes(searchLower)
-            );
+            const searchLower = searchTerm.toLowerCase();
             
-            // Si no hay suficientes resultados, buscar en todo el inventario
-            if (filtered.length < limit) {
-                const allItems = state.inventory
-                    .filter(item => {
-                        if (itemType && item.type !== itemType) return false;
-                        return item.description.toLowerCase().includes(searchLower) ||
-                               item.category.toLowerCase().includes(searchLower);
-                    })
-                    .map(item => ({
-                        itemId: item.id,
-                        description: item.description,
-                        category: item.category,
-                        type: item.type,
-                        totalUsage: 0,
-                        recentUsage: 0,
-                        lastUsed: null,
-                        loanCount: 0,
-                        checkoutCount: 0
-                    }));
-                
-                // Combinar y eliminar duplicados
-                const combined = [...filtered, ...allItems];
-                const unique = combined.filter((item, index, self) => 
-                    index === self.findIndex(t => t.itemId === item.itemId)
-                );
-                
-                return unique.slice(0, limit);
+            // Búsqueda fuzzy en items más usados
+            const filteredUsed = mostUsed
+                .map(item => ({
+                    ...item,
+                    score: fuzzyMatch(searchLower, `${item.description} ${item.category}`)
+                }))
+                .filter(item => item.score > 0)
+                .sort((a, b) => b.score - a.score);
+            
+            if (filteredUsed.length >= limit) {
+                return filteredUsed.slice(0, limit);
             }
             
-            return filtered.slice(0, limit);
+            // Búsqueda fuzzy en todo el inventario usando índice
+            const allMatches = Array.from(state.searchIndex.values())
+                .map(indexData => ({
+                    itemId: indexData.id,
+                    description: indexData.description,
+                    category: indexData.category,
+                    score: fuzzyMatch(searchLower, indexData.searchText),
+                    totalUsage: 0,
+                    recentUsage: 0,
+                    lastUsed: null,
+                    loanCount: 0,
+                    checkoutCount: 0
+                }))
+                .filter(item => item.score > 0)
+                .sort((a, b) => b.score - a.score);
+            
+            // Combinar sin duplicados
+            const usedIds = new Set(filteredUsed.map(i => i.itemId));
+            const newMatches = allMatches.filter(i => !usedIds.has(i.itemId));
+            
+            return [...filteredUsed, ...newMatches].slice(0, limit);
         }
         function generateCharts() {
             if (typeof Chart === 'undefined') {
@@ -5916,12 +5990,12 @@
         
         function getFullInventoryList() {
             return [
-                { description: 'Tornillo Allen 1/4"', category: 'Tornillería', type: 'Consumible', stock: 500, unit: 'pza', minStock: 100 },
-                { description: 'Endmill Plano 1/2"', category: 'Herramientas de Corte', type: 'Consumible', stock: 15, unit: 'pza', minStock: 5 },
-                { description: 'Calibrador Vernier Digital', category: 'Herramientas de Medición', type: 'Retornable', stock: 5, unit: 'pza', minStock: 0 },
-                { description: 'Guantes de Nitrilo', category: 'Seguridad', type: 'Consumible', stock: 2, unit: 'caja', minStock: 1 },
-                { description: 'WD-40 Lata Grande', category: 'Químicos', type: 'Consumible', stock: 10, unit: 'lata', minStock: 3 },
-                { description: 'Taladro Inalámbrico Dewalt', category: 'Herramienta Eléctrica', type: 'Retornable', stock: 3, unit: 'pza', minStock: 0 },
+                { description: 'Tornillo Allen 1/4"', category: 'Tornillería', stock: 500, unit: 'pza', minStock: 100 },
+                { description: 'Endmill Plano 1/2"', category: 'Herramientas de Corte', stock: 15, unit: 'pza', minStock: 5 },
+                { description: 'Calibrador Vernier Digital', category: 'Herramientas de Medición', stock: 5, unit: 'pza', minStock: 0 },
+                { description: 'Guantes de Nitrilo', category: 'Seguridad', stock: 2, unit: 'caja', minStock: 1 },
+                { description: 'WD-40 Lata Grande', category: 'Químicos', stock: 10, unit: 'lata', minStock: 3 },
+                { description: 'Taladro Inalámbrico Dewalt', category: 'Herramienta Eléctrica', stock: 3, unit: 'pza', minStock: 0 },
             ];
         }
 

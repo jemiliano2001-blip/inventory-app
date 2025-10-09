@@ -31,6 +31,10 @@ export default async function handler(req, res) {
         // Configurar la petición a Gemini
         const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`;
         
+        console.log('Gemini URL:', geminiUrl.replace(apiKey, '***API_KEY***'));
+        console.log('Context:', context);
+        console.log('Message length:', message.length);
+        
         let prompt = message;
         
         // Personalizar prompt según el contexto
@@ -109,7 +113,9 @@ Formato: Título, Resumen Ejecutivo, Métricas Principales, Análisis Detallado,
             } else {
                 return res.status(500).json({ 
                     error: 'Gemini API error',
-                    success: false 
+                    success: false,
+                    details: `Status: ${response.status}, Error: ${errorData}`,
+                    debug: process.env.NODE_ENV === 'development' ? errorData : undefined
                 });
             }
         }

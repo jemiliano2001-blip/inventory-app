@@ -1582,11 +1582,11 @@
                                     </div>
                                     <div>
                                         <h3 class="text-lg font-semibold">IA Asistente</h3>
-                                        <p class="text-gray-100 text-sm">Configura tu API Key para activar</p>
+                                        <p class="text-gray-100 text-sm">Configura GEMINI_API_KEY en Vercel</p>
                                     </div>
                                 </div>
                                 <a href="#settings" class="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
-                                    Configurar
+                                    Verificar
                                 </a>
                             </div>
                         </div>
@@ -2460,20 +2460,23 @@
                                             <input type="number" id="session-timeout" value="${state.settings.sessionTimeout || 480}" min="30" max="1440" class="themed-input w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors">
                                             <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Cuánto tiempo antes de cerrar la sesión sola</p>
                                         </div>
-                                        <div>
-                                            <label for="gemini-api-key" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">API Key de Google Gemini</label>
-                                            <div class="relative">
-                                                <input type="password" id="gemini-api-key" value="${state.settings.geminiApiKey ? '••••••••••••••••' : ''}" placeholder="Ingresa tu API Key de Gemini" class="themed-input w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2.5 pr-12 focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors">
-                                                <button type="button" id="toggle-api-key" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
-                                                    <i data-lucide="eye" class="w-4 h-4"></i>
-                                                </button>
+                                        <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-4">
+                                            <div class="flex items-center space-x-3">
+                                                <div class="h-8 w-8 rounded-lg bg-blue-100 dark:bg-blue-800 flex items-center justify-center">
+                                                    <i data-lucide="sparkles" class="h-4 w-4 text-blue-600 dark:text-blue-400"></i>
+                                                </div>
+                                                <div>
+                                                    <h4 class="font-medium text-blue-900 dark:text-blue-100">Inteligencia Artificial</h4>
+                                                    <p class="text-sm text-blue-700 dark:text-blue-300">Configurada automáticamente con Vercel</p>
+                                                </div>
                                             </div>
-                                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">API Key para funcionalidades de inteligencia artificial</p>
-                                            <div class="mt-2 flex items-center space-x-2">
-                                                <button type="button" id="test-api-key" class="text-xs bg-green-100 hover:bg-green-200 dark:bg-green-900 dark:hover:bg-green-800 text-green-700 dark:text-green-300 px-3 py-1 rounded-full transition-colors">
-                                                    <i data-lucide="check-circle" class="w-3 h-3 inline mr-1"></i>Probar conexión
+                                            <div class="mt-3 flex items-center justify-between">
+                                                <span id="ai-status-text" class="text-sm text-blue-600 dark:text-blue-400">
+                                                    ${aiModule.isInitialized ? '✅ Conectada y lista' : '⏳ Verificando conexión...'}
+                                                </span>
+                                                <button type="button" id="test-ai-connection" class="text-xs bg-blue-100 hover:bg-blue-200 dark:bg-blue-800 dark:hover:bg-blue-700 text-blue-700 dark:text-blue-300 px-3 py-1 rounded-full transition-colors">
+                                                    <i data-lucide="refresh-cw" class="w-3 h-3 inline mr-1"></i>Verificar
                                                 </button>
-                                                <span id="api-key-status" class="text-xs text-gray-500 dark:text-gray-400"></span>
                                             </div>
                                         </div>
                                         <div class="flex items-center justify-between p-4 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-gray-600">
@@ -3750,8 +3753,7 @@
                     if (target.closest('#archive-old-data-btn')) { handleArchiveOldData(); return; }
                     
                     // AI Settings Events
-                    if (target.closest('#test-api-key')) { handleTestApiKey(); return; }
-                    if (target.closest('#toggle-api-key')) { handleToggleApiKey(); return; }
+                    if (target.closest('#test-ai-connection')) { handleTestAIConnection(); return; }
                     
                     const settingsTab = target.closest('.settings-tab-link');
                     if (settingsTab) { e.preventDefault(); renderSettingsTab(settingsTab.dataset.tab); return; }
@@ -6583,7 +6585,7 @@
                 // El enlace ya existe, solo asegurar que esté visible
                 aiNavLink.classList.remove('hidden');
                 console.log('✅ AI navigation link already exists and is visible');
-            } else {
+                } else {
                 console.warn('⚠️ AI navigation link not found in HTML');
             }
         }
@@ -6614,21 +6616,29 @@
 
         // --- MÓDULO DE IA ---
         const aiModule = {
-            apiKey: null,
             isInitialized: false,
+            connectionStatus: 'checking', // 'checking', 'connected', 'error'
             
             // Inicializar el módulo de IA
-            init() {
-                this.apiKey = state.settings.geminiApiKey;
-                this.isInitialized = !!this.apiKey;
-                console.log('🤖 AI Module initialized:', { hasApiKey: !!this.apiKey });
-                return this.isInitialized;
+            async init() {
+                console.log('🤖 AI Module initializing...');
+                try {
+                    // Verificar conexión con la API
+                    const isValid = await this.validateConnection();
+                    this.isInitialized = isValid;
+                    this.connectionStatus = isValid ? 'connected' : 'error';
+                    console.log('🤖 AI Module initialized:', { isInitialized: this.isInitialized, status: this.connectionStatus });
+                    return this.isInitialized;
+                } catch (error) {
+                    console.error('🤖 AI Module initialization error:', error);
+                    this.connectionStatus = 'error';
+                    this.isInitialized = false;
+                    return false;
+                }
             },
             
-            // Validar API key haciendo una petición de prueba
-            async validateApiKey(apiKey) {
-                if (!apiKey) return false;
-                
+            // Validar conexión con la API
+            async validateConnection() {
                 try {
                     const response = await fetch('/api/gemini', {
                         method: 'POST',
@@ -6647,7 +6657,7 @@
                     }
                     return false;
                 } catch (error) {
-                    console.error('Error validating API key:', error);
+                    console.error('Error validating AI connection:', error);
                     return false;
                 }
             },
@@ -6655,7 +6665,7 @@
             // Chat conversacional con contexto de inventario
             async chatWithInventory(message) {
                 if (!this.isInitialized) {
-                    throw new Error('AI module not initialized. Please configure API key in settings.');
+                    throw new Error('AI module not initialized. Please check Vercel configuration.');
                 }
                 
                 const context = this.buildInventoryContext();
@@ -7369,61 +7379,48 @@ Responde de manera útil y específica sobre el inventario. Si necesitas informa
 
         // --- FUNCIONES DE MANEJO DE EVENTOS DE IA ---
         
-        // Manejo de API Key
-        function handleTestApiKey() {
-            const apiKeyInput = document.getElementById('gemini-api-key');
-            const statusSpan = document.getElementById('api-key-status');
-            const testBtn = document.getElementById('test-api-key');
-            
-            if (!apiKeyInput.value || apiKeyInput.value === '••••••••••••••••') {
-                showNotification('Por favor, ingresa tu API Key de Gemini', 'warning');
-                return;
-            }
+        // Manejo de conexión de IA
+        async function handleTestAIConnection() {
+            const statusText = document.getElementById('ai-status-text');
+            const testBtn = document.getElementById('test-ai-connection');
             
             testBtn.disabled = true;
-            testBtn.innerHTML = '<i data-lucide="loader" class="w-3 h-3 inline mr-1 animate-spin"></i>Probando...';
-            statusSpan.textContent = 'Probando conexión...';
+            testBtn.innerHTML = '<i data-lucide="loader" class="w-3 h-3 inline mr-1 animate-spin"></i>Verificando...';
+            statusText.textContent = '⏳ Verificando conexión...';
             
-            aiModule.validateApiKey(apiKeyInput.value).then(isValid => {
+            try {
+                const isValid = await aiModule.validateConnection();
+                
                 if (isValid) {
-                    statusSpan.textContent = '✅ Conexión exitosa';
-                    statusSpan.className = 'text-xs text-green-600 dark:text-green-400';
-                    showNotification('API Key válida y conectada', 'success');
+                    aiModule.isInitialized = true;
+                    aiModule.connectionStatus = 'connected';
+                    statusText.textContent = '✅ Conectada y lista';
+                    statusText.className = 'text-sm text-green-600 dark:text-green-400';
+                    showNotification('Conexión con IA establecida correctamente', 'success');
                 } else {
-                    statusSpan.textContent = '❌ Error de conexión';
-                    statusSpan.className = 'text-xs text-red-600 dark:text-red-400';
-                    showNotification('Error al conectar con la API. Verifica tu API Key', 'error');
+                    aiModule.isInitialized = false;
+                    aiModule.connectionStatus = 'error';
+                    statusText.textContent = '❌ Error de conexión';
+                    statusText.className = 'text-sm text-red-600 dark:text-red-400';
+                    showNotification('Error al conectar con la IA. Verifica la configuración en Vercel', 'error');
                 }
-            }).catch(error => {
-                statusSpan.textContent = '❌ Error de conexión';
-                statusSpan.className = 'text-xs text-red-600 dark:text-red-400';
-                showNotification('Error al conectar con la API', 'error');
-                console.error('API Key validation error:', error);
-            }).finally(() => {
+            } catch (error) {
+                aiModule.isInitialized = false;
+                aiModule.connectionStatus = 'error';
+                statusText.textContent = '❌ Error de conexión';
+                statusText.className = 'text-sm text-red-600 dark:text-red-400';
+                showNotification('Error al verificar la conexión con IA', 'error');
+                console.error('AI connection test error:', error);
+            } finally {
                 testBtn.disabled = false;
-                testBtn.innerHTML = '<i data-lucide="check-circle" class="w-3 h-3 inline mr-1"></i>Probar conexión';
-            });
-        }
-        
-        function handleToggleApiKey() {
-            const apiKeyInput = document.getElementById('gemini-api-key');
-            const toggleBtn = document.getElementById('toggle-api-key');
-            const icon = toggleBtn.querySelector('i');
-            
-            if (apiKeyInput.type === 'password') {
-                apiKeyInput.type = 'text';
-                icon.setAttribute('data-lucide', 'eye-off');
-            } else {
-                apiKeyInput.type = 'password';
-                icon.setAttribute('data-lucide', 'eye');
+                testBtn.innerHTML = '<i data-lucide="refresh-cw" class="w-3 h-3 inline mr-1"></i>Verificar';
             }
-            safeCreateIcons();
         }
         
         // Manejo de Quick Actions
         function handleQuickAction(action) {
             if (!aiModule.isInitialized) {
-                showNotification('Configura la API Key para usar esta función', 'warning');
+                showNotification('La IA no está disponible. Verifica la configuración en Vercel', 'warning');
                 return;
             }
             
@@ -7444,7 +7441,7 @@ Responde de manera útil y específica sobre el inventario. Si necesitas informa
         // Manejo de Predicciones Avanzadas
         async function handleDemandAnalysis() {
             if (!aiModule.isInitialized) {
-                showNotification('Configura la API Key para usar esta función', 'warning');
+                showNotification('La IA no está disponible. Verifica la configuración en Vercel', 'warning');
                 return;
             }
             
@@ -7462,7 +7459,7 @@ Responde de manera útil y específica sobre el inventario. Si necesitas informa
         
         async function handleReorderSuggestions() {
             if (!aiModule.isInitialized) {
-                showNotification('Configura la API Key para usar esta función', 'warning');
+                showNotification('La IA no está disponible. Verifica la configuración en Vercel', 'warning');
                 return;
             }
             
@@ -7489,7 +7486,7 @@ Responde de manera útil y específica sobre el inventario. Si necesitas informa
         // Manejo de Análisis (Admin)
         async function handleRunAnalysis() {
             if (!aiModule.isInitialized) {
-                showNotification('Configura la API Key para usar esta función', 'warning');
+                showNotification('La IA no está disponible. Verifica la configuración en Vercel', 'warning');
                 return;
             }
             
@@ -7505,7 +7502,7 @@ Responde de manera útil y específica sobre el inventario. Si necesitas informa
         
         async function handleAnomalyDetection() {
             if (!aiModule.isInitialized) {
-                showNotification('Configura la API Key para usar esta función', 'warning');
+                showNotification('La IA no está disponible. Verifica la configuración en Vercel', 'warning');
                 return;
             }
             
@@ -7551,7 +7548,7 @@ Responde de manera útil y específica sobre el inventario. Si necesitas informa
         // Manejo de Generación de Documentos (Admin)
         async function handleGenerateMonthlyReport() {
             if (!aiModule.isInitialized) {
-                showNotification('Configura la API Key para usar esta función', 'warning');
+                showNotification('La IA no está disponible. Verifica la configuración en Vercel', 'warning');
                 return;
             }
             
@@ -7567,7 +7564,7 @@ Responde de manera útil y específica sobre el inventario. Si necesitas informa
         
         async function handleGenerateAuditReport() {
             if (!aiModule.isInitialized) {
-                showNotification('Configura la API Key para usar esta función', 'warning');
+                showNotification('La IA no está disponible. Verifica la configuración en Vercel', 'warning');
                 return;
             }
             

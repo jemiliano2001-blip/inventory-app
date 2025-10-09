@@ -1,0 +1,14 @@
+# Ignore development files
+README-IA.md
+INSTRUCCIONES-EJECUCION.md
+
+# Ignore git files
+.git
+.gitignore
+
+# Ignore node_modules (shouldn't be committed anyway)
+node_modules
+
+# Ignore any local development files
+*.log
+.env.local

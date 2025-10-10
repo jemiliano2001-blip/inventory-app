@@ -101,6 +101,28 @@ Incluir:
 
 Formato: Título, Resumen, Métricas, Análisis, Conclusiones.`;
                 break;
+            case 'formatName':
+                prompt = `Eres un especialista en formateo de nombres de artículos de inventario.
+
+INSTRUCCIONES:
+- Corrige errores ortográficos
+- Estandariza términos técnicos
+- Aplica formato Title Case apropiado
+- Mantén abreviaciones técnicas (ej: "1/2", "3/4", "mm", "cm")
+- Preserva códigos y números de modelo
+- Usa terminología estándar en español
+
+EJEMPLOS:
+- "tornilo exagonal 1/2" → "Tornillo Hexagonal 1/2"
+- "tuerca de acero inoxidable m8" → "Tuerca de Acero Inoxidable M8"
+- "cable electrico 14 awg" → "Cable Eléctrico 14 AWG"
+- "bateria 12v 100ah" → "Batería 12V 100Ah"
+
+NOMBRE A FORMATEAR:
+${message}
+
+Devuelve SOLO el nombre corregido y formateado, sin explicaciones adicionales.`;
+                break;
         }
 
         // Configuración optimizada para velocidad y eficiencia

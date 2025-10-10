@@ -8499,7 +8499,7 @@
             const suggestionsList = document.getElementById('suggestions-list');
             if (!suggestionsList) return;
 
-            const suggestions = getSmartSuggestions('', null, 6);
+            const suggestions = getSmartSuggestions('');
             
             if (suggestions.length === 0) {
                 suggestionsList.innerHTML = '<p class="text-sm text-gray-500 dark:text-gray-400 text-center py-2">No hay datos de uso reciente</p>';
@@ -8564,7 +8564,7 @@
                 clearTimeout(searchTimeout);
                 searchTimeout = setTimeout(() => {
                     const searchTerm = e.target.value;
-                    const suggestions = getSmartSuggestions(searchTerm, null, 8);
+                    const suggestions = getSmartSuggestions(searchTerm);
                     updateSuggestionsList(suggestions);
                 }, 200);
             });
@@ -8705,7 +8705,12 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div class="md:col-span-2">
                             <label for="description" class="block text-sm font-medium themed-text-light">Descripción</label>
-                            <input type="text" id="description" value="${item.description}" required class="themed-input mt-1 block w-full px-4 py-3 border rounded-md shadow-sm">
+                            <div class="relative flex">
+                                <input type="text" id="description" value="${item.description}" required class="themed-input mt-1 block w-full px-4 py-3 border rounded-md shadow-sm rounded-r-none">
+                                <button type="button" id="improve-name-btn" class="mt-1 px-3 py-3 bg-purple-600 hover:bg-purple-700 text-white border border-purple-600 rounded-r-md transition-colors ${!aiModule.isInitialized ? 'opacity-50 cursor-not-allowed' : ''}" ${!aiModule.isInitialized ? 'disabled' : ''} title="Mejorar nombre con IA">
+                                    <i data-lucide="sparkles" class="h-4 w-4"></i>
+                                </button>
+                            </div>
                         </div>
                         <div>
                             <label for="category" class="block text-sm font-medium themed-text-light">Categoría</label>
@@ -8730,6 +8735,41 @@
                 </form>
             `;
             showModal('Editar Artículo', content);
+            
+            // Improve name with AI button for edit form
+            document.getElementById('improve-name-btn').addEventListener('click', async () => {
+                const descriptionInput = document.getElementById('description');
+                const improveBtn = document.getElementById('improve-name-btn');
+                const originalText = improveBtn.innerHTML;
+                
+                if (!descriptionInput.value.trim()) {
+                    showNotification('Escribe un nombre para mejorar', 'warning');
+                    return;
+                }
+
+                // Show loading state
+                improveBtn.innerHTML = '<i data-lucide="loader" class="h-4 w-4 animate-spin"></i>';
+                improveBtn.disabled = true;
+
+                try {
+                    const improvedName = await improveArticleName(descriptionInput.value);
+                    if (improvedName && improvedName !== descriptionInput.value) {
+                        descriptionInput.value = improvedName;
+                        showNotification('Nombre mejorado con IA', 'success');
+                    } else {
+                        showNotification('El nombre ya está bien formateado', 'info');
+                    }
+                } catch (error) {
+                    console.error('Error improving name:', error);
+                    showNotification('Error al mejorar el nombre', 'error');
+                } finally {
+                    // Restore button state
+                    improveBtn.innerHTML = originalText;
+                    improveBtn.disabled = false;
+                    safeCreateIcons();
+                }
+            });
+            
             document.getElementById('edit-item-form').addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const { description, category, minStock, unit } = e.target.elements;
@@ -8739,7 +8779,7 @@
                 saveSpinner.classList.remove('hidden');
 
                 const updatedData = {
-                    description: description.value,
+                    description: toTitleCase(description.value),
                     category: category.value,
                     unit: unit.value,
                     minStock: parseInt(minStock.value)
@@ -8841,8 +8881,11 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div class="md:col-span-2">
                                 <label for="description" class="block text-sm font-medium themed-text-light">Descripción</label>
-                                <div class="relative">
-                                    <input type="text" id="description" required class="themed-input mt-1 block w-full px-4 py-3 border rounded-md shadow-sm" placeholder="Escribe la descripción del artículo...">
+                                <div class="relative flex">
+                                    <input type="text" id="description" required class="themed-input mt-1 block w-full px-4 py-3 border rounded-md shadow-sm rounded-r-none" placeholder="Escribe la descripción del artículo...">
+                                    <button type="button" id="improve-name-btn" class="mt-1 px-3 py-3 bg-purple-600 hover:bg-purple-700 text-white border border-purple-600 rounded-r-md transition-colors ${!aiModule.isInitialized ? 'opacity-50 cursor-not-allowed' : ''}" ${!aiModule.isInitialized ? 'disabled' : ''} title="Mejorar nombre con IA">
+                                        <i data-lucide="sparkles" class="h-4 w-4"></i>
+                                    </button>
                                     <div id="description-suggestions" class="absolute z-10 w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md shadow-lg hidden max-h-40 overflow-y-auto"></div>
                                 </div>
                             </div>
@@ -9009,6 +9052,40 @@
             // Cancel button
             document.getElementById('cancel-new-item-btn').addEventListener('click', closeModal);
 
+            // Improve name with AI button
+            document.getElementById('improve-name-btn').addEventListener('click', async () => {
+                const descriptionInput = document.getElementById('description');
+                const improveBtn = document.getElementById('improve-name-btn');
+                const originalText = improveBtn.innerHTML;
+                
+                if (!descriptionInput.value.trim()) {
+                    showNotification('Escribe un nombre para mejorar', 'warning');
+                    return;
+                }
+
+                // Show loading state
+                improveBtn.innerHTML = '<i data-lucide="loader" class="h-4 w-4 animate-spin"></i>';
+                improveBtn.disabled = true;
+
+                try {
+                    const improvedName = await improveArticleName(descriptionInput.value);
+                    if (improvedName && improvedName !== descriptionInput.value) {
+                        descriptionInput.value = improvedName;
+                        showNotification('Nombre mejorado con IA', 'success');
+                    } else {
+                        showNotification('El nombre ya está bien formateado', 'info');
+                    }
+                } catch (error) {
+                    console.error('Error improving name:', error);
+                    showNotification('Error al mejorar el nombre', 'error');
+                } finally {
+                    // Restore button state
+                    improveBtn.innerHTML = originalText;
+                    improveBtn.disabled = false;
+                    safeCreateIcons();
+                }
+            });
+
             // Form submission
             form.addEventListener('submit', async (e) => {
                 e.preventDefault();
@@ -9021,7 +9098,7 @@
                 const useSmartDefaults = document.getElementById('use-smart-defaults').checked;
                 
                 const newItem = {
-                    description: description.value,
+                    description: toTitleCase(description.value),
                     category: category.value,
                     unit: unit.value,
                     stock: parseInt(stock.value),
@@ -9266,7 +9343,7 @@
                     }
                     
                     items.push({
-                        description,
+                        description: toTitleCase(description),
                         category,
                         stock,
                         minStock,
@@ -10627,50 +10704,6 @@
                 .slice(0, limit);
         }
 
-        function getSmartSuggestions(searchTerm = '', itemType = null, limit = 8) {
-            const mostUsed = getMostUsedItems(limit * 2, itemType);
-            
-            if (!searchTerm) {
-                return mostUsed.slice(0, limit);
-            }
-            
-            const searchLower = searchTerm.toLowerCase();
-            
-            // Búsqueda fuzzy en items más usados
-            const filteredUsed = mostUsed
-                .map(item => ({
-                    ...item,
-                    score: fuzzyMatch(searchLower, `${item.description} ${item.category}`)
-                }))
-                .filter(item => item.score > 0)
-                .sort((a, b) => b.score - a.score);
-            
-            if (filteredUsed.length >= limit) {
-                return filteredUsed.slice(0, limit);
-            }
-            
-            // Búsqueda fuzzy en todo el inventario usando índice
-            const allMatches = Array.from(state.searchIndex.values())
-                .map(indexData => ({
-                    itemId: indexData.id,
-                    description: indexData.description,
-                    category: indexData.category,
-                    score: fuzzyMatch(searchLower, indexData.searchText),
-                    totalUsage: 0,
-                    recentUsage: 0,
-                    lastUsed: null,
-                    loanCount: 0,
-                    checkoutCount: 0
-                }))
-                .filter(item => item.score > 0)
-                .sort((a, b) => b.score - a.score);
-            
-            // Combinar sin duplicados
-            const usedIds = new Set(filteredUsed.map(i => i.itemId));
-            const newMatches = allMatches.filter(i => !usedIds.has(i.itemId));
-            
-            return [...filteredUsed, ...newMatches].slice(0, limit);
-        }
         function generateCharts() {
             if (typeof Chart === 'undefined') {
                 console.error("Chart.js is not loaded.");
@@ -12897,6 +12930,65 @@ Ordena los resultados por relevancia (mayor a menor). Máximo 20 resultados.`;
             
             // Re-initialize Lucide icons to update the display
             safeCreateIcons();
+        }
+
+        // Helper functions for text formatting
+        function toTitleCase(str) {
+            if (!str || typeof str !== 'string') return str;
+            
+            // Lista de palabras que no deben capitalizarse (preposiciones, artículos, etc.)
+            const lowercaseWords = ['de', 'del', 'la', 'el', 'en', 'con', 'por', 'para', 'a', 'al', 'un', 'una', 'y', 'o', 'pero', 'mas', 'sin', 'sobre', 'bajo', 'entre', 'hasta', 'desde', 'hacia', 'durante', 'mediante', 'según', 'ante', 'bajo', 'cabe', 'con', 'contra', 'de', 'desde', 'en', 'entre', 'hacia', 'hasta', 'para', 'por', 'según', 'sin', 'sobre', 'tras'];
+            
+            return str
+                .toLowerCase()
+                .split(' ')
+                .map((word, index) => {
+                    // Siempre capitalizar la primera palabra
+                    if (index === 0) {
+                        return word.charAt(0).toUpperCase() + word.slice(1);
+                    }
+                    // No capitalizar palabras en la lista de excepciones
+                    if (lowercaseWords.includes(word)) {
+                        return word;
+                    }
+                    // Capitalizar todas las demás palabras
+                    return word.charAt(0).toUpperCase() + word.slice(1);
+                })
+                .join(' ');
+        }
+
+        // Función para mejorar nombres de artículos con IA
+        async function improveArticleName(description) {
+            if (!description || !description.trim()) return description;
+            if (!aiModule.isInitialized) {
+                showNotification('IA no disponible para mejorar el nombre', 'warning');
+                return description;
+            }
+
+            try {
+                const response = await fetch('/api/gemini', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        message: description.trim(),
+                        context: 'formatName'
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Error en la respuesta de la IA');
+                }
+
+                const data = await response.json();
+                if (data.success && data.response) {
+                    return data.response.trim();
+                }
+                return description;
+            } catch (error) {
+                console.error('Error mejorando nombre con IA:', error);
+                showNotification('Error al mejorar el nombre con IA', 'error');
+                return description;
+            }
         }
 
     </script>

@@ -28,8 +28,8 @@ export default async function handler(req, res) {
             });
         }
 
-        // Configurar la petición a Gemini
-        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`;
+        // Línea corregida en gemini.js
+        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
         
         console.log('Gemini URL:', geminiUrl.replace(apiKey, '***API_KEY***'));
         console.log('Context:', context);

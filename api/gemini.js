@@ -124,7 +124,7 @@ Devuelve solo el nombre corregido.`;
                 temperature: context === 'validation' ? 0.1 : 0.7,
                 topK: 20,
                 topP: 0.8,
-                maxOutputTokens: context === 'validation' ? 10 : (context === 'chat' ? 512 : 1024),
+                maxOutputTokens: context === 'validation' ? 50 : (context === 'chat' ? 512 : 1024),
                 candidateCount: 1
             }
         };
@@ -207,6 +207,16 @@ Devuelve solo el nombre corregido.`;
         }
 
         const data = await response.json();
+        
+        // Verificar si hay un finishReason problemático
+        if (data.candidates && data.candidates[0] && data.candidates[0].finishReason === 'MAX_TOKENS') {
+            console.warn('Gemini response truncated due to MAX_TOKENS limit');
+            return res.status(500).json({ 
+                error: 'Response truncated - increase max tokens or simplify request',
+                success: false,
+                finishReason: 'MAX_TOKENS'
+            });
+        }
         
         if (!data.candidates || !data.candidates[0] || !data.candidates[0].content || 
             !data.candidates[0].content.parts || !data.candidates[0].content.parts[0] || 

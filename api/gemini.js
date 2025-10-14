@@ -52,6 +52,12 @@ export default async function handler(req, res) {
             case 'chat':
                 // El prompt ya viene formateado desde el frontend
                 break;
+            case 'analysis':
+                // El prompt ya viene formateado desde el frontend para análisis
+                break;
+            case 'report':
+                // El prompt ya viene formateado desde el frontend para reportes
+                break;
             case 'search':
                 prompt = `Eres un asistente de búsqueda de inventario especializado. 
 
@@ -121,10 +127,10 @@ Devuelve solo el nombre corregido.`;
                 }]
             }],
             generationConfig: {
-                temperature: context === 'validation' ? 0.1 : 0.7,
+                temperature: context === 'validation' ? 0.1 : (context === 'analysis' ? 0.3 : (context === 'report' ? 0.4 : (context === 'search' ? 0.2 : 0.7))),
                 topK: 20,
                 topP: 0.8,
-                maxOutputTokens: context === 'validation' ? 50 : (context === 'chat' ? 512 : 1024),
+                maxOutputTokens: context === 'validation' ? 50 : (context === 'chat' ? 512 : (context === 'analysis' ? 2048 : (context === 'report' ? 3072 : (context === 'search' ? 1536 : 1024)))),
                 candidateCount: 1
             }
         };

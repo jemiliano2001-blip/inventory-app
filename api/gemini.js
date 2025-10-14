@@ -255,7 +255,7 @@ Devuelve solo el nombre corregido.`;
             console.warn('Gemini response truncated due to MAX_TOKENS limit');
             
             // En lugar de devolver error, devolver respuesta parcial con metadata
-            const generatedText = data.candidates[0].content.parts[0].text || '';
+            const generatedText = data.candidates[0].content?.parts?.[0]?.text || '';
             
             return res.status(200).json({ 
                 success: true,

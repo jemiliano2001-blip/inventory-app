@@ -11002,6 +11002,27 @@ Responde de manera útil y específica sobre el inventario. Si es una consulta d
                 return Math.max(1, Math.ceil((maxDate - minDate) / (1000 * 60 * 60 * 24)));
             },
             
+            // Función para reducir datos de inventario de manera inteligente
+            reduceInventoryData(fullData, reductionLevel = 1.0) {
+                const maxItems = Math.floor(20 * reductionLevel);
+                const maxTransactions = Math.floor(10 * reductionLevel);
+                
+                // Priorizar items: bajo stock, préstamos activos, actividad reciente
+                const prioritizedItems = fullData.inventory
+                    .sort((a, b) => {
+                        const scoreA = (a.stock <= a.minStock ? 100 : 0) + (a.transactionCount || 0);
+                        const scoreB = (b.stock <= b.minStock ? 100 : 0) + (b.transactionCount || 0);
+                        return scoreB - scoreA;
+                    })
+                    .slice(0, maxItems);
+                
+                return {
+                    ...fullData,
+                    inventory: prioritizedItems,
+                    transactions: fullData.transactions.slice(-maxTransactions)
+                };
+            },
+
             // Análisis inteligente (solo admin)
             async analyzeInventoryData() {
                 if (!this.isInitialized) {
@@ -11015,55 +11036,79 @@ Responde de manera útil y específica sobre el inventario. Si es una consulta d
                     categories: state.categories
                 };
                 
-                try {
-                    const response = await fetch('/api/gemini', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            message: `Analiza estos datos de inventario y proporciona insights sobre:
+                // Intentar análisis con reducción progresiva de datos si es necesario
+                const reductionLevels = [1.0, 0.5, 0.25, 0.1];
+                let lastError = null;
+                
+                for (let i = 0; i < reductionLevels.length; i++) {
+                    const reductionLevel = reductionLevels[i];
+                    const reducedData = this.reduceInventoryData(analysisData, reductionLevel);
+                    
+                    try {
+                        const response = await fetch('/api/gemini', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                message: `Analiza estos datos de inventario y proporciona insights sobre:
 1. Productos con consumo irregular
 2. Productos subutilizados  
 3. Patrones de préstamos
 4. Recomendaciones de optimización
 
 DATOS DEL INVENTARIO:
-- Total de artículos: ${analysisData.inventory.length}
-- Total de transacciones: ${analysisData.transactions.length}
-- Préstamos activos: ${analysisData.activeLoans.length}
-- Categorías: ${analysisData.categories.length}
+- Total de artículos: ${reducedData.inventory.length}${reductionLevel < 1.0 ? ` (muestra de ${analysisData.inventory.length})` : ''}
+- Total de transacciones: ${reducedData.transactions.length}${reductionLevel < 1.0 ? ` (muestra de ${analysisData.transactions.length})` : ''}
+- Préstamos activos: ${reducedData.activeLoans.length}
+- Categorías: ${reducedData.categories.length}
 
 ARTÍCULOS (muestra):
-${analysisData.inventory.slice(0, 20).map(item => 
+${reducedData.inventory.map(item => 
     `- ${item.description} (Stock: ${item.stock}, Min: ${item.minStock}, Categoría: ${item.category})`
 ).join('\n')}
 
 TRANSACCIONES RECIENTES (últimas 10):
-${analysisData.transactions.slice(-10).map(t => 
+${reducedData.transactions.map(t => 
     `- ${t.type} ${t.quantity} ${t.itemDescription} (${new Date(t.timestamp).toLocaleDateString()})`
 ).join('\n')}
 
 PRÉSTAMOS ACTIVOS:
-${analysisData.activeLoans.map(loan => 
+${reducedData.activeLoans.map(loan => 
     `- ${loan.itemDescription} → ${loan.borrowerName} (desde ${new Date(loan.loanDate).toLocaleDateString()})`
 ).join('\n')}
 
 Proporciona un análisis conciso y recomendaciones específicas.`,
-                            context: 'analysis'
-                        })
-                    });
-                    
-                    if (response.ok) {
-                        const data = await response.json();
-                        return data.response;
-                    } else {
-                        throw new Error('Failed to get analysis');
+                                context: 'analysis'
+                            })
+                        });
+                        
+                        if (response.ok) {
+                            const data = await response.json();
+                            
+                            // Si la respuesta fue truncada, mostrar notificación
+                            if (data.truncated) {
+                                showNotification(`Análisis completado con datos muestreados (${Math.round(reductionLevel * 100)}% de datos originales)`, 'warning');
+                            } else if (reductionLevel < 1.0) {
+                                showNotification(`Análisis completado usando muestra de datos (${Math.round(reductionLevel * 100)}% de datos originales)`, 'info');
+                            }
+                            
+                            return data.response;
+                        } else {
+                            lastError = new Error('Failed to get analysis');
+                        }
+                    } catch (error) {
+                        console.error(`Error in analyzeInventoryData (reduction level ${reductionLevel}):`, error);
+                        lastError = error;
+                        
+                        // Si es el último intento, lanzar el error
+                        if (i === reductionLevels.length - 1) {
+                            throw error;
+                        }
                     }
-                } catch (error) {
-                    console.error('Error in analyzeInventoryData:', error);
-                    throw error;
                 }
+                
+                throw lastError;
             },
             
             // Generación de documentos (solo admin)

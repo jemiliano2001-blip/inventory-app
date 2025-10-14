@@ -121,7 +121,31 @@ Devuelve solo el nombre corregido.`;
                 break;
         }
 
-        // Configuración optimizada para velocidad y eficiencia
+        // Funciones para cálculo dinámico de tokens
+        function estimateTokens(text) {
+            return Math.ceil(text.length / 4);
+        }
+
+        function calculateMaxOutputTokens(inputText, context, modelLimit = 1000000) {
+            const inputTokens = estimateTokens(inputText);
+            const safetyMargin = 1000;
+            const availableTokens = modelLimit - inputTokens - safetyMargin;
+            
+            const contextMaximums = {
+                validation: 50,
+                chat: 512,
+                analysis: 2048,
+                report: 3072,
+                search: 1536
+            };
+            
+            const contextMax = contextMaximums[context] || 1024;
+            return Math.min(availableTokens, contextMax);
+        }
+
+        // Configuración optimizada para velocidad y eficiencia con cálculo dinámico de tokens
+        const dynamicMaxTokens = calculateMaxOutputTokens(prompt, context);
+        
         const requestBody = {
             contents: [{
                 parts: [{
@@ -132,7 +156,7 @@ Devuelve solo el nombre corregido.`;
                 temperature: context === 'validation' ? 0.1 : (context === 'analysis' ? 0.3 : (context === 'report' ? 0.4 : (context === 'search' ? 0.2 : 0.7))),
                 topK: 20,
                 topP: 0.8,
-                maxOutputTokens: context === 'validation' ? 50 : (context === 'chat' ? 512 : (context === 'analysis' ? 2048 : (context === 'report' ? 3072 : (context === 'search' ? 1536 : 1024)))),
+                maxOutputTokens: dynamicMaxTokens,
                 candidateCount: 1
             }
         };
@@ -229,10 +253,20 @@ Devuelve solo el nombre corregido.`;
         // Verificar si hay un finishReason problemático
         if (data.candidates && data.candidates[0] && data.candidates[0].finishReason === 'MAX_TOKENS') {
             console.warn('Gemini response truncated due to MAX_TOKENS limit');
-            return res.status(500).json({ 
-                error: 'Response truncated - increase max tokens or simplify request',
-                success: false,
-                finishReason: 'MAX_TOKENS'
+            
+            // En lugar de devolver error, devolver respuesta parcial con metadata
+            const generatedText = data.candidates[0].content.parts[0].text || '';
+            
+            return res.status(200).json({ 
+                success: true,
+                response: generatedText,
+                truncated: true,
+                finishReason: 'MAX_TOKENS',
+                metadata: {
+                    inputTokens: estimateTokens(prompt),
+                    maxOutputTokens: dynamicMaxTokens,
+                    message: 'Respuesta truncada debido a límite de tokens. Considera reducir el tamaño de los datos enviados.'
+                }
             });
         }
         

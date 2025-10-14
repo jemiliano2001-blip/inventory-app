@@ -191,7 +191,7 @@ Devuelve solo el nombre corregido.`;
                             try {
                                 const data = JSON.parse(line.slice(6));
                                 if (data.candidates && data.candidates[0] && data.candidates[0].content) {
-                                    const text = data.candidates[0].content.parts[0].text;
+                                    const text = data.candidates[0].content?.parts?.[0]?.text;
                                     if (text) {
                                         res.write(`data: ${JSON.stringify({ text, done: false })}\n\n`);
                                     }
@@ -281,7 +281,7 @@ Devuelve solo el nombre corregido.`;
             });
         }
 
-        const generatedText = data.candidates[0].content.parts[0].text;
+        const generatedText = data.candidates[0].content?.parts?.[0]?.text || '';
         
         // Para validación, solo necesitamos saber si funcionó
         if (context === 'validation') {

@@ -31,9 +31,12 @@ export default async function handler(req, res) {
             });
         }
 
-        // Configurar la petición a Gemini - Usando gemini-2.5-flash-exp para mejor velocidad
-        const endpoint = isStreaming ? 'streamGenerateContent' : 'generateContent';
-        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-exp:${endpoint}?key=${apiKey}`;
+                // ...
+                // Configurar la petición a Gemini - Usando gemini-2.5-flash para mejor velocidad
+                const endpoint = isStreaming ? 'streamGenerateContent' : 'generateContent';
+                const modelName = 'gemini-2.5-flash'; // <<< CÓDIGO CORREGIDO
+                const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:${endpoint}?key=${apiKey}`;
+                // ...
         
         console.log('Gemini URL:', geminiUrl.replace(apiKey, '***API_KEY***'));
         console.log('Context:', context);

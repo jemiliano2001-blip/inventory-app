@@ -208,11 +208,14 @@ Devuelve solo el nombre corregido.`;
 
         const data = await response.json();
         
-        if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
+        if (!data.candidates || !data.candidates[0] || !data.candidates[0].content || 
+            !data.candidates[0].content.parts || !data.candidates[0].content.parts[0] || 
+            !data.candidates[0].content.parts[0].text) {
             console.error('Invalid response from Gemini:', data);
             return res.status(500).json({ 
-                error: 'Invalid response from Gemini API',
-                success: false 
+                error: 'Invalid response from Gemini API - missing content or parts',
+                success: false,
+                debug: process.env.NODE_ENV === 'development' ? data : undefined
             });
         }
 

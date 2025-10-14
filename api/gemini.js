@@ -41,6 +41,7 @@ export default async function handler(req, res) {
         console.log('Gemini URL:', geminiUrl.replace(apiKey, '***API_KEY***'));
         console.log('Context:', context);
         console.log('Message length:', message.length);
+        console.log('Prompt preview:', message.substring(0, 200) + '...');
         
         let prompt = message;
         
@@ -54,6 +55,7 @@ export default async function handler(req, res) {
                 break;
             case 'analysis':
                 // El prompt ya viene formateado desde el frontend para análisis
+                console.log('Processing analysis context');
                 break;
             case 'report':
                 // El prompt ya viene formateado desde el frontend para reportes
@@ -213,6 +215,16 @@ Devuelve solo el nombre corregido.`;
         }
 
         const data = await response.json();
+        console.log('Gemini response structure:', {
+            hasCandidates: !!data.candidates,
+            candidatesLength: data.candidates?.length,
+            firstCandidate: data.candidates?.[0] ? {
+                hasContent: !!data.candidates[0].content,
+                finishReason: data.candidates[0].finishReason,
+                hasParts: !!data.candidates[0].content?.parts,
+                partsLength: data.candidates[0].content?.parts?.length
+            } : null
+        });
         
         // Verificar si hay un finishReason problemático
         if (data.candidates && data.candidates[0] && data.candidates[0].finishReason === 'MAX_TOKENS') {

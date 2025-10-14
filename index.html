@@ -11023,12 +11023,33 @@ Responde de manera útil y específica sobre el inventario. Si es una consulta d
                         },
                         body: JSON.stringify({
                             message: `Analiza estos datos de inventario y proporciona insights sobre:
-                            1. Productos con consumo irregular
-                            2. Productos subutilizados
-                            3. Patrones de préstamos
-                            4. Recomendaciones de optimización
-                            
-                            Datos: ${JSON.stringify(analysisData)}`,
+1. Productos con consumo irregular
+2. Productos subutilizados  
+3. Patrones de préstamos
+4. Recomendaciones de optimización
+
+DATOS DEL INVENTARIO:
+- Total de artículos: ${analysisData.inventory.length}
+- Total de transacciones: ${analysisData.transactions.length}
+- Préstamos activos: ${analysisData.activeLoans.length}
+- Categorías: ${analysisData.categories.length}
+
+ARTÍCULOS (muestra):
+${analysisData.inventory.slice(0, 20).map(item => 
+    `- ${item.description} (Stock: ${item.stock}, Min: ${item.minStock}, Categoría: ${item.category})`
+).join('\n')}
+
+TRANSACCIONES RECIENTES (últimas 10):
+${analysisData.transactions.slice(-10).map(t => 
+    `- ${t.type} ${t.quantity} ${t.itemDescription} (${new Date(t.timestamp).toLocaleDateString()})`
+).join('\n')}
+
+PRÉSTAMOS ACTIVOS:
+${analysisData.activeLoans.map(loan => 
+    `- ${loan.itemDescription} → ${loan.borrowerName} (desde ${new Date(loan.loanDate).toLocaleDateString()})`
+).join('\n')}
+
+Proporciona un análisis conciso y recomendaciones específicas.`,
                             context: 'analysis'
                         })
                     });

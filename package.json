@@ -1,17 +1,16 @@
 {
-  "name": "my-inventory-app",
+  "name": "inventory-management-system",
   "version": "1.0.0",
-  "description": "Inventory management application with AI integration",
+  "description": "Sistema interno de gestión de inventario con IA para uso empresarial",
   "main": "index.html",
+  "private": true,
   "scripts": {
     "dev": "vercel dev",
     "start": "vercel dev",
     "build": "echo 'No build step required for static site'",
     "serve": "python -m http.server 8000",
-    "serve:node": "node start_server.js",
     "serve:win": "start_server.bat",
-    "lint": "echo 'No linting configured yet'",
-    "test": "echo 'No tests configured yet'",
+    "audit": "npm audit --audit-level=moderate",
     "deploy": "vercel --prod",
     "preview": "vercel"
   },

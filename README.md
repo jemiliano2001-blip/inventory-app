@@ -1,9 +1,9 @@
-# 📦 Gestión Central de Inventario
+# 📦 Sistema de Gestión de Inventario Empresarial
 
-Una aplicación web moderna de gestión de inventario con integración de IA, diseñada como Progressive Web App (PWA) para uso tanto en escritorio como móvil.
+Sistema interno de gestión de inventario con integración de IA para uso exclusivo de la empresa.
 
 ![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
-![License](https://img.shields.io/badge/license-MIT-green.svg)
+![Private](https://img.shields.io/badge/access-private-red.svg)
 ![PWA](https://img.shields.io/badge/PWA-enabled-purple.svg)
 ![AI](https://img.shields.io/badge/AI-Gemini-orange.svg)
 
@@ -30,13 +30,13 @@ Una aplicación web moderna de gestión de inventario con integración de IA, di
 - **PWA**: Service Worker, Web App Manifest
 - **Deployment**: Vercel
 
-## 🚀 Instalación y Uso
+## 🚀 Instalación y Uso Interno
 
-### Opción 1: Desarrollo Local (Recomendado)
+### Desarrollo Local
 
 1. **Clona el repositorio**:
    ```bash
-   git clone https://github.com/jemiliano2001-blip/inventory-app.git
+   git clone [URL_PRIVADA_DEL_REPOSITORIO]
    cd inventory-app
    ```
 
@@ -45,7 +45,13 @@ Una aplicación web moderna de gestión de inventario con integración de IA, di
    npm install
    ```
 
-3. **Inicia el servidor local**:
+3. **Configura las variables de entorno**:
+   ```bash
+   # Crear archivo .env
+   GEMINI_API_KEY=tu_clave_de_api_aqui
+   ```
+
+4. **Inicia el servidor local**:
    ```bash
    # Windows
    start_server.bat
@@ -57,35 +63,25 @@ Una aplicación web moderna de gestión de inventario con integración de IA, di
    npm run dev
    ```
 
-4. **Abre en el navegador**: `http://localhost:8000`
+5. **Abre en el navegador**: `http://localhost:8000`
 
-### Opción 2: Despliegue en Vercel
+### Despliegue en Producción
 
-1. **Conecta tu repositorio** a Vercel
-2. **Configura las variables de entorno**:
-   - `GEMINI_API_KEY`: Tu clave de API de Google Gemini
-3. **Despliega automáticamente** con cada push
+El sistema está configurado para desplegarse automáticamente en Vercel cuando se hace push a la rama principal.
 
-### Opción 3: Uso Directo
+## 🔧 Configuración Interna
 
-Puedes usar la aplicación directamente desde GitHub Pages o cualquier servidor web estático.
-
-## 🔧 Configuración
-
-### Variables de Entorno
-
-Para usar la funcionalidad de IA, necesitas configurar:
+### Variables de Entorno Requeridas
 
 ```bash
-# En tu archivo .env o variables de entorno de Vercel
-GEMINI_API_KEY=tu_clave_de_api_aqui
+GEMINI_API_KEY=tu_clave_de_api_de_gemini
 ```
 
 ### Obtener API Key de Gemini
 
 1. Ve a [Google AI Studio](https://makersuite.google.com/app/apikey)
 2. Crea una nueva API key
-3. Configúrala en tu entorno de desarrollo o producción
+3. Configúrala en Vercel o en tu archivo .env local
 
 ## 📱 Instalación como PWA
 
@@ -94,7 +90,7 @@ GEMINI_API_KEY=tu_clave_de_api_aqui
 3. O ve al menú → "Instalar aplicación"
 4. ¡Disfruta de la experiencia nativa!
 
-## 🎯 Funcionalidades Principales
+## 🎯 Funcionalidades del Sistema
 
 ### 📦 Gestión de Inventario
 - Agregar, editar y eliminar productos
@@ -102,7 +98,7 @@ GEMINI_API_KEY=tu_clave_de_api_aqui
 - Control de stock y alertas de bajo inventario
 - Búsqueda avanzada y filtros
 
-### 📊 Dashboard Inteligente
+### 📊 Dashboard Empresarial
 - Gráficos de tendencias de inventario
 - Análisis de productos más vendidos
 - Estadísticas de categorías
@@ -140,44 +136,23 @@ inventory-app/
 npm run dev          # Inicia servidor de desarrollo
 npm run build        # Construye para producción
 npm run start        # Inicia aplicación
+npm run serve        # Servidor Python local
+npm run serve:node   # Servidor Node.js local
+npm run serve:win    # Servidor Windows batch
+npm run deploy       # Despliega a producción
 ```
 
-## 🤝 Contribuir
+## 🔒 Seguridad y Acceso
 
-¡Las contribuciones son bienvenidas! Por favor:
+- **Repositorio Privado**: Solo accesible para miembros autorizados de la empresa
+- **API Keys**: Configuradas como variables de entorno seguras
+- **PWA**: Funciona offline sin comprometer datos sensibles
+- **Datos Locales**: Almacenados en IndexedDB del navegador
 
-1. Fork el proyecto
-2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
-3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
-4. Push a la rama (`git push origin feature/AmazingFeature`)
-5. Abre un Pull Request
+## 📞 Soporte Interno
 
-## 📝 Licencia
-
-Este proyecto está bajo la Licencia MIT. Ver el archivo `LICENSE` para más detalles.
-
-## 🐛 Reportar Problemas
-
-Si encuentras algún problema, por favor:
-
-1. Verifica que no esté ya reportado en [Issues](https://github.com/jemiliano2001-blip/inventory-app/issues)
-2. Crea un nuevo issue con:
-   - Descripción detallada del problema
-   - Pasos para reproducir
-   - Capturas de pantalla si es necesario
-   - Información del navegador/dispositivo
-
-## 🎉 Agradecimientos
-
-- [Google Gemini](https://ai.google.dev/) por la API de IA
-- [Tailwind CSS](https://tailwindcss.com/) por el framework de estilos
-- [Chart.js](https://www.chartjs.org/) por las librerías de gráficos
-- [Vercel](https://vercel.com/) por el hosting
-
-## 📞 Contacto
-
-**Emiliano** - [@jemiliano2001-blip](https://github.com/jemiliano2001-blip)
+Para soporte técnico o reportar problemas, contactar al equipo de desarrollo interno.
 
 ---
 
-⭐ **¡Si te gusta este proyecto, no olvides darle una estrella!** ⭐
+**⚠️ CONFIDENCIAL**: Este sistema es de uso exclusivo interno de la empresa.

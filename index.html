@@ -27,46 +27,56 @@
 
     <!-- PWA Manifest (Ensure you have a manifest.json file) -->
     <!-- <link rel="manifest" href="manifest.json"> -->
-    <meta name="theme-color" content="#4f46e5">
+    <meta name="theme-color" content="#1e40af">
 
     <style>
         /* CSS Variables for Theming */
         :root {
-            --bg-color: #f3f4f6;
-            --text-color: #1f2937;
-            --text-color-light: #6b7280;
+            --bg-color: #f8fafc;
+            --text-color: #0f172a;
+            --text-color-light: #64748b;
             --card-bg: #ffffff;
-            --border-color: #e5e7eb;
-            --sidebar-bg: #4338ca;
-            --sidebar-hover-bg: #3730a3;
-            --sidebar-active-bg: #3730a3;
-            --sidebar-text: #ffffff;
-            --header-bg: #ffffff;
+            --border-color: #e2e8f0;
+            --sidebar-bg: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+            --sidebar-hover-bg: rgba(30, 64, 175, 0.9);
+            --sidebar-active-bg: rgba(30, 64, 175, 0.95);
+            --sidebar-text: #f1f5f9;
+            --header-bg: rgba(255, 255, 255, 0.85);
             --input-bg: #ffffff;
-            --input-border: #d1d5db;
+            --input-border: #e2e8f0;
+            --primary-color: #1e40af;
+            --primary-hover: #1e3a8a;
+            --accent-color: #3b82f6;
+            --secondary-color: #0ea5e9;
         }
 
         html.dark {
-            --bg-color: #111827; /* gray-900 - más suave que slate-900 */
-            --text-color: #f9fafb; /* gray-50 - más brillante */
-            --text-color-light: #9ca3af; /* gray-400 */
-            --card-bg: #1f2937; /* gray-800 - más cálido */
-            --border-color: #374151; /* gray-700 */
-            --sidebar-bg: #111827; /* gray-900 - mismo que bg-color */
-            --sidebar-hover-bg: #374151; /* gray-700 */
-            --sidebar-active-bg: #4b5563; /* gray-600 */
-            --sidebar-text: #f9fafb; /* gray-50 */
-            --header-bg: #1f2937; /* gray-800 */
-            --input-bg: #374151; /* gray-700 */
-            --input-border: #4b5563; /* gray-600 */
+            --bg-color: #0f172a;
+            --text-color: #f1f5f9;
+            --text-color-light: #94a3b8;
+            --card-bg: #1e293b;
+            --border-color: #334155;
+            --sidebar-bg: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+            --sidebar-hover-bg: rgba(30, 64, 175, 0.8);
+            --sidebar-active-bg: rgba(30, 64, 175, 0.95);
+            --sidebar-text: #f1f5f9;
+            --header-bg: rgba(30, 41, 59, 0.85);
+            --input-bg: #334155;
+            --input-border: #475569;
+            --primary-color: #3b82f6;
+            --primary-hover: #2563eb;
+            --accent-color: #60a5fa;
+            --secondary-color: #38bdf8;
         }
 
         /* Color Themes */
         .theme-blue {
-            --primary-color: #3b82f6;
-            --primary-hover: #2563eb;
+            --primary-color: #1e40af;
+            --primary-hover: #1e3a8a;
             --primary-light: #dbeafe;
-            --primary-dark: #1e40af;
+            --primary-dark: #1e3a8a;
+            --accent-color: #3b82f6;
+            --secondary-color: #0ea5e9;
         }
 
         .theme-green {
@@ -92,19 +102,19 @@
 
         /* Button Sizes */
         .button-size-normal {
-            --button-padding: 0.5rem 1rem;
+            --button-padding: 0.875rem 1.5rem;
             --button-font-size: 0.875rem;
-            --button-height: 2.5rem;
+            --button-height: 2.75rem;
         }
 
         .button-size-large {
-            --button-padding: 0.75rem 1.5rem;
+            --button-padding: 1rem 1.5rem;
             --button-font-size: 1rem;
             --button-height: 3rem;
         }
 
         .button-size-extra-large {
-            --button-padding: 1rem 2rem;
+            --button-padding: 1.25rem 2rem;
             --button-font-size: 1.125rem;
             --button-height: 3.5rem;
         }
@@ -114,6 +124,36 @@
             padding: var(--button-padding);
             font-size: var(--button-font-size);
             height: var(--button-height);
+            min-height: 44px; /* Touch-friendly */
+        }
+
+        /* Enhanced button styles */
+        .btn-primary, .btn-modern {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
+            border: none;
+            color: white;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(30, 64, 175, 0.2);
+        }
+
+        .btn-primary:hover, .btn-modern:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(30, 64, 175, 0.3);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            border: 2px solid var(--primary-color);
+            color: var(--primary-color);
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(30, 64, 175, 0.05);
+            border-color: var(--primary-hover);
+            color: var(--primary-hover);
         }
 
         /* Apply primary colors to themed elements */
@@ -715,18 +755,235 @@
         }
 
         /* Themed components */
-        .themed-card { background-color: var(--card-bg); border-color: var(--border-color); }
+        .themed-card { 
+            background-color: var(--card-bg); 
+            border: 1px solid var(--border-color);
+            border-radius: 0.75rem;
+            box-shadow: 0 1px 3px rgba(30, 64, 175, 0.1);
+            transition: all 0.2s ease;
+        }
+
+        .themed-card:hover {
+            box-shadow: 0 4px 12px rgba(30, 64, 175, 0.15);
+            border-color: rgba(30, 64, 175, 0.2);
+        }
         .themed-sidebar { 
-            background: linear-gradient(180deg, var(--sidebar-bg) 0%, rgba(17, 24, 39, 0.95) 100%);
+            background: var(--sidebar-bg);
             color: var(--sidebar-text); 
             min-height: 100vh;
+            backdrop-filter: blur(10px);
         }
         .themed-sidebar .nav-link:hover { background-color: var(--sidebar-hover-bg); }
         .themed-sidebar .nav-link.active { background-color: var(--sidebar-active-bg); }
         .themed-header { background-color: var(--header-bg); border-color: var(--border-color); color: var(--text-color); }
-        .themed-input { background-color: var(--input-bg); border-color: var(--input-border); color: var(--text-color); }
-        .themed-table-header { background-color: var(--bg-color); }
-        .themed-table-body { background-color: var(--card-bg); }
+        .themed-input { 
+            background-color: var(--input-bg); 
+            border: 1px solid var(--input-border);
+            color: var(--text-color);
+            padding: 0.875rem 1rem;
+            border-radius: 0.5rem;
+            font-size: 0.9375rem;
+            line-height: 1.5;
+            transition: all 0.2s ease;
+            min-height: 44px;
+        }
+
+        .themed-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.2);
+        }
+
+        .themed-input:hover {
+            border-color: var(--primary-color);
+        }
+
+        /* Input field icons */
+        .input-icon {
+            width: 20px;
+            height: 20px;
+        }
+
+        /* Button icons */
+        .btn-icon {
+            width: 24px;
+            height: 24px;
+        }
+
+        /* Number input steppers */
+        .number-input {
+            position: relative;
+        }
+
+        .number-input input[type="number"] {
+            appearance: textfield;
+            -moz-appearance: textfield;
+            padding-right: 3rem;
+        }
+
+        .number-input input[type="number"]::-webkit-outer-spin-button,
+        .number-input input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .number-steppers {
+            position: absolute;
+            right: 0;
+            top: 0;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            border-left: 1px solid var(--input-border);
+        }
+
+        .number-stepper {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-color);
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            width: 2rem;
+        }
+
+        .number-stepper:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .number-stepper:first-child {
+            border-bottom: 1px solid var(--input-border);
+        }
+
+        /* Validation feedback */
+        .input-valid {
+            border-color: #10b981 !important;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2) !important;
+        }
+
+        .input-invalid {
+            border-color: #ef4444 !important;
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2) !important;
+        }
+
+        .validation-icon {
+            position: absolute;
+            right: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 1rem;
+            height: 1rem;
+        }
+
+        .validation-success {
+            color: #10b981;
+        }
+
+        .validation-error {
+            color: #ef4444;
+        }
+
+        /* Batch operations */
+        .batch-toolbar {
+            position: sticky;
+            bottom: 0;
+            background: var(--card-bg);
+            border-top: 1px solid var(--border-color);
+            padding: 1rem;
+            display: none;
+            align-items: center;
+            gap: 1rem;
+            z-index: 20;
+        }
+
+        .batch-toolbar.active {
+            display: flex;
+        }
+
+        .batch-count {
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        /* Enhanced focus states */
+        .focus-enhanced:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.2);
+            border-color: var(--primary-color);
+        }
+
+        /* Loading states */
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+
+        .loading-spinner {
+            width: 2rem;
+            height: 2rem;
+            border: 3px solid var(--border-color);
+            border-top: 3px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        .themed-table-header { 
+            background-color: var(--bg-color);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            box-shadow: 0 1px 3px rgba(30, 64, 175, 0.1);
+        }
+        .themed-table-body { 
+            background-color: var(--card-bg);
+        }
+
+        /* Enhanced table styles */
+        .table-enhanced tbody tr:nth-child(even) {
+            background-color: rgba(30, 64, 175, 0.03);
+        }
+
+        .table-enhanced tbody tr:hover {
+            background-color: rgba(30, 64, 175, 0.05);
+            transition: background-color 0.2s ease;
+        }
+
+        .table-enhanced tbody tr {
+            transition: all 0.2s ease;
+        }
+
+        .table-enhanced tbody tr:hover .action-buttons {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .action-buttons {
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s ease;
+        }
+
+        .table-enhanced th {
+            font-weight: 600;
+            color: var(--text-color);
+            border-bottom: 2px solid var(--border-color);
+            padding: 1rem 0.75rem;
+        }
+
+        .table-enhanced td {
+            padding: 0.875rem 0.75rem;
+            border-bottom: 1px solid var(--border-color);
+        }
         .themed-border { border-color: var(--border-color); }
         .themed-divide > * + * { border-color: var(--border-color); }
         .themed-text-light { color: var(--text-color-light); }
@@ -844,7 +1101,8 @@
 
         /* Settings CSS */
         :root {
-            --font-size: 16px;
+            --font-size: 15px;
+            --line-height: 1.5;
         }
 
         /* Font size settings */
@@ -853,6 +1111,18 @@
         }
         body.large-font {
             font-size: 18px;
+        }
+
+        /* Enhanced typography */
+        body {
+            font-size: var(--font-size);
+            line-height: var(--line-height);
+        }
+
+        /* Form labels */
+        label {
+            line-height: 1.5rem;
+            font-weight: 500;
         }
 
         /* Compact sidebar */
@@ -935,7 +1205,7 @@
                                     <i data-lucide="mail" class="h-5 w-5 text-gray-400"></i>
                                 </div>
                                 <input id="email" name="email" type="email" autocomplete="email" required 
-                                       class="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200" 
+                                       class="themed-input block w-full pl-10 pr-3 py-3.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200" 
                                        placeholder="tu@email.com">
                             </div>
                         </div>
@@ -948,7 +1218,7 @@
                                     <i data-lucide="lock" class="h-5 w-5 text-gray-400"></i>
                                 </div>
                                 <input id="password" name="password" type="password" autocomplete="current-password" required 
-                                       class="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200" 
+                                       class="themed-input block w-full pl-10 pr-3 py-3.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200" 
                                        placeholder="••••••••">
                             </div>
                         </div>
@@ -963,7 +1233,7 @@
                     </button>
 
                     <button type="submit" id="login-button" 
-                            class="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transform hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none">
+                            class="btn-primary w-full flex justify-center items-center py-3.5 px-4 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transform hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none">
                         <i data-lucide="log-in" class="h-5 w-5 mr-2" id="login-icon"></i>
                         <span id="login-text">Iniciar Sesión</span>
                         <div id="login-spinner" class="hidden">
@@ -1012,12 +1282,14 @@
                         <i data-lucide="layout-dashboard" class="h-4 w-4"></i>
                     </div>
                     <span class="font-medium">Dashboard</span>
+                    <span class="ml-auto text-xs bg-white/20 text-white/70 px-2 py-0.5 rounded text-xs opacity-0 group-hover:opacity-100 transition-opacity">D</span>
                 </a>
                 <a href="#inventory" class="nav-link flex items-center space-x-3 py-2 px-4 rounded-xl transition-all duration-200 group">
                     <div class="h-8 w-8 rounded-lg bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors">
                         <i data-lucide="archive" class="h-4 w-4"></i>
                     </div>
                     <span class="font-medium">Inventario</span>
+                    <span class="ml-auto text-xs bg-white/20 text-white/70 px-2 py-0.5 rounded text-xs opacity-0 group-hover:opacity-100 transition-opacity">I</span>
                 </a>
                 <a href="#active-loans" class="nav-link flex items-center space-x-3 py-2 px-4 rounded-xl transition-all duration-200 group">
                     <div class="h-8 w-8 rounded-lg bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors">
@@ -1030,6 +1302,7 @@
                         <i data-lucide="history" class="h-4 w-4"></i>
                     </div>
                     <span class="font-medium">Historial</span>
+                    <span class="ml-auto text-xs bg-white/20 text-white/70 px-2 py-0.5 rounded text-xs opacity-0 group-hover:opacity-100 transition-opacity">H</span>
                 </a>
                 <a href="#reports" class="nav-link flex items-center space-x-3 py-2 px-4 rounded-xl transition-all duration-200 group">
                     <div class="h-8 w-8 rounded-lg bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors">
@@ -1096,11 +1369,14 @@
                             <i data-lucide="search" class="h-5 w-5 text-gray-400"></i>
                         </div>
                         <input id="search-input" type="text" 
-                               class="w-full pl-10 pr-20 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-all duration-200 text-base" 
+                               class="themed-input w-full pl-10 pr-20 py-3.5 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-all duration-200 text-base" 
                                placeholder="Buscar artículos...">
+                        <div class="absolute top-1 right-1 pointer-events-none">
+                            <span class="text-xs text-gray-400 bg-gray-100 dark:bg-gray-600 px-1.5 py-0.5 rounded opacity-0 focus-within:opacity-100 transition-opacity">⌘K</span>
+                        </div>
                         <div class="absolute inset-y-0 right-0 flex items-center pr-3">
                             <button id="ai-search-btn" type="button" 
-                                    class="ml-2 p-2 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white transition-all duration-200 group" 
+                                    class="ml-2 p-2 rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white transition-all duration-200 group" 
                                     title="Búsqueda con IA">
                                 <i data-lucide="sparkles" class="h-4 w-4 group-hover:animate-pulse"></i>
                             </button>
@@ -4774,12 +5050,16 @@
             await checkAndLoadInitialData();
             setupRealtimeListeners();
             
+            // Apply enhanced UI styles
+            applyEnhancedStyles();
+            
             // Add AI navigation link for admin users
             addAINavigation();
             
             // Also try again after a delay to ensure everything is loaded
             setTimeout(() => {
                 addAINavigation();
+                applyEnhancedStyles(); // Re-apply styles after content loads
             }, 500);
         }
 
@@ -4943,6 +5223,7 @@
             setTimeout(() => {
                 enhanceMobileTables();
                 enhanceMobileExperience();
+                applyEnhancedStyles(); // Apply enhanced UI styles
             }, 100);
         }
 
@@ -8057,16 +8338,23 @@
                 if (target.id === 'generate-manual-inventory-pdf') { generateManualInventoryPDF(); return; }
             });
             
-            // Keyboard shortcuts listener
+            // Enhanced keyboard shortcuts listener
             document.body.addEventListener('keydown', (e) => {
                 if (!state.isInitialized || !state.settings.operationalPreferences.enableKeyboardShortcuts) return;
 
-                // Ignore shortcuts if user is typing in an input
-                if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') {
+                // Ignore shortcuts if user is typing in an input (except for global shortcuts)
+                if ((e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') && 
+                    !(e.ctrlKey || e.metaKey)) {
                     return;
                 }
 
-                if (e.key.toLowerCase() === 'n' && !e.ctrlKey && !e.metaKey) {
+                // Global shortcuts (work even in inputs)
+                if (e.key.toLowerCase() === 'k' && (e.ctrlKey || e.metaKey)) {
+                    e.preventDefault();
+                    document.getElementById('search-input')?.focus();
+                }
+
+                if (e.key.toLowerCase() === 'n' && (e.ctrlKey || e.metaKey)) {
                     e.preventDefault();
                     if (state.userRole === 'admin') {
                         showNewItemModal();
@@ -8075,15 +8363,68 @@
                     }
                 }
 
-                if (e.key.toLowerCase() === 'f' && !e.ctrlKey && !e.metaKey) {
-                    e.preventDefault();
-                    document.getElementById('search-input')?.focus();
+                // Navigation shortcuts (only when not in inputs)
+                if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA' && e.target.tagName !== 'SELECT') {
+                    if (e.key.toLowerCase() === 'f') {
+                        e.preventDefault();
+                        document.getElementById('search-input')?.focus();
+                    }
+
+                    if (e.key.toLowerCase() === 's' && (e.ctrlKey || e.metaKey)) {
+                        e.preventDefault();
+                        // Save current form if any is open
+                        const activeModal = document.querySelector('.modal:not(.hidden)');
+                        if (activeModal) {
+                            const saveBtn = activeModal.querySelector('button[type="submit"], .btn-save');
+                            if (saveBtn) saveBtn.click();
+                        }
+                    }
+
+                    if (e.key === 'Escape') {
+                        e.preventDefault();
+                        // Close any open modal
+                        const activeModal = document.querySelector('.modal:not(.hidden)');
+                        if (activeModal) {
+                            const closeBtn = activeModal.querySelector('.modal-close, .close-modal');
+                            if (closeBtn) closeBtn.click();
+                        }
+                    }
+
+                    // Navigation shortcuts
+                    if (e.key.toLowerCase() === 'd' && !e.ctrlKey && !e.metaKey) {
+                        e.preventDefault();
+                        navigateTo('dashboard');
+                    }
+                    if (e.key.toLowerCase() === 'i' && !e.ctrlKey && !e.metaKey) {
+                        e.preventDefault();
+                        navigateTo('inventory');
+                    }
+                    if (e.key.toLowerCase() === 'h' && !e.ctrlKey && !e.metaKey) {
+                        e.preventDefault();
+                        navigateTo('history');
+                    }
                 }
 
-                // Atajo para búsqueda IA: Ctrl+K o Cmd+K
-                if (e.key.toLowerCase() === 'k' && (e.ctrlKey || e.metaKey)) {
-                    e.preventDefault();
-                    showAISearchModal();
+                // Form shortcuts (when in inputs)
+                if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        // Try to submit form or move to next field
+                        const form = e.target.closest('form');
+                        if (form) {
+                            const submitBtn = form.querySelector('button[type="submit"]');
+                            if (submitBtn && submitBtn.offsetParent !== null) {
+                                submitBtn.click();
+                            } else {
+                                // Move to next input
+                                const inputs = Array.from(form.querySelectorAll('input, textarea, select'));
+                                const currentIndex = inputs.indexOf(e.target);
+                                if (currentIndex < inputs.length - 1) {
+                                    inputs[currentIndex + 1].focus();
+                                }
+                            }
+                        }
+                    }
                 }
             });
         }
@@ -8179,6 +8520,14 @@
             safeCreateIcons();
             document.getElementById('close-modal-btn').addEventListener('click', closeModal);
             document.getElementById('app-modal').addEventListener('click', (e) => { if (e.target.id === 'app-modal') closeModal(); });
+            
+            // Auto-focus first input in modal
+            setTimeout(() => {
+                const firstInput = modalContainer.querySelector('input:not([type="hidden"]):not([disabled]), textarea:not([disabled]), select:not([disabled])');
+                if (firstInput) {
+                    firstInput.focus();
+                }
+            }, 100);
         }
         function closeModal() { document.getElementById('modal-container').innerHTML = ''; }
         
@@ -8200,6 +8549,47 @@
             });
         }
         
+        // Enhanced table styling function
+        function enhanceTables() {
+            const tables = document.querySelectorAll('table:not(.table-enhanced)');
+            tables.forEach(table => {
+                table.classList.add('table-enhanced');
+                
+                // Add action buttons container to each row if not present
+                const rows = table.querySelectorAll('tbody tr');
+                rows.forEach(row => {
+                    if (!row.querySelector('.action-buttons')) {
+                        const lastCell = row.querySelector('td:last-child');
+                        if (lastCell && !lastCell.classList.contains('action-cell')) {
+                            lastCell.innerHTML += '<div class="action-buttons inline-flex space-x-1 ml-2"></div>';
+                        }
+                    }
+                });
+            });
+        }
+
+        // Auto-apply enhanced styles when DOM is ready
+        function applyEnhancedStyles() {
+            // Apply to existing tables
+            enhanceTables();
+            
+            // Apply themed-input class to inputs that don't have it
+            const inputs = document.querySelectorAll('input:not(.themed-input), textarea:not(.themed-input), select:not(.themed-input)');
+            inputs.forEach(input => {
+                if (!input.classList.contains('themed-input')) {
+                    input.classList.add('themed-input');
+                }
+            });
+            
+            // Apply focus-enhanced class to interactive elements
+            const interactiveElements = document.querySelectorAll('button, input, textarea, select, a');
+            interactiveElements.forEach(el => {
+                if (!el.classList.contains('focus-enhanced')) {
+                    el.classList.add('focus-enhanced');
+                }
+            });
+        }
+
         // Mobile-specific enhancements
         function enhanceMobileExperience() {
             // Add mobile classes to buttons
@@ -9730,10 +10120,16 @@
 
             // Backup Settings
             const autoBackupEl = document.getElementById('auto-backup');
-            if (autoBackupEl) updatedSettings.backup.autoBackup = autoBackupEl.checked;
+            if (autoBackupEl) {
+                if (!updatedSettings.backup) updatedSettings.backup = {};
+                updatedSettings.backup.autoBackup = autoBackupEl.checked;
+            }
 
             const backupFrequencyEl = document.getElementById('backup-frequency');
-            if (backupFrequencyEl) updatedSettings.backup.backupFrequency = backupFrequencyEl.value;
+            if (backupFrequencyEl) {
+                if (!updatedSettings.backup) updatedSettings.backup = {};
+                updatedSettings.backup.backupFrequency = backupFrequencyEl.value;
+            }
 
             // Validación mejorada usando el sistema de validaciones
             if (!validateAndShowFeedback(updatedSettings)) {

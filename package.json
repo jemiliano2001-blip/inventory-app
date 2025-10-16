@@ -5,8 +5,15 @@
   "main": "index.html",
   "scripts": {
     "dev": "vercel dev",
+    "start": "vercel dev",
     "build": "echo 'No build step required for static site'",
-    "start": "vercel dev"
+    "serve": "python -m http.server 8000",
+    "serve:node": "node start_server.js",
+    "serve:win": "start_server.bat",
+    "lint": "echo 'No linting configured yet'",
+    "test": "echo 'No tests configured yet'",
+    "deploy": "vercel --prod",
+    "preview": "vercel"
   },
   "dependencies": {
     "@google/generative-ai": "^0.2.1"

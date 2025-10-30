@@ -10524,11 +10524,7 @@
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
             
-            // Encabezado con recuadro de color
-            doc.setFillColor(234, 179, 8); // Amarillo
-            doc.rect(0, 0, 210, 50, 'F');
-            
-            doc.setTextColor(0, 0, 0);
+            // Encabezado simple
             doc.setFontSize(20);
             doc.text("Formulario de Inventario Manual", 20, 20);
             doc.setFontSize(12);
@@ -10573,8 +10569,6 @@
                 startY: startY,
                 theme: 'grid',
                 headStyles: {
-                    fillColor: [59, 130, 246],
-                    textColor: [255, 255, 255],
                     fontStyle: 'bold',
                     halign: 'left'
                 },
@@ -10592,16 +10586,8 @@
                     4: { cellWidth: 45 }
                 },
                 margin: { left: 20, right: 20 },
-                didDrawCell: function (data) {
-                    // Detectar y resaltar filas de categorías
-                    if (categoryIndices.includes(data.row.index)) {
-                        doc.setFillColor(234, 179, 8);
-                        doc.rect(data.cell.x - 3, data.cell.y - 2, data.cell.width + 6, data.cell.height + 3, 'F');
-                        doc.setTextColor(0, 0, 0);
-                    }
-                },
                 willDrawCell: function (data) {
-                    // Limpiar texto para filas de categorías
+                    // Texto en negrita para filas de categorías
                     if (categoryIndices.includes(data.row.index)) {
                         data.cell.styles.fontStyle = 'bold';
                     }
@@ -10644,13 +10630,8 @@
                 startY: startY,
                 theme: 'striped',
                 headStyles: {
-                    fillColor: [16, 185, 129], // Verde
-                    textColor: [255, 255, 255],
                     fontStyle: 'bold',
                     halign: 'left'
-                },
-                alternateRowStyles: {
-                    fillColor: [255, 255, 255]
                 },
                 styles: {
                     fontSize: 9,
@@ -10770,18 +10751,13 @@
             const headers = getReportHeaders(reportType);
             
             if (data.length === 0) {
-                // Dibujar encabezado con recuadro de color
-                doc.setFillColor(59, 130, 246); // Azul
-                doc.rect(0, 0, 210, 40, 'F');
-                
-                doc.setTextColor(255, 255, 255);
+                // Encabezado simple
                 doc.setFontSize(20);
                 doc.text(getReportTitle(reportType), 20, 20);
                 
                 doc.setFontSize(12);
                 doc.text(`Fecha: ${new Date().toLocaleDateString()}`, 20, 30);
                 
-                doc.setTextColor(0, 0, 0);
                 doc.setFontSize(14);
                 doc.text("No hay datos para mostrar en este reporte.", 20, 60);
                 
@@ -10793,11 +10769,7 @@
             const tableHeaders = [headers.map(h => h.label)];
             const tableRows = data.map(row => headers.map(header => row[header.key] || ''));
             
-            // Dibujar encabezado con recuadro de color
-            doc.setFillColor(59, 130, 246); // Azul
-            doc.rect(0, 0, 210, 40, 'F');
-            
-            doc.setTextColor(255, 255, 255);
+            // Encabezado simple
             doc.setFontSize(20);
             doc.text(getReportTitle(reportType), 20, 20);
             
@@ -10809,15 +10781,10 @@
                 head: tableHeaders,
                 body: tableRows,
                 startY: 50,
-                theme: 'striped',
+                theme: 'plain',
                 headStyles: {
-                    fillColor: [59, 130, 246], // Azul para encabezados
-                    textColor: [255, 255, 255],
                     fontStyle: 'bold',
                     halign: 'left'
-                },
-                alternateRowStyles: {
-                    fillColor: [249, 250, 251] // Gris muy claro para filas alternas
                 },
                 styles: {
                     fontSize: 10,

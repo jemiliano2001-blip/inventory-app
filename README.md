@@ -32,7 +32,7 @@ Sistema interno de gestión de inventario con integración de IA para uso exclus
 
 ## 🚀 Instalación y Uso Interno
 
-### Desarrollo Local
+### Desarrollo con Vercel
 
 1. **Clona el repositorio**:
    ```bash
@@ -45,29 +45,25 @@ Sistema interno de gestión de inventario con integración de IA para uso exclus
    npm install
    ```
 
-3. **Configura las variables de entorno**:
-   ```bash
-   # Crear archivo .env
-   GEMINI_API_KEY=tu_clave_de_api_aqui
-   ```
+3. **Configura las variables de entorno en Vercel**:
+   - Ve a tu proyecto en Vercel
+   - Configuración → Variables de Entorno
+   - Agrega: `GEMINI_API_KEY=tu_clave_de_api_aqui`
 
-4. **Inicia el servidor local**:
+4. **Inicia el servidor de desarrollo**:
    ```bash
-   # Windows
-   start_server.bat
-   
-   # O manualmente con Python
-   python -m http.server 8000
-   
-   # O con Node.js
    npm run dev
    ```
-
-5. **Abre en el navegador**: `http://localhost:8000`
 
 ### Despliegue en Producción
 
 El sistema está configurado para desplegarse automáticamente en Vercel cuando se hace push a la rama principal.
+
+Para desplegar manualmente:
+```bash
+npm run deploy  # Despliegue a producción
+npm run preview # Vista previa del despliegue
+```
 
 ## 🔧 Configuración Interna
 
@@ -81,7 +77,7 @@ GEMINI_API_KEY=tu_clave_de_api_de_gemini
 
 1. Ve a [Google AI Studio](https://makersuite.google.com/app/apikey)
 2. Crea una nueva API key
-3. Configúrala en Vercel o en tu archivo .env local
+3. Configúrala en Vercel en Variables de Entorno
 
 ## 📱 Instalación como PWA
 
@@ -126,20 +122,18 @@ inventory-app/
 ├── service-worker.js      # Service Worker para offline
 ├── package.json           # Dependencias y scripts
 ├── vercel.json           # Configuración de despliegue
-├── start_server.bat      # Script de servidor local
 └── README.md             # Documentación
 ```
 
 ## 🚀 Scripts Disponibles
 
 ```bash
-npm run dev          # Inicia servidor de desarrollo
+npm run dev          # Inicia servidor de desarrollo con Vercel
+npm run start        # Inicia servidor de desarrollo con Vercel
 npm run build        # Construye para producción
-npm run start        # Inicia aplicación
-npm run serve        # Servidor Python local
-npm run serve:node   # Servidor Node.js local
-npm run serve:win    # Servidor Windows batch
-npm run deploy       # Despliega a producción
+npm run deploy       # Despliega a producción en Vercel
+npm run preview      # Vista previa del despliegue
+npm run audit        # Auditoría de seguridad de dependencias
 ```
 
 ## 🔒 Seguridad y Acceso

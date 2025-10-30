@@ -1,21 +1,16 @@
 {
   "name": "inventory-management-system",
   "version": "1.0.0",
-  "description": "Sistema interno de gestión de inventario con IA para uso empresarial",
+  "description": "Sistema interno de gestión de inventario para uso empresarial",
   "main": "index.html",
   "private": true,
   "scripts": {
     "dev": "vercel dev",
     "start": "vercel dev",
     "build": "echo 'No build step required for static site'",
-    "serve": "python -m http.server 8000",
-    "serve:win": "start_server.bat",
     "audit": "npm audit --audit-level=moderate",
     "deploy": "vercel --prod",
     "preview": "vercel"
-  },
-  "dependencies": {
-    "@google/generative-ai": "^0.2.1"
   },
   "devDependencies": {
     "vercel": "^32.0.0"

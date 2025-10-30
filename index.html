@@ -38,6 +38,7 @@
             --color-primary-accent: #3B82F6;
             --color-bg-page: #F9FAFB;
             --color-bg-content: #FFFFFF;
+            --card-bg: #FFFFFF;
             --color-text-primary: #1F2937;
             --color-text-secondary: #6B7280;
             --color-status-danger: #EF4444;
@@ -356,11 +357,6 @@
             to { transform: translateX(0); }
         }
 
-        @keyframes slideInRight {
-            from { transform: translateX(100%); }
-            to { transform: translateX(0); }
-        }
-
         @keyframes scaleIn {
             from { transform: scale(0.9); opacity: 0; }
             to { transform: scale(1); opacity: 1; }
@@ -446,6 +442,148 @@
         /* Notification Animations */
         .pop-animation {
             animation: scaleIn 0.3s ease-out;
+        }
+
+        /* Modern Notification Styles */
+        .notification-modern {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 320px;
+            max-width: 420px;
+            padding: 16px 20px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            overflow: hidden;
+            animation: slideInRight 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            transition: all 0.3s ease;
+        }
+
+        .notification-modern::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: currentColor;
+        }
+
+        .notification-icon {
+            flex-shrink: 0;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: currentColor;
+            opacity: 0.1;
+        }
+
+        .notification-icon svg {
+            width: 20px;
+            height: 20px;
+            color: currentColor;
+            opacity: 1;
+        }
+
+        .notification-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .notification-message {
+            font-size: 14px;
+            font-weight: 500;
+            line-height: 1.5;
+            color: #1F2937;
+        }
+
+        .notification-type-success { 
+            color: #10B981; 
+        }
+        .notification-type-error { 
+            color: #EF4444; 
+        }
+        .notification-type-warning { 
+            color: #F59E0B; 
+        }
+        .notification-type-info { 
+            color: #3B82F6; 
+        }
+
+        .notification-close {
+            flex-shrink: 0;
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            opacity: 0.5;
+            transition: all 0.2s ease;
+        }
+
+        .notification-close:hover {
+            opacity: 1;
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        .notification-close svg {
+            width: 16px;
+            height: 16px;
+            color: #6B7280;
+        }
+
+        /* Notification progress bar */
+        .notification-progress {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, currentColor, currentColor);
+            background-size: 0% 100%;
+            background-repeat: no-repeat;
+            animation: notificationProgress linear forwards;
+        }
+
+        @keyframes notificationProgress {
+            from { background-size: 100% 100%; }
+            to { background-size: 0% 100%; }
+        }
+
+        /* Notification fade out */
+        .notification-fade-out {
+            animation: slideOutRight 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes slideOutRight {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(120%);
+                opacity: 0;
+            }
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(120%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
         }
 
         /* Smooth Transitions */
@@ -10241,21 +10379,71 @@
             }
             
             const id = `notif-${Date.now()}`;
-            const colors = { info: 'bg-blue-500', success: 'bg-green-500', error: 'bg-red-500', warning: 'bg-yellow-500' };
             const notif = document.createElement('div');
             notif.id = id;
             
             // Sanitize message to prevent XSS
             const sanitizedMessage = message.replace(/[<>]/g, '');
             
-            notif.className = `text-white px-6 py-4 border-0 rounded relative mb-4 ${colors[type] || colors.info} pop-animation`;
-            notif.innerHTML = `<span class="inline-block align-middle mr-8">${sanitizedMessage}</span>`;
+            // Íconos para cada tipo
+            const icons = {
+                success: 'check-circle',
+                error: 'x-circle',
+                warning: 'alert-triangle',
+                info: 'info'
+            };
+            
+            const iconName = icons[type] || icons.info;
+            
+            // Tiempos variables según el tipo de notificación
+            const timeouts = { 
+                success: 2000,   // 2 segundos
+                error: 4000,     // 4 segundos  
+                warning: 3500,   // 3.5 segundos
+                info: 2500       // 2.5 segundos
+            };
+            const duration = timeouts[type] || 2500;
+            
+            // Estructura HTML moderna y minimalista
+            notif.className = `notification-modern notification-type-${type}`;
+            notif.innerHTML = `
+                <div class="notification-icon">
+                    <i data-lucide="${iconName}"></i>
+                </div>
+                <div class="notification-content">
+                    <div class="notification-message">${sanitizedMessage}</div>
+                </div>
+                <div class="notification-close">
+                    <i data-lucide="x"></i>
+                </div>
+                <div class="notification-progress" style="animation-duration: ${duration}ms;"></div>
+            `;
+            
             container.appendChild(notif);
-            setTimeout(() => { 
+            safeCreateIcons();
+            
+            // Cerrar al hacer clic
+            const closeBtn = notif.querySelector('.notification-close');
+            closeBtn.addEventListener('click', () => {
+                notif.classList.add('notification-fade-out');
+                setTimeout(() => {
+                    if (notif.parentNode) {
+                        notif.remove();
+                    }
+                }, 300);
+            });
+            
+            // Auto-cerrar después del tiempo especificado
+            setTimeout(() => {
                 if (notif.parentNode) {
-                    notif.remove(); 
+                    notif.classList.add('notification-fade-out');
+                    setTimeout(() => {
+                        if (notif.parentNode) {
+                            notif.remove();
+                        }
+                    }, 300);
                 }
-            }, 5000);
+            }, duration);
         }
         // Input validation helper
         function validateInput(value, type = 'string', min = null, max = null) {

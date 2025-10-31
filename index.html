@@ -9490,6 +9490,15 @@
             }
 
             const lastValues = getLastUsedValues();
+            const mostUsedCategories = getMostUsedCategories();
+            
+            // Helper function to get category options (excluding most used ones to avoid duplicates)
+            const getCategoryOptionsForQuick = (selectedCategory) => {
+                return state.categories
+                    .filter(c => c !== 'Todas' && !mostUsedCategories.includes(c))
+                    .map(cat => `<option value="${cat}" ${cat === selectedCategory ? 'selected' : ''}>${cat}</option>`)
+                    .join('');
+            };
             
             const content = `
                 <form id="quick-add-item-form">
@@ -9508,6 +9517,26 @@
                                 >
                                 <div id="quick-description-suggestions" class="absolute top-full mt-1 left-0 right-0 z-[100] bg-white border border-gray-300 rounded-lg shadow-lg hidden max-h-40 overflow-y-auto"></div>
                             </div>
+                        </div>
+                        
+                        <div>
+                            <label for="quick-category" class="block text-base font-medium themed-text-light mb-2">Categoría</label>
+                            <select 
+                                id="quick-category" 
+                                required 
+                                class="themed-input block w-full px-4 py-4 text-base border rounded-lg shadow-sm"
+                                style="font-size: 16px; min-height: 56px;"
+                            >
+                                <option value="">Selecciona una categoría...</option>
+                                ${mostUsedCategories.length > 0 ? `
+                                    <optgroup label="Más utilizadas">
+                                        ${mostUsedCategories.map(cat => `<option value="${cat}" ${cat === lastValues.category ? 'selected' : ''}>${cat}</option>`).join('')}
+                                    </optgroup>
+                                    <optgroup label="Todas las categorías">
+                                        ${getCategoryOptionsForQuick(lastValues.category)}
+                                    </optgroup>
+                                ` : getCategoryOptionsForQuick(lastValues.category)}
+                            </select>
                         </div>
                         
                         <div>
@@ -9603,6 +9632,7 @@
                 saveSpinner.classList.remove('hidden');
 
                 const description = document.getElementById('quick-description').value.trim();
+                const category = document.getElementById('quick-category').value.trim();
                 const stock = parseInt(document.getElementById('quick-stock').value) || 0;
                 
                 if (!description) {
@@ -9611,9 +9641,15 @@
                     saveSpinner.classList.add('hidden');
                     return;
                 }
+                
+                if (!category) {
+                    showNotification('Por favor, selecciona una categoría.', 'error');
+                    saveBtnText.classList.remove('hidden');
+                    saveSpinner.classList.add('hidden');
+                    return;
+                }
 
                 // Get smart defaults
-                const category = lastValues.category || 'General';
                 const unit = lastValues.unit || state.settings.defaultUnit || 'pza';
                 const minStock = state.settings.defaultMinStock || 5;
                 
@@ -9637,7 +9673,7 @@
                         notes: 'Artículo creado desde formulario rápido móvil'
                     });
                     
-                    // Save last used values for next time
+                    // Save last used values for next time (update category with the selected one)
                     saveLastUsedValues(category, unit);
                     
                     showNotification('Artículo agregado con éxito.', 'success');

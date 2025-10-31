@@ -825,9 +825,11 @@
                 align-items: center;
                 justify-content: center;
                 cursor: pointer;
-                z-index: 50;
+                z-index: 9999;
                 transition: all 0.3s ease;
                 border: none;
+                pointer-events: auto;
+                -webkit-tap-highlight-color: transparent;
             }
             
             .mobile-fab:hover {
@@ -1552,7 +1554,7 @@
         </div>
         
         <!-- Mobile Floating Action Button (FAB) -->
-        <button id="mobile-fab" class="mobile-fab pulse" title="Agregar artículo rápido">
+        <button id="mobile-fab" type="button" class="mobile-fab pulse" title="Agregar artículo rápido" onclick="if(typeof window.showQuickAddItemModal === 'function') window.showQuickAddItemModal();">
             <i data-lucide="plus"></i>
         </button>
     </div>
@@ -5451,6 +5453,9 @@
                         
                         // Manejar visibilidad del enlace de IA
                         addAINavigation();
+                        
+                        // Setup mobile FAB event listener
+                        setupMobileFAB();
                     } catch (error) {
                         console.error("Firebase Initialization Error:", error);
                         if (error.code === 'permission-denied') {
@@ -9477,6 +9482,12 @@
                 showNotification("Solo los administradores pueden agregar artículos.", "info");
                 return;
             }
+            
+            // Check if user is logged in
+            if (!state.currentUser) {
+                showNotification("Debes iniciar sesión para agregar artículos.", "info");
+                return;
+            }
 
             const lastValues = getLastUsedValues();
             
@@ -9647,6 +9658,9 @@
             // Recreate icons for new elements
             setTimeout(() => safeCreateIcons(), 100);
         }
+        
+        // Make function globally accessible for onclick fallback
+        window.showQuickAddItemModal = showQuickAddItemModal;
 
         // Helper functions for smart defaults and autocompletado
         function getLastUsedValues() {
@@ -11360,20 +11374,37 @@
 
         // Setup mobile FAB event listener
         function setupMobileFAB() {
-            const mobileFAB = document.getElementById('mobile-fab');
-            if (mobileFAB) {
-                // Remove existing listeners to avoid duplicates
-                const newFAB = mobileFAB.cloneNode(true);
-                mobileFAB.parentNode.replaceChild(newFAB, mobileFAB);
-                
-                // Add click event listener
-                newFAB.addEventListener('click', () => {
-                    showQuickAddItemModal();
-                });
-                
-                // Recreate icons for the FAB
-                setTimeout(() => safeCreateIcons(), 100);
-            }
+            // Use a delay to ensure DOM is ready
+            setTimeout(() => {
+                const mobileFAB = document.getElementById('mobile-fab');
+                if (mobileFAB) {
+                    // Remove any existing listeners by cloning
+                    const oldFAB = mobileFAB;
+                    const newFAB = oldFAB.cloneNode(true);
+                    oldFAB.parentNode.replaceChild(newFAB, oldFAB);
+                    
+                    // Add click event listener to the new button
+                    newFAB.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        console.log('FAB clicked'); // Debug
+                        showQuickAddItemModal();
+                    });
+                    
+                    // Also add touchstart for better mobile support
+                    newFAB.addEventListener('touchstart', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        console.log('FAB touched'); // Debug
+                        showQuickAddItemModal();
+                    });
+                    
+                    // Recreate icons for the FAB
+                    safeCreateIcons();
+                } else {
+                    console.warn('Mobile FAB not found');
+                }
+            }, 300);
         }
 
         // Helper functions for text formatting

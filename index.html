@@ -811,53 +811,495 @@
                 min-height: 44px;
             }
             
-            /* Floating Action Button (FAB) for mobile */
+            /* Inventory Mobile Card Layout */
+            .inventory-mobile-cards {
+                display: none;
+            }
+            
+            /* Hide table on mobile, show cards */
+            .inventory-table-desktop {
+                display: none !important;
+            }
+            
+            .inventory-mobile-cards {
+                display: block !important;
+            }
+            
+            /* Improve spacing on mobile */
+            @media (max-width: 768px) {
+                .inventory-mobile-cards {
+                    margin-top: 1rem;
+                }
+            }
+            
+            /* Inventory card styles - Mejorado */
+            .inventory-card {
+                background: white;
+                border: 1px solid #E5E7EB;
+                border-radius: 16px;
+                padding: 18px;
+                margin-bottom: 16px;
+                box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                position: relative;
+                overflow: hidden;
+            }
+            
+            .inventory-card::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 3px;
+                background: linear-gradient(90deg, #10b981, #059669);
+                transform: scaleX(0);
+                transform-origin: left;
+                transition: transform 0.3s ease;
+            }
+            
+            .inventory-card:hover {
+                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+                transform: translateY(-4px);
+                border-color: #D1D5DB;
+            }
+            
+            .inventory-card:hover::before {
+                transform: scaleX(1);
+            }
+            
+            .inventory-card.low-stock {
+                background: linear-gradient(to bottom, #FEF2F2 0%, #FEE2E2 100%);
+                border-color: #FCA5A5;
+                border-left-width: 4px;
+                border-left-color: #EF4444;
+            }
+            
+            .inventory-card.low-stock::before {
+                background: linear-gradient(90deg, #EF4444, #DC2626);
+                transform: scaleX(1);
+            }
+            
+            .inventory-card-header {
+                display: flex;
+                align-items: flex-start;
+                margin-bottom: 14px;
+                gap: 12px;
+            }
+            
+            .inventory-card-icon {
+                width: 48px;
+                height: 48px;
+                border-radius: 12px;
+                background: linear-gradient(135deg, #F3F4F6 0%, #E5E7EB 100%);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-shrink: 0;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            }
+            
+            .inventory-card-info {
+                flex: 1;
+                min-width: 0;
+            }
+            
+            .inventory-card-title {
+                font-size: 17px;
+                font-weight: 700;
+                color: #111827;
+                margin-bottom: 6px;
+                word-wrap: break-word;
+                line-height: 1.4;
+            }
+            
+            .inventory-card-subtitle {
+                font-size: 13px;
+                color: #6B7280;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                margin-top: 4px;
+            }
+            
+            .inventory-card-badge {
+                display: inline-flex;
+                align-items: center;
+                padding: 5px 12px;
+                border-radius: 14px;
+                font-size: 11px;
+                font-weight: 600;
+                background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+                color: white;
+                margin-top: 6px;
+                box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);
+            }
+            
+            .inventory-card-field {
+                display: flex;
+                align-items: center;
+                margin-bottom: 12px;
+                font-size: 14px;
+                padding: 4px 0;
+            }
+            
+            .inventory-card-field-label {
+                color: #6B7280;
+                font-weight: 600;
+                min-width: 90px;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                font-size: 13px;
+            }
+            
+            .inventory-card-field-value {
+                color: #111827;
+                flex: 1;
+                font-weight: 500;
+            }
+            
+            .inventory-card-category {
+                display: inline-flex;
+                align-items: center;
+                padding: 6px 12px;
+                border-radius: 14px;
+                font-size: 12px;
+                font-weight: 600;
+                background: linear-gradient(135deg, #F3F4F6 0%, #E5E7EB 100%);
+                color: #374151;
+                box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+            }
+            
+            .inventory-card-stock {
+                font-weight: 700;
+                font-size: 18px;
+                color: #111827;
+                display: inline-block;
+            }
+            
+            .inventory-card-stock-min {
+                font-size: 13px;
+                color: #6B7280;
+                margin-left: 10px;
+                font-weight: 500;
+            }
+            
+            .inventory-card-actions {
+                display: flex;
+                align-items: center;
+                justify-content: flex-start;
+                gap: 10px;
+                margin-top: 16px;
+                padding-top: 16px;
+                border-top: 2px solid #F3F4F6;
+                flex-wrap: wrap;
+            }
+            
+            .inventory-card-action-btn {
+                width: 48px;
+                height: 48px;
+                border-radius: 12px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+                border: none;
+                cursor: pointer;
+                flex-shrink: 0;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                position: relative;
+                overflow: hidden;
+            }
+            
+            .inventory-card-action-btn::before {
+                content: '';
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                width: 0;
+                height: 0;
+                border-radius: 50%;
+                background: rgba(255, 255, 255, 0.3);
+                transform: translate(-50%, -50%);
+                transition: width 0.3s, height 0.3s;
+            }
+            
+            .inventory-card-action-btn:active::before {
+                width: 100px;
+                height: 100px;
+            }
+            
+            .inventory-card-action-btn:active {
+                transform: scale(0.85);
+                box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+            }
+            
+            .inventory-card-action-btn.entry {
+                background: linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 100%);
+                color: #059669;
+            }
+            
+            .inventory-card-action-btn.entry:hover {
+                background: linear-gradient(135deg, #A7F3D0 0%, #6EE7B7 100%);
+                box-shadow: 0 4px 8px rgba(5, 150, 105, 0.3);
+            }
+            
+            .inventory-card-action-btn.checkout {
+                background: linear-gradient(135deg, #DBEAFE 0%, #BFDBFE 100%);
+                color: #2563EB;
+            }
+            
+            .inventory-card-action-btn.checkout:hover {
+                background: linear-gradient(135deg, #BFDBFE 0%, #93C5FD 100%);
+                box-shadow: 0 4px 8px rgba(37, 99, 235, 0.3);
+            }
+            
+            .inventory-card-action-btn.checkout:disabled {
+                background: #F3F4F6;
+                color: #9CA3AF;
+                cursor: not-allowed;
+                box-shadow: none;
+            }
+            
+            .inventory-card-action-btn.cart {
+                background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
+                color: #D97706;
+            }
+            
+            .inventory-card-action-btn.cart:hover {
+                background: linear-gradient(135deg, #FDE68A 0%, #FCD34D 100%);
+                box-shadow: 0 4px 8px rgba(217, 119, 6, 0.3);
+            }
+            
+            .inventory-card-action-btn.edit {
+                background: linear-gradient(135deg, #E9D5FF 0%, #DDD6FE 100%);
+                color: #7C3AED;
+            }
+            
+            .inventory-card-action-btn.edit:hover {
+                background: linear-gradient(135deg, #DDD6FE 0%, #C4B5FD 100%);
+                box-shadow: 0 4px 8px rgba(124, 58, 237, 0.3);
+            }
+            
+            .inventory-card-action-btn.edit-stock {
+                background: linear-gradient(135deg, #FED7AA 0%, #FDBA74 100%);
+                color: #EA580C;
+            }
+            
+            .inventory-card-action-btn.edit-stock:hover {
+                background: linear-gradient(135deg, #FDBA74 0%, #FB923C 100%);
+                box-shadow: 0 4px 8px rgba(234, 88, 12, 0.3);
+            }
+            
+            .inventory-card-action-btn.delete {
+                background: linear-gradient(135deg, #FEE2E2 0%, #FECACA 100%);
+                color: #DC2626;
+            }
+            
+            .inventory-card-action-btn.delete:hover {
+                background: linear-gradient(135deg, #FECACA 0%, #FCA5A5 100%);
+                box-shadow: 0 4px 8px rgba(220, 38, 38, 0.3);
+            }
+            
+            /* Categories sidebar mobile - Mejorado */
+            .categories-sidebar-mobile {
+                margin-bottom: 20px;
+            }
+            
+            .categories-toggle-btn {
+                width: 100%;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 14px 18px;
+                background: white;
+                border: 2px solid #E5E7EB;
+                border-radius: 14px;
+                font-weight: 600;
+                color: #111827;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+                min-height: 52px;
+            }
+            
+            .categories-toggle-btn:hover {
+                border-color: var(--color-primary-accent);
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            }
+            
+            .categories-toggle-btn:active {
+                background: #F9FAFB;
+                transform: scale(0.98);
+            }
+            
+            .categories-list-mobile {
+                display: none;
+                margin-top: 10px;
+                background: white;
+                border: 2px solid #E5E7EB;
+                border-radius: 14px;
+                padding: 10px;
+                max-height: 350px;
+                overflow-y: auto;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            }
+            
+            .categories-list-mobile.open {
+                display: block;
+                animation: slideDown 0.3s ease-out;
+            }
+            
+            @keyframes slideDown {
+                from {
+                    opacity: 0;
+                    transform: translateY(-10px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+            
+            .categories-list-mobile .category-filter {
+                display: flex;
+                align-items: center;
+                padding: 12px 14px;
+                border-radius: 10px;
+                margin-bottom: 6px;
+                font-size: 14px;
+                font-weight: 500;
+                transition: all 0.2s ease;
+                cursor: pointer;
+            }
+            
+            .categories-list-mobile .category-filter:hover {
+                background: #F3F4F6;
+                transform: translateX(4px);
+            }
+            
+            .categories-list-mobile .category-filter.active {
+                background: linear-gradient(135deg, #DBEAFE 0%, #BFDBFE 100%);
+                color: #2563EB;
+                font-weight: 600;
+            }
+            
+            /* Filter buttons mobile - Mejorado */
+            .filter-buttons-mobile {
+                display: flex;
+                gap: 10px;
+                margin-bottom: 18px;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                padding-bottom: 6px;
+                scrollbar-width: none;
+            }
+            
+            .filter-buttons-mobile::-webkit-scrollbar {
+                display: none;
+            }
+            
+            .inventory-filter-btn-mobile {
+                padding: 12px 18px;
+                border-radius: 12px;
+                font-size: 14px;
+                font-weight: 600;
+                white-space: nowrap;
+                min-height: 48px;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+            }
+            
+            .inventory-filter-btn-mobile:active {
+                transform: scale(0.95);
+            }
+            
+            /* Floating Action Button (FAB) for mobile - Mejorado */
             .mobile-fab {
                 position: fixed;
-                bottom: 24px;
-                right: 24px;
-                width: 64px;
-                height: 64px;
+                bottom: 28px;
+                right: 28px;
+                width: 68px;
+                height: 68px;
                 border-radius: 50%;
                 background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-                box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4), 0 8px 24px rgba(0, 0, 0, 0.15);
+                box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5), 0 10px 30px rgba(0, 0, 0, 0.2);
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 cursor: pointer;
                 z-index: 9999;
-                transition: all 0.3s ease;
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
                 border: none;
                 pointer-events: auto;
                 -webkit-tap-highlight-color: transparent;
             }
             
+            .mobile-fab::before {
+                content: '';
+                position: absolute;
+                inset: -4px;
+                border-radius: 50%;
+                background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+                opacity: 0.3;
+                z-index: -1;
+                animation: fabRipple 2s ease-out infinite;
+            }
+            
+            @keyframes fabRipple {
+                0% {
+                    transform: scale(1);
+                    opacity: 0.3;
+                }
+                100% {
+                    transform: scale(1.4);
+                    opacity: 0;
+                }
+            }
+            
             .mobile-fab:hover {
-                transform: scale(1.1);
-                box-shadow: 0 6px 16px rgba(16, 185, 129, 0.5), 0 12px 32px rgba(0, 0, 0, 0.2);
+                transform: scale(1.08);
+                box-shadow: 0 8px 24px rgba(16, 185, 129, 0.6), 0 14px 40px rgba(0, 0, 0, 0.25);
             }
             
             .mobile-fab:active {
-                transform: scale(0.95);
+                transform: scale(0.92);
+                box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4), 0 6px 16px rgba(0, 0, 0, 0.15);
             }
             
             .mobile-fab i {
                 color: white;
                 width: 32px;
                 height: 32px;
+                filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
             }
             
             @keyframes fabPulse {
                 0%, 100% {
-                    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4), 0 8px 24px rgba(0, 0, 0, 0.15);
+                    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5), 0 10px 30px rgba(0, 0, 0, 0.2);
                 }
                 50% {
-                    box-shadow: 0 4px 16px rgba(16, 185, 129, 0.6), 0 10px 30px rgba(0, 0, 0, 0.2);
+                    box-shadow: 0 8px 28px rgba(16, 185, 129, 0.7), 0 14px 40px rgba(0, 0, 0, 0.3);
                 }
             }
             
             .mobile-fab.pulse {
                 animation: fabPulse 2s ease-in-out infinite;
+            }
+        }
+        
+        /* Desktop: Show table, hide cards */
+        @media (min-width: 769px) {
+            .inventory-mobile-cards {
+                display: none !important;
+            }
+            
+            .inventory-table-desktop {
+                display: block !important;
             }
         }
         
@@ -886,6 +1328,52 @@
             .mobile-btn {
                 min-height: 40px;
                 font-size: 14px;
+            }
+            
+            /* Optimize cards for very small screens */
+            .inventory-card {
+                padding: 14px;
+                border-radius: 14px;
+                margin-bottom: 12px;
+            }
+            
+            .inventory-card-header {
+                margin-bottom: 12px;
+            }
+            
+            .inventory-card-icon {
+                width: 44px;
+                height: 44px;
+            }
+            
+            .inventory-card-title {
+                font-size: 16px;
+            }
+            
+            .inventory-card-field {
+                margin-bottom: 10px;
+                font-size: 13px;
+            }
+            
+            .inventory-card-field-label {
+                min-width: 75px;
+                font-size: 12px;
+            }
+            
+            .inventory-card-actions {
+                gap: 8px;
+                margin-top: 14px;
+                padding-top: 14px;
+            }
+            
+            .inventory-card-action-btn {
+                width: 44px;
+                height: 44px;
+            }
+            
+            .inventory-card-action-btn i {
+                width: 20px !important;
+                height: 20px !important;
             }
         }
 
@@ -6135,8 +6623,8 @@
                                 ` : ''}
                             </div>
 
-                            <!-- Inventory Table -->
-                            <div class="rounded-2xl overflow-hidden" style="background-color: var(--color-bg-content); border: 1px solid #E5E7EB; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);">
+                            <!-- Inventory Table Desktop -->
+                            <div class="inventory-table-desktop rounded-2xl overflow-hidden" style="background-color: var(--color-bg-content); border: 1px solid #E5E7EB; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);">
                                 <div class="overflow-x-auto">
                                     <div class="mobile-table-container">
                                         <table class="min-w-full mobile-table">
@@ -6211,6 +6699,76 @@
                                         </table>
                                     </div>
                             <div id="paginator" class="px-6 py-3 border-t themed-border">${generatePaginator(totalPages)}</div>
+                        </div>
+                        
+                        <!-- Inventory Mobile Cards -->
+                        <div class="inventory-mobile-cards">
+                            ${paginatedInventory.length > 0 ? paginatedInventory.map(item => `
+                                <div class="inventory-card ${item.stock < item.minStock ? 'low-stock' : ''}" data-id="${item.id}">
+                                    <div class="inventory-card-header">
+                                        <div class="inventory-card-icon">
+                                            <i data-lucide="package" class="h-6 w-6 text-gray-600"></i>
+                                        </div>
+                                        <div class="inventory-card-info">
+                                            <div class="inventory-card-title">${item.description}</div>
+                                            ${item.stock < item.minStock ? '<div class="inventory-card-badge">Stock bajo</div>' : ''}
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="inventory-card-field">
+                                        <div class="inventory-card-field-label">
+                                            <i data-lucide="folder" class="h-4 w-4"></i>
+                                            <span>Categoría:</span>
+                                        </div>
+                                        <div class="inventory-card-field-value">
+                                            <span class="inventory-card-category">${item.category || 'Sin categoría'}</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="inventory-card-field">
+                                        <div class="inventory-card-field-label">
+                                            <i data-lucide="box" class="h-4 w-4"></i>
+                                            <span>Stock:</span>
+                                        </div>
+                                        <div class="inventory-card-field-value">
+                                            <span class="inventory-card-stock">${item.stock} ${item.unit}</span>
+                                            <span class="inventory-card-stock-min">Min: ${item.minStock}</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="inventory-card-actions">
+                                        <button class="inventory-card-action-btn entry action-btn" data-action="entry" data-id="${item.id}" title="Registrar Entrada">
+                                            <i data-lucide="plus-circle" class="h-5 w-5"></i>
+                                        </button>
+                                        <button class="inventory-card-action-btn checkout action-btn ${item.stock <= 0 ? 'disabled' : ''}" data-action="checkout" data-id="${item.id}" title="${item.stock <= 0 ? 'Sin Stock Disponible' : 'Registrar Salida/Préstamo'}" ${item.stock <= 0 ? 'disabled' : ''}>
+                                            <i data-lucide="arrow-right-left" class="h-5 w-5"></i>
+                                        </button>
+                                        <button class="inventory-card-action-btn cart action-btn" data-action="add-to-cart" data-id="${item.id}" title="Añadir a Lista de Compras">
+                                            <i data-lucide="shopping-cart" class="h-5 w-5"></i>
+                                        </button>
+                                        ${isAdmin ? `
+                                            <button class="inventory-card-action-btn edit action-btn" data-action="edit" data-id="${item.id}" title="Editar Artículo">
+                                                <i data-lucide="pencil" class="h-5 w-5"></i>
+                                            </button>
+                                            <button class="inventory-card-action-btn edit-stock action-btn" data-action="edit-stock" data-id="${item.id}" title="Editar Stock">
+                                                <i data-lucide="edit-3" class="h-5 w-5"></i>
+                                            </button>
+                                            <button class="inventory-card-action-btn delete action-btn" data-action="delete" data-id="${item.id}" title="Eliminar Artículo">
+                                                <i data-lucide="trash-2" class="h-5 w-5"></i>
+                                            </button>
+                                        ` : ''}
+                                    </div>
+                                </div>
+                            `).join('') : `
+                                <div class="text-center py-12">
+                                    <div class="flex flex-col items-center">
+                                        <i data-lucide="package" class="h-12 w-12 text-gray-400 mb-4"></i>
+                                        <h3 class="text-lg font-medium text-gray-900 mb-2">No se encontraron artículos</h3>
+                                        <p class="text-gray-500">Intenta ajustar los filtros o agregar nuevos artículos</p>
+                                    </div>
+                                </div>
+                            `}
+                            <div id="paginator-mobile" class="mt-6">${generatePaginator(totalPages)}</div>
                         </div>
                     </div>
                 </div>

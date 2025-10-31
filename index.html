@@ -810,6 +810,60 @@
                 width: 100%;
                 min-height: 44px;
             }
+            
+            /* Floating Action Button (FAB) for mobile */
+            .mobile-fab {
+                position: fixed;
+                bottom: 24px;
+                right: 24px;
+                width: 64px;
+                height: 64px;
+                border-radius: 50%;
+                background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+                box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4), 0 8px 24px rgba(0, 0, 0, 0.15);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                z-index: 50;
+                transition: all 0.3s ease;
+                border: none;
+            }
+            
+            .mobile-fab:hover {
+                transform: scale(1.1);
+                box-shadow: 0 6px 16px rgba(16, 185, 129, 0.5), 0 12px 32px rgba(0, 0, 0, 0.2);
+            }
+            
+            .mobile-fab:active {
+                transform: scale(0.95);
+            }
+            
+            .mobile-fab i {
+                color: white;
+                width: 32px;
+                height: 32px;
+            }
+            
+            @keyframes fabPulse {
+                0%, 100% {
+                    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4), 0 8px 24px rgba(0, 0, 0, 0.15);
+                }
+                50% {
+                    box-shadow: 0 4px 16px rgba(16, 185, 129, 0.6), 0 10px 30px rgba(0, 0, 0, 0.2);
+                }
+            }
+            
+            .mobile-fab.pulse {
+                animation: fabPulse 2s ease-in-out infinite;
+            }
+        }
+        
+        /* Hide FAB on desktop */
+        @media (min-width: 769px) {
+            .mobile-fab {
+                display: none !important;
+            }
         }
         
         /* Extra small screens */
@@ -1496,6 +1550,11 @@
                 <!-- Views will be injected here -->
             </main>
         </div>
+        
+        <!-- Mobile Floating Action Button (FAB) -->
+        <button id="mobile-fab" class="mobile-fab pulse" title="Agregar artículo rápido">
+            <i data-lucide="plus"></i>
+        </button>
     </div>
 
     <!-- Modals Container -->
@@ -5504,6 +5563,9 @@
                 // Manejar visibilidad del enlace de IA
                 addAINavigation();
                 
+                // Setup mobile FAB event listener
+                setupMobileFAB();
+                
             } catch (error) {
                 // Show error but don't reset login state
                 displayAuthError('auth/unknown-error');
@@ -9408,6 +9470,184 @@
             setTimeout(() => safeCreateIcons(), 100);
         }
 
+        // Quick add item modal for mobile (simplified form)
+        function showQuickAddItemModal() {
+            // Check if user has permission
+            if (state.userRole !== 'admin') {
+                showNotification("Solo los administradores pueden agregar artículos.", "info");
+                return;
+            }
+
+            const lastValues = getLastUsedValues();
+            
+            const content = `
+                <form id="quick-add-item-form">
+                    <div class="space-y-6">
+                        <div>
+                            <label for="quick-description" class="block text-base font-medium themed-text-light mb-2">Descripción</label>
+                            <div class="relative">
+                                <input 
+                                    type="text" 
+                                    id="quick-description" 
+                                    required 
+                                    class="themed-input block w-full px-4 py-4 text-base border rounded-lg shadow-sm" 
+                                    placeholder="Escribe la descripción del artículo..." 
+                                    autocomplete="chrome-off"
+                                    style="font-size: 16px; min-height: 56px;"
+                                >
+                                <div id="quick-description-suggestions" class="absolute top-full mt-1 left-0 right-0 z-[100] bg-white border border-gray-300 rounded-lg shadow-lg hidden max-h-40 overflow-y-auto"></div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label for="quick-stock" class="block text-base font-medium themed-text-light mb-2">Cantidad Inicial</label>
+                            <input 
+                                type="number" 
+                                id="quick-stock" 
+                                value="0" 
+                                min="0" 
+                                required 
+                                class="themed-input block w-full px-4 py-4 text-base border rounded-lg shadow-sm"
+                                style="font-size: 16px; min-height: 56px;"
+                                inputmode="numeric"
+                            >
+                        </div>
+                        
+                        <div class="flex flex-col gap-3 pt-4">
+                            <button 
+                                type="submit" 
+                                class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-6 rounded-lg min-h-[56px] flex items-center justify-center transition-all duration-200 shadow-lg"
+                            >
+                                <i data-lucide="check" class="h-6 w-6 mr-2"></i>
+                                <span id="quick-save-btn-text">Agregar Artículo</span>
+                                <i id="quick-save-spinner" data-lucide="loader" class="h-5 w-5 animate-spin hidden ml-2"></i>
+                            </button>
+                            <button 
+                                type="button" 
+                                id="quick-cancel-btn" 
+                                class="w-full bg-gray-500 hover:bg-gray-600 text-white font-medium py-3 px-6 rounded-lg min-h-[48px] flex items-center justify-center transition-colors"
+                            >
+                                Cancelar
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            `;
+            
+            showModal('Agregar Artículo Rápido', content, 'max-w-md');
+            
+            // Focus on description field
+            setTimeout(() => {
+                const descInput = document.getElementById('quick-description');
+                if (descInput) {
+                    descInput.focus();
+                }
+            }, 100);
+
+            // Setup autocompletado for description
+            const descriptionInput = document.getElementById('quick-description');
+            const suggestionsDiv = document.getElementById('quick-description-suggestions');
+            
+            descriptionInput.addEventListener('input', (e) => {
+                const input = e.target.value.trim();
+                const suggestions = getDescriptionSuggestions(input);
+                
+                if (suggestions.length > 0 && input.length >= 2) {
+                    suggestionsDiv.innerHTML = suggestions.map(suggestion => 
+                        `<div class="px-4 py-3 hover:bg-gray-100 cursor-pointer suggestion-item border-b border-gray-100 last:border-b-0" data-suggestion="${suggestion}">${suggestion}</div>`
+                    ).join('');
+                    suggestionsDiv.classList.remove('hidden');
+                } else {
+                    suggestionsDiv.classList.add('hidden');
+                }
+            });
+
+            // Handle suggestion clicks
+            suggestionsDiv.addEventListener('click', (e) => {
+                if (e.target.classList.contains('suggestion-item')) {
+                    descriptionInput.value = e.target.dataset.suggestion;
+                    suggestionsDiv.classList.add('hidden');
+                    descriptionInput.focus();
+                }
+            });
+
+            // Hide suggestions when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!descriptionInput.contains(e.target) && !suggestionsDiv.contains(e.target)) {
+                    suggestionsDiv.classList.add('hidden');
+                }
+            });
+
+            // Cancel button
+            document.getElementById('quick-cancel-btn').addEventListener('click', closeModal);
+
+            // Form submission
+            const form = document.getElementById('quick-add-item-form');
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const saveBtnText = document.getElementById('quick-save-btn-text');
+                const saveSpinner = document.getElementById('quick-save-spinner');
+                saveBtnText.classList.add('hidden');
+                saveSpinner.classList.remove('hidden');
+
+                const description = document.getElementById('quick-description').value.trim();
+                const stock = parseInt(document.getElementById('quick-stock').value) || 0;
+                
+                if (!description) {
+                    showNotification('Por favor, ingresa una descripción.', 'error');
+                    saveBtnText.classList.remove('hidden');
+                    saveSpinner.classList.add('hidden');
+                    return;
+                }
+
+                // Get smart defaults
+                const category = lastValues.category || 'General';
+                const unit = lastValues.unit || state.settings.defaultUnit || 'pza';
+                const minStock = state.settings.defaultMinStock || 5;
+                
+                const newItem = {
+                    description: toTitleCase(description),
+                    category: category,
+                    unit: unit,
+                    stock: stock,
+                    minStock: minStock
+                };
+
+                try {
+                    const docRef = await addDoc(collection(db, 'inventory'), newItem);
+                    await addDoc(collection(db, 'transactions'), {
+                        itemId: docRef.id, 
+                        itemDescription: newItem.description, 
+                        type: 'Creación', 
+                        quantity: newItem.stock,
+                        timestamp: serverTimestamp(), 
+                        user: state.currentUser.email, 
+                        notes: 'Artículo creado desde formulario rápido móvil'
+                    });
+                    
+                    // Save last used values for next time
+                    saveLastUsedValues(category, unit);
+                    
+                    showNotification('Artículo agregado con éxito.', 'success');
+                    closeModal();
+                    
+                    // Force refresh the inventory view if we're on the inventory page
+                    if (window.location.hash.substring(1) === 'inventory') {
+                        renderInventoryView();
+                    }
+                } catch(error) {
+                    console.error('Error creating article:', error);
+                    showNotification('Error al crear el artículo.', 'error');
+                    saveBtnText.classList.remove('hidden');
+                    saveSpinner.classList.add('hidden');
+                }
+            });
+
+            // Recreate icons for new elements
+            setTimeout(() => safeCreateIcons(), 100);
+        }
+
         // Helper functions for smart defaults and autocompletado
         function getLastUsedValues() {
             const lastValues = localStorage.getItem('inventory-last-values');
@@ -11115,6 +11355,24 @@
             const aiNavLink = document.getElementById('ai-nav-link');
             if (aiNavLink) {
                 aiNavLink.classList.remove('hidden');
+            }
+        }
+
+        // Setup mobile FAB event listener
+        function setupMobileFAB() {
+            const mobileFAB = document.getElementById('mobile-fab');
+            if (mobileFAB) {
+                // Remove existing listeners to avoid duplicates
+                const newFAB = mobileFAB.cloneNode(true);
+                mobileFAB.parentNode.replaceChild(newFAB, mobileFAB);
+                
+                // Add click event listener
+                newFAB.addEventListener('click', () => {
+                    showQuickAddItemModal();
+                });
+                
+                // Recreate icons for the FAB
+                setTimeout(() => safeCreateIcons(), 100);
             }
         }
 

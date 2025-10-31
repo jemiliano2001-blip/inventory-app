@@ -6584,14 +6584,17 @@
                     </div>
 
                     <!-- Report Preview Section -->
-                    <div id="report-preview" class="hidden bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
-                        <div class="flex items-center justify-between mb-4">
-                            <h3 class="text-lg font-semibold text-gray-900">Vista Previa del Reporte</h3>
-                            <button id="close-preview" class="text-gray-400 hover:text-gray-600">
+                    <div id="report-preview" class="hidden bg-white rounded-2xl shadow-lg border border-gray-100 p-6 mt-6">
+                        <div class="flex items-center justify-between mb-6 pb-4 border-b border-gray-200">
+                            <div>
+                                <h3 class="text-xl font-semibold text-gray-900">Vista Previa del Reporte</h3>
+                                <p class="text-sm text-gray-500 mt-1">Revisa los datos antes de descargar</p>
+                            </div>
+                            <button id="close-preview" class="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors duration-200">
                                 <i data-lucide="x" class="h-5 w-5"></i>
                             </button>
                         </div>
-                        <div id="preview-content" class="max-h-96 overflow-y-auto">
+                        <div id="preview-content" class="max-h-[600px] overflow-y-auto">
                             <!-- Preview content will be inserted here -->
                         </div>
                     </div>
@@ -8347,11 +8350,7 @@
                 if (reportBtn) { 
                     const reportType = reportBtn.dataset.type;
                     const format = reportBtn.dataset.format;
-                    if (format === 'excel') {
-                        generateExcelReport(reportType);
-                    } else {
-                        generatePDFReport(reportType);
-                    }
+                    showReportPreview(reportType, format);
                     return; 
                 }
 
@@ -8361,6 +8360,20 @@
                 if (target.id === 'generate-pdf-btn') { generateShoppingListPDF(); return; }
                 if (target.id === 'generate-excel-btn') { generateShoppingListExcel(); return; }
                 if (target.id === 'generate-manual-inventory-pdf') { generateManualInventoryPDF(); return; }
+                
+                // Preview report events
+                if (target.id === 'close-preview' || target.closest('#close-preview')) { 
+                    closeReportPreview(); 
+                    return; 
+                }
+                if (target.id === 'cancel-preview-btn') { 
+                    closeReportPreview(); 
+                    return; 
+                }
+                if (target.id === 'confirm-download-btn') { 
+                    confirmReportDownload(); 
+                    return; 
+                }
             });
             
             // Enhanced keyboard shortcuts listener
@@ -8811,7 +8824,7 @@
                     <div id="retornable-fields" style="display: none;">
                         <div class="mb-4">
                             <label for="borrower" class="block text-sm font-medium themed-text-light">Nombre de quien solicita</label>
-                            <input type="text" id="borrower" name="borrower" required class="themed-input mt-1 block w-full px-4 py-3 border rounded-md shadow-sm" ${!hasStock ? 'disabled' : ''}>
+                            <input type="text" id="borrower" name="borrower" class="themed-input mt-1 block w-full px-4 py-3 border rounded-md shadow-sm" ${!hasStock ? 'disabled' : ''}>
                         </div>
                     </div>
                     
@@ -8855,58 +8868,83 @@
 
             formContainer.addEventListener('submit', async (e) => {
                 e.preventDefault();
-                const selectedItem = item || state.inventory.find(i => i.id === itemSelect.value);
-                if (!selectedItem) {
-                     showNotification("Selecciona un artículo.", "error");
-                     return;
-                }
-                
-                // Get the operation type selected by the operator
-                const operationType = e.target.elements.operationType.value;
-                
-                if (operationType === 'consumible') {
-                    // Logic for Consumable
-                    const { quantity, user, exchange, notes } = e.target.elements;
-                    const qty = parseInt(quantity.value);
-                    const isEndmill = selectedItem.category.toLowerCase().includes('endmill');
-                    const isExchange = isEndmill && exchange && exchange.value === 'yes';
-
-                    if (state.settings.customValidations?.preventNegativeStock && !isExchange && selectedItem.stock - qty < 0) {
-                        showNotification('No puedes tener menos de 0 en stock.', 'error');
-                        return;
-                    }
-
-                    const itemRef = doc(db, 'inventory', selectedItem.id);
-                    if (!isExchange) {
-                        await updateDoc(itemRef, { stock: selectedItem.stock - qty });
-                    }
-                    await addDoc(collection(db, 'transactions'), {
-                        itemId: selectedItem.id, itemDescription: selectedItem.description, type: isExchange ? 'Intercambio' : 'Salida',
-                        quantity: qty, user: user.value, notes: notes?.value || '', timestamp: serverTimestamp()
-                    });
-                    showNotification('Salida guardada.', 'success');
-                } else {
-                    // Logic for Retornable
-                    if (selectedItem.stock <= 0) {
-                        showNotification('No hay stock disponible para este artículo.', 'error');
-                        return;
+                try {
+                    const selectedItem = item || (itemSelect ? state.inventory.find(i => i.id === itemSelect.value) : null);
+                    if (!selectedItem) {
+                         showNotification("Selecciona un artículo.", "error");
+                         return;
                     }
                     
-                    const borrower = e.target.borrower.value;
-                    const batch = writeBatch(db);
-                    batch.update(doc(db, 'inventory', selectedItem.id), { stock: selectedItem.stock - 1 });
-                    batch.set(doc(collection(db, 'loans')), {
-                        itemId: selectedItem.id, itemDescription: selectedItem.description, borrower: borrower,
-                        loanedAt: serverTimestamp(), returnedAt: null
-                    });
-                    batch.set(doc(collection(db, 'transactions')), {
-                        itemId: selectedItem.id, itemDescription: selectedItem.description, type: 'Préstamo',
-                        quantity: 1, borrower: borrower, timestamp: serverTimestamp()
-                    });
-                    await batch.commit();
-                    showNotification('Préstamo registrado.', 'success');
+                    // Get the operation type selected by the operator
+                    const operationType = e.target.elements.operationType.value;
+                    
+                    if (operationType === 'consumible') {
+                        // Logic for Consumable
+                        const quantity = e.target.elements.quantity;
+                        const user = e.target.elements.user;
+                        const exchange = e.target.elements.exchange;
+                        const notes = e.target.elements.notes;
+                        
+                        if (!quantity || !user || !quantity.value || !user.value) {
+                            showNotification('Completa todos los campos requeridos.', 'error');
+                            return;
+                        }
+                        
+                        const qty = parseInt(quantity.value);
+                        const isEndmill = selectedItem.category.toLowerCase().includes('endmill');
+                        const isExchange = isEndmill && exchange && exchange.value === 'yes';
+
+                        if (state.settings.customValidations?.preventNegativeStock && !isExchange && selectedItem.stock - qty < 0) {
+                            showNotification('No puedes tener menos de 0 en stock.', 'error');
+                            return;
+                        }
+
+                        const itemRef = doc(db, 'inventory', selectedItem.id);
+                        if (!isExchange) {
+                            await updateDoc(itemRef, { stock: selectedItem.stock - qty });
+                        }
+                        await addDoc(collection(db, 'transactions'), {
+                            itemId: selectedItem.id, itemDescription: selectedItem.description, type: isExchange ? 'Intercambio' : 'Salida',
+                            quantity: qty, user: user.value, notes: notes?.value || '', timestamp: serverTimestamp()
+                        });
+                        showNotification('Salida guardada.', 'success');
+                    } else {
+                        // Logic for Retornable
+                        if (selectedItem.stock <= 0) {
+                            showNotification('No hay stock disponible para este artículo.', 'error');
+                            return;
+                        }
+                        
+                        const borrowerElement = e.target.elements.borrower;
+                        if (!borrowerElement) {
+                            showNotification('Error: Campo de prestamista no encontrado.', 'error');
+                            return;
+                        }
+                        
+                        const borrower = borrowerElement.value;
+                        if (!borrower || borrower.trim() === '') {
+                            showNotification('El nombre es requerido.', 'error');
+                            return;
+                        }
+                        
+                        const batch = writeBatch(db);
+                        batch.update(doc(db, 'inventory', selectedItem.id), { stock: selectedItem.stock - 1 });
+                        batch.set(doc(collection(db, 'loans')), {
+                            itemId: selectedItem.id, itemDescription: selectedItem.description, borrower: borrower,
+                            loanedAt: serverTimestamp(), returnedAt: null
+                        });
+                        batch.set(doc(collection(db, 'transactions')), {
+                            itemId: selectedItem.id, itemDescription: selectedItem.description, type: 'Préstamo',
+                            quantity: 1, borrower: borrower, timestamp: serverTimestamp()
+                        });
+                        await batch.commit();
+                        showNotification('Préstamo registrado.', 'success');
+                    }
+                    closeModal();
+                } catch (error) {
+                    console.error('Error in checkout form submission:', error);
+                    showNotification('Error al procesar la operación. Intenta de nuevo.', 'error');
                 }
-                closeModal();
             });
         }
 
@@ -11033,6 +11071,141 @@
         }
 
         // --- FUNCIONES DE GENERACIÓN DE REPORTES ---
+        let pendingReportType = null;
+        let pendingReportFormat = null;
+
+        function showReportPreview(reportType, format) {
+            const data = getReportData(reportType);
+            const headers = getReportHeaders(reportType);
+            const title = getReportTitle(reportType);
+            
+            // Guardar el tipo y formato de reporte para la confirmación
+            pendingReportType = reportType;
+            pendingReportFormat = format;
+            
+            // Obtener el contenedor del preview
+            const previewContainer = document.getElementById('report-preview');
+            const previewContent = document.getElementById('preview-content');
+            
+            if (!previewContainer || !previewContent) {
+                // Si no existe el preview, descargar directamente
+                if (format === 'excel') {
+                    generateExcelReport(reportType);
+                } else {
+                    generatePDFReport(reportType);
+                }
+                return;
+            }
+            
+            // Construir la tabla HTML
+            let tableHTML = `
+                <div class="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                        <div>
+                            <p class="text-gray-500 font-medium">Tipo de Reporte</p>
+                            <p class="text-gray-900 font-semibold mt-1">${title}</p>
+                        </div>
+                        <div>
+                            <p class="text-gray-500 font-medium">Formato</p>
+                            <p class="text-gray-900 font-semibold mt-1">${format.toUpperCase()}</p>
+                        </div>
+                        <div>
+                            <p class="text-gray-500 font-medium">Total de Registros</p>
+                            <p class="text-gray-900 font-semibold mt-1">${data.length}</p>
+                        </div>
+                        <div>
+                            <p class="text-gray-500 font-medium">Fecha</p>
+                            <p class="text-gray-900 font-semibold mt-1">${new Date().toLocaleDateString()}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            if (data.length === 0) {
+                tableHTML += `
+                    <div class="text-center py-8 text-gray-500">
+                        <i data-lucide="file-x" class="h-12 w-12 mx-auto mb-4 text-gray-400"></i>
+                        <p>No hay datos para mostrar en este reporte.</p>
+                    </div>
+                `;
+            } else {
+                // Limitar la visualización a 50 filas para mejor rendimiento
+                const displayData = data.slice(0, 50);
+                const hasMore = data.length > 50;
+                
+                tableHTML += `
+                    <div class="overflow-x-auto rounded-lg border border-gray-200">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    ${headers.map(header => `<th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">${header.label}</th>`).join('')}
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                ${displayData.map((row, idx) => `
+                                    <tr class="hover:bg-gray-50">
+                                        ${headers.map(header => `<td class="px-4 py-3 text-sm text-gray-900">${row[header.key] || '-'}</td>`).join('')}
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+                
+                if (hasMore) {
+                    tableHTML += `
+                        <div class="mt-4 text-center text-sm text-gray-500">
+                            <p>Mostrando 50 de ${data.length} registros. El archivo completo incluirá todos los registros.</p>
+                        </div>
+                    `;
+                }
+            }
+            
+            // Agregar botones de acción
+            tableHTML += `
+                <div class="mt-6 flex justify-end space-x-3 pt-4 border-t border-gray-200">
+                    <button id="cancel-preview-btn" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg font-medium transition-colors duration-200">
+                        Cancelar
+                    </button>
+                    <button id="confirm-download-btn" class="px-4 py-2 ${format === 'pdf' ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700'} text-white rounded-lg font-medium transition-colors duration-200 flex items-center space-x-2">
+                        <i data-lucide="download" class="h-4 w-4"></i>
+                        <span>Confirmar y Descargar</span>
+                    </button>
+                </div>
+            `;
+            
+            previewContent.innerHTML = tableHTML;
+            previewContainer.classList.remove('hidden');
+            
+            // Inicializar iconos
+            safeCreateIcons();
+            
+            // Scroll al preview después de un pequeño delay para asegurar que se renderice
+            setTimeout(() => {
+                previewContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }, 100);
+        }
+
+        function closeReportPreview() {
+            const previewContainer = document.getElementById('report-preview');
+            if (previewContainer) {
+                previewContainer.classList.add('hidden');
+                pendingReportType = null;
+                pendingReportFormat = null;
+            }
+        }
+
+        function confirmReportDownload() {
+            if (pendingReportType && pendingReportFormat) {
+                if (pendingReportFormat === 'excel') {
+                    generateExcelReport(pendingReportType);
+                } else {
+                    generatePDFReport(pendingReportType);
+                }
+                closeReportPreview();
+            }
+        }
+
         function generatePDFReport(reportType) {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();

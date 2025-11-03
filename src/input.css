@@ -1,0 +1,5 @@
+/* Disable @tailwind base to avoid resetting custom styles */
+/* @tailwind base; */
+@tailwind components;
+@tailwind utilities;
+

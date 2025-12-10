@@ -5,14 +5,13 @@
   "main": "index.html",
   "private": true,
   "scripts": {
-    "dev": "vercel dev",
-    "start": "vercel dev",
-    "build": "npx tailwindcss -i ./src/input.css -o ./dist/output.css --minify",
-    "build:css": "npx tailwindcss -i ./src/input.css -o ./dist/output.css --minify",
-    "watch": "npx tailwindcss -i ./src/input.css -o ./dist/output.css --watch",
+    "build:css": "tailwindcss -i ./src/input.css -o ./dist/output.css --minify",
+    "watch:css": "tailwindcss -i ./src/input.css -o ./dist/output.css --watch",
+    "dev": "npm run build:css && vercel dev",
+    "start": "npm run build:css && vercel dev",
     "audit": "npm audit --audit-level=moderate",
-    "deploy": "vercel --prod",
-    "preview": "vercel"
+    "deploy": "npm run build:css && vercel --prod",
+    "preview": "npm run build:css && vercel"
   },
   "devDependencies": {
     "vercel": "^32.0.0",

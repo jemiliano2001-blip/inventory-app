@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Sistema de gestión de inventario central para uso empresarial">
     <title>Gestión Central de Inventario</title>
     
     <!-- Tailwind CSS: Always try local compiled CSS first, CDN only as fallback on localhost -->
@@ -13,53 +14,28 @@
         // 1. We're on localhost (development)
         // 2. AND the local CSS file failed to load or is empty
         (function() {
-            // #region agent log
-            fetch('http://127.0.0.1:7242/ingest/64b38661-b590-4718-9901-63986d535208',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'index.html:16',message:'CSS detection started',data:{hostname:window.location.hostname,pathname:window.location.pathname},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A,B,C'})}).catch(()=>{});
-            // #endregion
             const isLocalhost = window.location.hostname === 'localhost' || 
                                window.location.hostname === '127.0.0.1' ||
                                window.location.hostname === '' ||
                                window.location.hostname.startsWith('192.168.');
             
-            // #region agent log
-            fetch('http://127.0.0.1:7242/ingest/64b38661-b590-4718-9901-63986d535208',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'index.html:20',message:'Hostname check result',data:{isLocalhost:isLocalhost,hostname:window.location.hostname},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-            // #endregion
-            
             // Check if CSS loaded successfully after a short delay
             setTimeout(function() {
                 const cssLink = document.getElementById('tailwind-css');
-                // #region agent log
-                fetch('http://127.0.0.1:7242/ingest/64b38661-b590-4718-9901-63986d535208',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'index.html:25',message:'CSS link element check',data:{cssLinkExists:!!cssLink,cssLinkHref:cssLink?.href||null},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-                // #endregion
                 const stylesheets = Array.from(document.styleSheets);
-                // #region agent log
-                fetch('http://127.0.0.1:7242/ingest/64b38661-b590-4718-9901-63986d535208',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'index.html:28',message:'Stylesheets found',data:{totalSheets:stylesheets.length,sheetHrefs:stylesheets.map(s=>s.href).filter(Boolean)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C,D'})}).catch(()=>{});
-                // #endregion
                 const tailwindLoaded = stylesheets.some(sheet => {
                     try {
                         const hasOutputCss = sheet.href && sheet.href.includes('output.css');
                         const hasRules = sheet.cssRules && sheet.cssRules.length > 0;
-                        // #region agent log
-                        fetch('http://127.0.0.1:7242/ingest/64b38661-b590-4718-9901-63986d535208',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'index.html:30',message:'Sheet check iteration',data:{href:sheet.href,hasOutputCss:hasOutputCss,hasRules:hasRules,ruleCount:sheet.cssRules?.length||0},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A,D'})}).catch(()=>{});
-                        // #endregion
                         return hasOutputCss && hasRules;
                     } catch(e) {
-                        // #region agent log
-                        fetch('http://127.0.0.1:7242/ingest/64b38661-b590-4718-9901-63986d535208',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'index.html:33',message:'Sheet check error',data:{error:e.message,errorName:e.name},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
-                        // #endregion
                         return false;
                     }
                 });
-                // #region agent log
-                fetch('http://127.0.0.1:7242/ingest/64b38661-b590-4718-9901-63986d535208',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'index.html:36',message:'Final detection result',data:{tailwindLoaded:tailwindLoaded,willUseCDN:isLocalhost && !tailwindLoaded},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A,B'})}).catch(()=>{});
-                // #endregion
                 
                 // Only use CDN fallback on localhost if CSS didn't load properly
                 if (isLocalhost && !tailwindLoaded) {
                     console.warn('Local Tailwind CSS not found, using CDN for localhost development only');
-                    // #region agent log
-                    fetch('http://127.0.0.1:7242/ingest/64b38661-b590-4718-9901-63986d535208',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'index.html:40',message:'CDN fallback triggered',data:{reason:'tailwindLoaded=false'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-                    // #endregion
                     const script = document.createElement('script');
                     script.src = 'https://cdn.tailwindcss.com';
                     document.head.appendChild(script);
@@ -2503,9 +2479,75 @@
             border: 2px solid #000;
         }
 
+        /* Skip Link for Accessibility */
+        .skip-link {
+            position: absolute;
+            top: -40px;
+            left: 0;
+            background: var(--primary-color);
+            color: white;
+            padding: 8px 16px;
+            text-decoration: none;
+            z-index: 10000;
+            border-radius: 0 0 4px 0;
+            font-weight: 600;
+        }
+        .skip-link:focus {
+            top: 0;
+        }
+        
+        /* Enhanced Focus Indicators */
+        *:focus-visible {
+            outline: 3px solid var(--primary-color);
+            outline-offset: 2px;
+        }
+        
+        /* Reduced Motion Support */
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+                scroll-behavior: auto !important;
+            }
+        }
+        
+        /* High Contrast Mode Improvements */
+        .high-contrast * {
+            border-color: currentColor !important;
+        }
+        .high-contrast button,
+        .high-contrast a {
+            border: 2px solid currentColor !important;
+        }
+        
+        /* ARIA Live Region */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border-width: 0;
+        }
+        
+        /* Accessible Table Styles */
+        table caption {
+            font-weight: 600;
+            text-align: left;
+            margin-bottom: 0.5rem;
+            color: var(--text-color);
+        }
     </style>
 </head>
 <body class="themed-bg">
+    <!-- Skip to Main Content Link -->
+    <a href="#main-content" class="skip-link">Saltar al contenido principal</a>
 
     <!-- Login Screen -->
     <div id="login-screen" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);">
@@ -2538,9 +2580,12 @@
                                 </div>
                                 <input id="email" name="email" type="email" autocomplete="email" required 
                                        class="themed-input block w-full pl-10 pr-3 py-3.5 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-gray-900 transition-all duration-200 bg-white hover:border-gray-300" 
-                                       placeholder="tu@email.com">
-                                <div id="email-validation" class="hidden mt-1 flex items-center text-xs">
-                                    <i data-lucide="check-circle" class="h-4 w-4 mr-1 text-green-600"></i>
+                                       placeholder="tu@email.com"
+                                       aria-required="true"
+                                       aria-describedby="email-validation email-help">
+                                <span id="email-help" class="sr-only">Ingrese su dirección de correo electrónico</span>
+                                <div id="email-validation" class="hidden mt-1 flex items-center text-xs" role="status" aria-live="polite">
+                                    <i data-lucide="check-circle" class="h-4 w-4 mr-1 text-green-600" aria-hidden="true"></i>
                                     <span class="text-green-600">Email válido</span>
                                 </div>
                             </div>
@@ -2555,28 +2600,33 @@
                                 </div>
                                 <input id="password" name="password" type="password" autocomplete="current-password" required 
                                        class="themed-input block w-full pl-10 pr-3 py-3.5 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-gray-900 transition-all duration-200 bg-white hover:border-gray-300" 
-                                       placeholder="••••••••">
+                                       placeholder="••••••••"
+                                       aria-required="true"
+                                       aria-describedby="password-help">
+                                <span id="password-help" class="sr-only">Ingrese su contraseña</span>
                             </div>
                         </div>
                     </div>
 
-                    <div id="auth-error-message" class="text-red-600 text-center text-base font-medium hidden bg-red-50 p-4 rounded-xl border-2 border-red-200 shadow-md animate-bounce-in">
+                    <div id="auth-error-message" class="text-red-600 text-center text-base font-medium hidden bg-red-50 p-4 rounded-xl border-2 border-red-200 shadow-md animate-bounce-in" role="alert" aria-live="assertive">
                         <div class="flex items-center justify-center space-x-2">
-                            <i data-lucide="alert-circle" class="h-5 w-5"></i>
+                            <i data-lucide="alert-circle" class="h-5 w-5" aria-hidden="true"></i>
                             <span></span>
                         </div>
                     </div>
 
                     <!-- Debug button (temporary) -->
                     <button type="button" id="debug-button" 
-                            class="w-full flex justify-center items-center py-2.5 px-4 border-2 border-gray-200 rounded-xl text-sm font-medium text-gray-700 bg-gray-50 hover:bg-gray-100 hover:border-gray-300 transition-all duration-200 mb-4">
+                            class="w-full flex justify-center items-center py-2.5 px-4 border-2 border-gray-200 rounded-xl text-sm font-medium text-gray-700 bg-gray-50 hover:bg-gray-100 hover:border-gray-300 transition-all duration-200 mb-4"
+                            aria-label="Probar conexión con Firebase">
                         🔍 Debug: Test Firebase Connection
                     </button>
 
                     <button type="submit" id="login-button" 
                             class="btn-primary w-full flex justify-center items-center py-3.5 px-4 border border-transparent rounded-xl text-sm font-semibold text-white bg-gray-900 hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.02] active:scale-[0.98]" 
-                            style="box-shadow: var(--shadow-md);">
-                        <i data-lucide="log-in" class="h-5 w-5 mr-2" id="login-icon"></i>
+                            style="box-shadow: var(--shadow-md);"
+                            aria-label="Iniciar sesión en el sistema">
+                        <i data-lucide="log-in" class="h-5 w-5 mr-2" id="login-icon" aria-hidden="true"></i>
                         <span id="login-text">Iniciar Sesión</span>
                         <div id="login-spinner" class="hidden ml-2">
                             <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -2603,7 +2653,7 @@
         <!-- Mobile Overlay -->
         <div id="mobile-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-20 hidden md:hidden"></div>
         
-        <aside id="sidebar" class="themed-sidebar w-72 h-screen space-y-1 pt-6 pb-0 px-4 absolute inset-y-0 left-0 transform -translate-x-full md:relative md:translate-x-0 transition-all duration-300 ease-in-out z-30 flex flex-col overflow-y-auto">
+        <aside id="sidebar" role="complementary" aria-label="Barra lateral de navegación" class="themed-sidebar w-72 h-screen space-y-1 pt-6 pb-0 px-4 absolute inset-y-0 left-0 transform -translate-x-full md:relative md:translate-x-0 transition-all duration-300 ease-in-out z-30 flex flex-col overflow-y-auto">
             <!-- Logo Section -->
             <div class="px-2">
                 <a href="#" class="flex items-center space-x-3 px-4 py-3 rounded hover:bg-gray-100 transition-colors">
@@ -2618,58 +2668,58 @@
             </div>
 
             <!-- Navigation -->
-            <nav id="main-nav" class="flex-1 space-y-1 px-2">
-                <a href="#dashboard" class="nav-link flex items-center space-x-3 py-2 px-4 rounded transition-colors active group">
-                    <div class="h-8 w-8 rounded flex items-center justify-center">
+            <nav id="main-nav" role="navigation" aria-label="Navegación principal" class="flex-1 space-y-1 px-2">
+                <a href="#dashboard" class="nav-link flex items-center space-x-3 py-2 px-4 rounded transition-colors active group" aria-label="Ir al Dashboard" aria-current="page">
+                    <div class="h-8 w-8 rounded flex items-center justify-center" aria-hidden="true">
                         <i data-lucide="layout-dashboard" class="h-4 w-4"></i>
                     </div>
                     <span class="font-medium">Dashboard</span>
                 </a>
-                <a href="#inventory" class="nav-link flex items-center space-x-3 py-2 px-4 rounded transition-colors group">
-                    <div class="h-8 w-8 rounded flex items-center justify-center">
+                <a href="#inventory" class="nav-link flex items-center space-x-3 py-2 px-4 rounded transition-colors group" aria-label="Ir al Inventario">
+                    <div class="h-8 w-8 rounded flex items-center justify-center" aria-hidden="true">
                         <i data-lucide="archive" class="h-4 w-4"></i>
                     </div>
                     <span class="font-medium">Inventario</span>
                 </a>
-                <a href="#active-loans" class="nav-link flex items-center space-x-3 py-2 px-4 rounded transition-colors group">
-                    <div class="h-8 w-8 rounded flex items-center justify-center">
+                <a href="#active-loans" class="nav-link flex items-center space-x-3 py-2 px-4 rounded transition-colors group" aria-label="Ir a Préstamos Activos">
+                    <div class="h-8 w-8 rounded flex items-center justify-center" aria-hidden="true">
                         <i data-lucide="arrow-right-left" class="h-4 w-4"></i>
                     </div>
                     <span class="font-medium">Préstamos</span>
                 </a>
-                <a href="#history" class="nav-link flex items-center space-x-3 py-2 px-4 rounded transition-colors group">
-                    <div class="h-8 w-8 rounded flex items-center justify-center">
+                <a href="#history" class="nav-link flex items-center space-x-3 py-2 px-4 rounded transition-colors group" aria-label="Ir al Historial">
+                    <div class="h-8 w-8 rounded flex items-center justify-center" aria-hidden="true">
                         <i data-lucide="history" class="h-4 w-4"></i>
                     </div>
                     <span class="font-medium">Historial</span>
                 </a>
-                <a href="#reports" class="nav-link flex items-center space-x-3 py-2 px-4 rounded transition-colors group">
-                    <div class="h-8 w-8 rounded flex items-center justify-center">
+                <a href="#reports" class="nav-link flex items-center space-x-3 py-2 px-4 rounded transition-colors group" aria-label="Ir a Reportes">
+                    <div class="h-8 w-8 rounded flex items-center justify-center" aria-hidden="true">
                         <i data-lucide="file-down" class="h-4 w-4"></i>
                     </div>
                     <span class="font-medium">Reportes</span>
                 </a>
-                <a href="#shopping-list" class="nav-link flex items-center space-x-3 py-2 px-4 rounded transition-colors group relative">
-                    <div class="h-8 w-8 rounded flex items-center justify-center">
+                <a href="#shopping-list" class="nav-link flex items-center space-x-3 py-2 px-4 rounded transition-colors group relative" aria-label="Ir a Lista de Compras">
+                    <div class="h-8 w-8 rounded flex items-center justify-center" aria-hidden="true">
                         <i data-lucide="shopping-cart" class="h-4 w-4"></i>
                     </div>
                     <span class="font-medium">Compras</span>
-                    <span id="shopping-list-count" class="absolute right-4 top-1/2 -translate-y-1/2 bg-black text-white text-xs font-bold rounded h-5 w-5 flex items-center justify-center hidden">0</span>
+                    <span id="shopping-list-count" class="absolute right-4 top-1/2 -translate-y-1/2 bg-black text-white text-xs font-bold rounded h-5 w-5 flex items-center justify-center hidden" aria-label="Cantidad de artículos en lista de compras">0</span>
                 </a>
-                <a href="#users" id="users-nav-link" class="nav-link flex items-center space-x-3 py-2 px-4 rounded transition-colors group hidden">
-                    <div class="h-8 w-8 rounded flex items-center justify-center">
+                <a href="#users" id="users-nav-link" class="nav-link flex items-center space-x-3 py-2 px-4 rounded transition-colors group hidden" aria-label="Ir a Usuarios (solo administrador)" aria-hidden="true">
+                    <div class="h-8 w-8 rounded flex items-center justify-center" aria-hidden="true">
                         <i data-lucide="users" class="h-4 w-4"></i>
                     </div>
                     <span class="font-medium">Usuarios</span>
                 </a>
-                <a href="#settings" id="settings-nav-link" class="nav-link flex items-center space-x-3 py-2 px-4 rounded transition-colors group">
-                    <div class="h-8 w-8 rounded flex items-center justify-center">
+                <a href="#settings" id="settings-nav-link" class="nav-link flex items-center space-x-3 py-2 px-4 rounded transition-colors group" aria-label="Ir a Configuración">
+                    <div class="h-8 w-8 rounded flex items-center justify-center" aria-hidden="true">
                         <i data-lucide="settings" class="h-4 w-4"></i>
                     </div>
                     <span class="font-medium">Configuración</span>
                 </a>
-                <a href="#" id="logout-button" class="nav-link flex items-center space-x-3 py-2 px-4 rounded transition-colors group">
-                    <div class="h-8 w-8 rounded flex items-center justify-center">
+                <a href="#" id="logout-button" class="nav-link flex items-center space-x-3 py-2 px-4 rounded transition-colors group" aria-label="Cerrar sesión">
+                    <div class="h-8 w-8 rounded flex items-center justify-center" aria-hidden="true">
                         <i data-lucide="log-out" class="h-4 w-4"></i>
                     </div>
                     <span class="font-medium">Cerrar Sesión</span>
@@ -2679,10 +2729,10 @@
 
         <!-- Main Content -->
         <div class="flex-1 flex flex-col overflow-x-hidden">
-            <header class="themed-header flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 sm:p-6 border-b bg-white mobile-header relative overflow-visible">
+            <header role="banner" class="themed-header flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 sm:p-6 border-b bg-white mobile-header relative overflow-visible">
                 <div class="flex items-center space-x-4">
-                    <button id="menu-button" class="focus:outline-none md:hidden p-2 rounded hover:bg-gray-100 transition-colors">
-                        <i data-lucide="menu" class="h-5 w-5"></i>
+                    <button id="menu-button" class="focus:outline-none md:hidden p-2 rounded hover:bg-gray-100 transition-colors" aria-label="Abrir menú de navegación" aria-expanded="false" aria-controls="sidebar">
+                        <i data-lucide="menu" class="h-5 w-5" aria-hidden="true"></i>
                     </button>
                     <div>
                         <h1 id="page-title" class="text-2xl font-bold text-gray-900">Dashboard</h1>
@@ -2713,7 +2763,13 @@
                                    spellcheck="false"
                                    role="combobox"
                                    aria-autocomplete="list"
+                                   aria-expanded="false"
+                                   aria-controls="search-suggestions"
+                                   aria-label="Buscar artículos en el inventario"
+                                   aria-describedby="search-help"
+                                   aria-keyshortcuts="Ctrl+K Meta+K"
                                    style="z-index: 2;">
+                            <span id="search-help" class="sr-only">Presione Ctrl+K o Cmd+K para buscar. Use operadores AND, OR, NOT para búsquedas avanzadas.</span>
                             
                             <!-- Background for input (behind syntax highlight) -->
                             <div class="absolute inset-0 bg-white rounded pointer-events-none" style="z-index: 0;"></div>
@@ -2724,16 +2780,21 @@
                                 <button id="clear-search-btn" 
                                         type="button"
                                         class="hidden p-1.5 text-gray-400 hover:text-gray-600 rounded hover:bg-gray-100 transition-all duration-200"
+                                        aria-label="Limpiar búsqueda"
+                                        aria-keyshortcuts="Escape"
                                         title="Limpiar búsqueda (Esc)">
-                                    <i data-lucide="x" class="h-4 w-4"></i>
+                                    <i data-lucide="x" class="h-4 w-4" aria-hidden="true"></i>
                                 </button>
                                 
                                 <!-- Advanced search toggle -->
                                 <button id="advanced-search-toggle" 
                                         type="button"
                                         class="p-1.5 text-gray-400 hover:text-black rounded hover:bg-gray-100 transition-colors"
+                                        aria-label="Mostrar ayuda de búsqueda avanzada"
+                                        aria-expanded="false"
+                                        aria-controls="advanced-search-panel"
                                         title="Búsqueda avanzada">
-                                    <i data-lucide="filter" class="h-4 w-4"></i>
+                                    <i data-lucide="filter" class="h-4 w-4" aria-hidden="true"></i>
                                 </button>
                                 
                                 <!-- Keyboard shortcut hint -->
@@ -2745,8 +2806,8 @@
                         </div>
                         
                         <!-- Advanced search panel -->
-                        <div id="advanced-search-panel" class="hidden mt-2 p-4 bg-white border border-gray-200 rounded">
-                            <div class="text-xs font-semibold text-gray-700 mb-3">Búsqueda Avanzada</div>
+                        <div id="advanced-search-panel" class="hidden mt-2 p-4 bg-white border border-gray-200 rounded" role="region" aria-labelledby="advanced-search-title">
+                            <div id="advanced-search-title" class="text-xs font-semibold text-gray-700 mb-3">Búsqueda Avanzada</div>
                             <div class="space-y-2 text-xs text-gray-600">
                                 <div><strong>AND:</strong> Buscar ambos términos (ej: <code class="px-1 py-0.5 bg-gray-100 rounded">martillo AND herramientas</code>)</div>
                                 <div><strong>OR:</strong> Buscar cualquiera de los términos (ej: <code class="px-1 py-0.5 bg-gray-100 rounded">tornillo OR clavo</code>)</div>
@@ -2756,9 +2817,12 @@
                         </div>
                         
                         <!-- Suggestions dropdown -->
-                        <div id="search-suggestions" class="fixed bg-white border border-gray-300 rounded shadow-sm z-[99999] hidden overflow-hidden" style="z-index: 99999 !important; position: fixed !important; max-height: 400px; overflow-y: auto;">
-                            <div id="suggestions-list" class="py-2"></div>
+                        <div id="search-suggestions" class="fixed bg-white border border-gray-300 rounded shadow-sm z-[99999] hidden overflow-hidden" role="listbox" aria-label="Sugerencias de búsqueda" style="z-index: 99999 !important; position: fixed !important; max-height: 400px; overflow-y: auto;">
+                            <div id="suggestions-list" class="py-2" role="list"></div>
                         </div>
+                        
+                        <!-- Search Results Counter -->
+                        <div id="search-results-count" class="sr-only" aria-live="polite" aria-atomic="true"></div>
                     </form>
                     
                     <div class="flex items-center space-x-2">
@@ -2770,14 +2834,16 @@
                 </div>
             </header>
 
-            <main id="main-content" class="flex-1 overflow-x-hidden overflow-y-auto p-4 sm:p-6 relative z-0" style="background-color: var(--color-bg-page);">
+            <main id="main-content" role="main" class="flex-1 overflow-x-hidden overflow-y-auto p-4 sm:p-6 relative z-0" style="background-color: var(--color-bg-page);" tabindex="-1">
                 <!-- Views will be injected here -->
+                <!-- ARIA Live Region for Dynamic Content -->
+                <div id="aria-live-region" class="sr-only" aria-live="polite" aria-atomic="true"></div>
             </main>
         </div>
         
         <!-- Mobile Floating Action Button (FAB) -->
-        <button id="mobile-fab" type="button" class="mobile-fab pulse" title="Agregar artículo rápido" onclick="if(typeof window.showQuickAddItemModal === 'function') window.showQuickAddItemModal();">
-            <i data-lucide="plus"></i>
+        <button id="mobile-fab" type="button" class="mobile-fab pulse" aria-label="Agregar artículo rápido" onclick="if(typeof window.showQuickAddItemModal === 'function') window.showQuickAddItemModal();">
+            <i data-lucide="plus" aria-hidden="true"></i>
         </button>
     </div>
 
@@ -2812,13 +2878,13 @@
         }
         */
         const firebaseConfig = {
-            apiKey: "AIzaSyDPvm07EShBWY_tqG1J6DZCxuKj0sbN1Cw",
-            authDomain: "mi-inventario-app-e44a9.firebaseapp.com",
-            projectId: "mi-inventario-app-e44a9",
-            storageBucket: "mi-inventario-app-e44a9.appspot.com",
-            messagingSenderId: "863395232436",
-            appId: "1:863395232436:web:3f65ad3cc2ce61d30175e1",
-            measurementId: "G-GE6QRCGJRH"
+            apiKey: window.env?.VITE_FIREBASE_API_KEY || "AIzaSyDPvm07EShBWY_tqG1J6DZCxuKj0sbN1Cw",
+            authDomain: window.env?.VITE_FIREBASE_AUTH_DOMAIN || "mi-inventario-app-e44a9.firebaseapp.com",
+            projectId: window.env?.VITE_FIREBASE_PROJECT_ID || "mi-inventario-app-e44a9",
+            storageBucket: window.env?.VITE_FIREBASE_STORAGE_BUCKET || "mi-inventario-app-e44a9.appspot.com",
+            messagingSenderId: window.env?.VITE_FIREBASE_MESSAGING_SENDER_ID || "863395232436",
+            appId: window.env?.VITE_FIREBASE_APP_ID || "1:863395232436:web:3f65ad3cc2ce61d30175e1",
+            measurementId: window.env?.VITE_FIREBASE_MEASUREMENT_ID || "G-GE6QRCGJRH"
         };
 
         // --- INICIALIZACIÓN DE FIREBASE ---
@@ -3754,22 +3820,22 @@
             try {
                 showNotification('Preparando exportación...', 'info');
                 
-                let data, filename, mimeType;
+                let exportContent, filename, mimeType;
                 
                 switch (format) {
                     case 'csv':
-                        data = generateCSV();
+                        exportContent = generateCSV();
                         filename = `inventario_${new Date().toISOString().split('T')[0]}.csv`;
                         mimeType = 'text/csv';
                         break;
                     case 'json':
-                        data = JSON.stringify(state.inventory, null, 2);
+                        exportContent = JSON.stringify(state.inventory, null, 2);
                         filename = `inventario_${new Date().toISOString().split('T')[0]}.json`;
                         mimeType = 'application/json';
                         break;
                     case 'excel':
                         // Para Excel usamos CSV con extensión .xlsx (compatible)
-                        data = generateCSV();
+                        exportContent = generateCSV();
                         filename = `inventario_${new Date().toISOString().split('T')[0]}.xlsx`;
                         mimeType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
                         break;
@@ -3777,7 +3843,7 @@
                         throw new Error('Formato no soportado');
                 }
                 
-                downloadFile(data, filename, mimeType);
+                downloadFile(exportContent, filename, mimeType);
                 showNotification(`Inventario exportado como ${filename}`, 'success');
                 
             } catch (error) {
@@ -3819,14 +3885,14 @@
                 showNotification('Procesando archivo...', 'info');
                 
                 const fileContent = await readFileContent(file);
-                const data = parseFileContent(fileContent, file.name);
+                const parsedFileData = parseFileContent(fileContent, file.name);
                 
-                if (!data || data.length === 0) {
+                if (!parsedFileData || parsedFileData.length === 0) {
                     throw new Error('El archivo está vacío o no contiene datos válidos');
                 }
                 
                 // Validar datos
-                const validatedData = validateImportData(data);
+                const validatedData = validateImportData(parsedFileData);
                 
                 // Mostrar preview de importación
                 showImportPreview(validatedData, file.name);
@@ -3865,7 +3931,7 @@
         function parseCSV(csvContent) {
             const lines = csvContent.split('\n');
             const headers = lines[0].split(',').map(h => h.replace(/"/g, '').trim());
-            const data = [];
+            const parsedRows = [];
             
             for (let i = 1; i < lines.length; i++) {
                 if (lines[i].trim()) {
@@ -3874,11 +3940,11 @@
                     headers.forEach((header, index) => {
                         row[header] = values[index] || '';
                     });
-                    data.push(row);
+                    parsedRows.push(row);
                 }
             }
             
-            return data;
+            return parsedRows;
         }
         
         function validateImportData(data) {
@@ -4087,10 +4153,10 @@
                     categories: state.categories
                 };
                 
-                const data = JSON.stringify(backupData, null, 2);
+                const backupJson = JSON.stringify(backupData, null, 2);
                 const filename = `backup_${new Date().toISOString().split('T')[0]}_${new Date().toTimeString().split(' ')[0].replace(/:/g, '-')}.json`;
                 
-                downloadFile(data, filename, 'application/json');
+                downloadFile(backupJson, filename, 'application/json');
                 
                 // Actualizar fecha del último backup
                 state.settings.backup.lastBackupDate = new Date().toISOString();
@@ -4636,8 +4702,6 @@
                 };
                 
                 // Aquí se integraría con un servicio de email
-                console.log('Enviando reporte diario:', reportData);
-                
                 // Simular envío exitoso
                 showNotification('Reporte diario enviado', 'success');
                 
@@ -4671,8 +4735,6 @@
                 };
                 
                 // Aquí se integraría con un servicio de email
-                console.log('Enviando reporte semanal:', reportData);
-                
                 // Simular envío exitoso
                 showNotification('Reporte semanal enviado', 'success');
                 
@@ -6005,8 +6067,6 @@
                 results: []
             };
             
-            console.log('🧪 Iniciando pruebas de configuraciones...');
-            
             // Ejecutar todas las pruebas
             testBasicSettings(testResults);
             testInterfaceSettings(testResults);
@@ -6025,8 +6085,6 @@
             testResults.passedTests = testResults.results.filter(r => r.status === 'passed').length;
             testResults.failedTests = testResults.results.filter(r => r.status === 'failed').length;
             testResults.warnings = testResults.results.filter(r => r.status === 'warning').length;
-            
-            console.log('✅ Pruebas completadas:', testResults);
             
             // Mostrar resultados
             showTestResults(testResults);
@@ -6683,7 +6741,11 @@
                         }
                         
                         const isAdmin = state.userRole === 'admin';
-                        document.getElementById('users-nav-link').classList.toggle('hidden', !isAdmin);
+                        const usersNavLink = document.getElementById('users-nav-link');
+                        if (usersNavLink) {
+                            usersNavLink.classList.toggle('hidden', !isAdmin);
+                            usersNavLink.setAttribute('aria-hidden', !isAdmin ? 'true' : 'false');
+                        }
                         // Settings link is now visible for both admins and operators
                         
                         // Manejar visibilidad del enlace de IA
@@ -6810,7 +6872,11 @@
                 }
                 
                 const isAdmin = state.userRole === 'admin';
-                document.getElementById('users-nav-link').classList.toggle('hidden', !isAdmin);
+                const usersNavLink = document.getElementById('users-nav-link');
+                if (usersNavLink) {
+                    usersNavLink.classList.toggle('hidden', !isAdmin);
+                    usersNavLink.setAttribute('aria-hidden', !isAdmin ? 'true' : 'false');
+                }
                 
                 // Manejar visibilidad del enlace de IA
                 addAINavigation();
@@ -7040,10 +7106,37 @@
         function updateActiveNavLink(page) {
             document.querySelectorAll('#main-nav .nav-link').forEach(link => {
                 link.classList.remove('active');
+                link.removeAttribute('aria-current');
                 if (link.getAttribute('href') === `#${page}`) {
                     link.classList.add('active');
+                    link.setAttribute('aria-current', 'page');
                 }
             });
+        }
+        
+        // Function to update search results count for accessibility
+        function updateSearchResultsCount(count, total) {
+            const resultsCountEl = document.getElementById('search-results-count');
+            if (resultsCountEl) {
+                if (count === 0) {
+                    resultsCountEl.textContent = 'No se encontraron resultados de búsqueda';
+                } else {
+                    resultsCountEl.textContent = `Se encontraron ${count} ${count === 1 ? 'resultado' : 'resultados'} de ${total} artículos`;
+                }
+            }
+        }
+        
+        // Function to update ARIA live region
+        function announceToScreenReader(message, priority = 'polite') {
+            const liveRegion = document.getElementById('aria-live-region');
+            if (liveRegion) {
+                liveRegion.setAttribute('aria-live', priority);
+                liveRegion.textContent = message;
+                // Clear after announcement
+                setTimeout(() => {
+                    liveRegion.textContent = '';
+                }, 1000);
+            }
         }
         
         // --- IMPLEMENTACIÓN DE AJUSTES DE INTERFAZ ---
@@ -7460,6 +7553,9 @@
             state.currentPage = Math.min(state.currentPage, totalPages) || 1;
             const paginatedInventory = filteredInventory.slice((state.currentPage - 1) * state.itemsPerPage, state.currentPage * state.itemsPerPage);
 
+            // Update search results count for accessibility
+            updateSearchResultsCount(filteredInventory.length, state.inventory.length);
+
             const isAdmin = state.userRole === 'admin';
             
             const filterButtonClasses = (filter) => `px-4 py-2 text-sm font-medium rounded-md ${state.inventoryFilter === filter ? 'bg-indigo-600 text-white' : 'bg-white themed-text hover:bg-gray-100'}`;
@@ -7473,11 +7569,11 @@
                             <p class="text-gray-600 mt-1">Gestiona tu inventario de forma eficiente</p>
                         </div>
                         <div class="flex space-x-3 relative z-0">
-                            <button id="new-item-btn" class="relative z-0 text-white font-semibold py-4 px-8 rounded-xl flex items-center justify-center transition-all duration-200 min-h-[60px] min-w-[60px] hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl" style="background-color: var(--color-primary-accent); box-shadow: var(--shadow-md);">
-                                <i data-lucide="plus" class="h-8 w-8"></i>
+                            <button id="new-item-btn" class="relative z-0 text-white font-semibold py-4 px-8 rounded-xl flex items-center justify-center transition-all duration-200 min-h-[60px] min-w-[60px] hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl" style="background-color: var(--color-primary-accent); box-shadow: var(--shadow-md);" aria-label="Agregar nuevo artículo${isAdmin ? '' : ' (solo administrador)'}" ${!isAdmin ? 'aria-disabled="true" disabled' : ''}>
+                                <i data-lucide="plus" class="h-8 w-8" aria-hidden="true"></i>
                             </button>
-                            <button id="bulk-add-btn" class="relative z-0 text-white font-semibold py-4 px-6 rounded-xl flex items-center justify-center transition-all duration-200 min-h-[60px] hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl" style="background-color: var(--color-primary-accent); box-shadow: var(--shadow-md);">
-                                <i data-lucide="layers" class="h-6 w-6 mr-2"></i>
+                            <button id="bulk-add-btn" class="relative z-0 text-white font-semibold py-4 px-6 rounded-xl flex items-center justify-center transition-all duration-200 min-h-[60px] hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl" style="background-color: var(--color-primary-accent); box-shadow: var(--shadow-md);" aria-label="Agregar varios artículos${isAdmin ? '' : ' (solo administrador)'}" ${!isAdmin ? 'aria-disabled="true" disabled' : ''}>
+                                <i data-lucide="layers" class="h-6 w-6 mr-2" aria-hidden="true"></i>
                                 <span class="hidden sm:inline">Agregar Varios</span>
                             </button>
                         </div>
@@ -7542,13 +7638,14 @@
                             <div class="inventory-table-desktop rounded-xl overflow-hidden" style="background-color: var(--color-bg-content); border: 1px solid #E5E7EB; box-shadow: var(--shadow-lg);">
                                 <div class="overflow-x-auto">
                                     <div class="mobile-table-container">
-                                        <table class="min-w-full mobile-table">
+                                        <table class="min-w-full mobile-table" role="table" aria-label="Tabla de inventario">
+                                            <caption class="sr-only">Tabla de inventario mostrando artículos, categorías, stock y acciones disponibles</caption>
                                             <thead class="bg-gradient-to-r from-gray-50 to-gray-100">
                                             <tr>
-                                                <th class="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Artículo</th>
-                                                <th class="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Categoría</th>
-                                                <th class="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Stock</th>
-                                                <th class="px-6 py-4 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">Acciones</th>
+                                                <th scope="col" class="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Artículo</th>
+                                                <th scope="col" class="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Categoría</th>
+                                                <th scope="col" class="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Stock</th>
+                                                <th scope="col" class="px-6 py-4 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">Acciones</th>
                                             </tr>
                                         </thead>
                                         <tbody id="inventory-table-body" class="divide-y divide-gray-200">
@@ -7577,24 +7674,24 @@
                                                     </td>
                                                     <td class="px-6 py-4 text-center">
                                                         <div class="flex items-center justify-center space-x-2">
-                                                            <button class="action-btn p-3 text-green-600 hover:text-green-700 hover:bg-green-100 rounded-xl transition-all duration-200 min-h-[48px] min-w-[48px] flex items-center justify-center hover:scale-110 active:scale-95 shadow-sm hover:shadow-md" data-action="entry" data-id="${item.id}" title="Registrar Entrada">
-                                                                <i data-lucide="plus-circle" class="h-6 w-6"></i>
+                                                            <button class="action-btn p-3 text-green-600 hover:text-green-700 hover:bg-green-100 rounded-xl transition-all duration-200 min-h-[48px] min-w-[48px] flex items-center justify-center hover:scale-110 active:scale-95 shadow-sm hover:shadow-md" data-action="entry" data-id="${item.id}" aria-label="Registrar entrada para ${item.description}">
+                                                                <i data-lucide="plus-circle" class="h-6 w-6" aria-hidden="true"></i>
                                                             </button>
-                                                            <button class="action-btn p-3 ${item.stock <= 0 ? 'text-gray-400 cursor-not-allowed opacity-50' : 'text-blue-600 hover:text-blue-700 hover:bg-blue-100'} rounded-xl transition-all duration-200 min-h-[48px] min-w-[48px] flex items-center justify-center hover:scale-110 active:scale-95 shadow-sm hover:shadow-md" data-action="checkout" data-id="${item.id}" title="${item.stock <= 0 ? 'Sin Stock Disponible' : 'Registrar Salida/Préstamo'}" ${item.stock <= 0 ? 'disabled' : ''}>
-                                                                <i data-lucide="arrow-right-left" class="h-6 w-6"></i>
+                                                            <button class="action-btn p-3 ${item.stock <= 0 ? 'text-gray-400 cursor-not-allowed opacity-50' : 'text-blue-600 hover:text-blue-700 hover:bg-blue-100'} rounded-xl transition-all duration-200 min-h-[48px] min-w-[48px] flex items-center justify-center hover:scale-110 active:scale-95 shadow-sm hover:shadow-md" data-action="checkout" data-id="${item.id}" aria-label="${item.stock <= 0 ? 'Sin stock disponible para ' + item.description : 'Registrar salida o préstamo para ' + item.description}" ${item.stock <= 0 ? 'disabled aria-disabled="true"' : ''}>
+                                                                <i data-lucide="arrow-right-left" class="h-6 w-6" aria-hidden="true"></i>
                                                             </button>
-                                                            <button class="action-btn p-3 text-yellow-600 hover:text-yellow-700 hover:bg-yellow-100 rounded-xl transition-all duration-200 min-h-[48px] min-w-[48px] flex items-center justify-center hover:scale-110 active:scale-95 shadow-sm hover:shadow-md" data-action="add-to-cart" data-id="${item.id}" title="Añadir a Lista de Compras">
-                                                                <i data-lucide="shopping-cart" class="h-6 w-6"></i>
+                                                            <button class="action-btn p-3 text-yellow-600 hover:text-yellow-700 hover:bg-yellow-100 rounded-xl transition-all duration-200 min-h-[48px] min-w-[48px] flex items-center justify-center hover:scale-110 active:scale-95 shadow-sm hover:shadow-md" data-action="add-to-cart" data-id="${item.id}" aria-label="Añadir ${item.description} a lista de compras">
+                                                                <i data-lucide="shopping-cart" class="h-6 w-6" aria-hidden="true"></i>
                                                             </button>
                                                             ${isAdmin ? `
-                                                                <button class="action-btn p-3 text-purple-600 hover:text-purple-700 hover:bg-purple-100 rounded-xl transition-all duration-200 min-h-[48px] min-w-[48px] flex items-center justify-center hover:scale-110 active:scale-95 shadow-sm hover:shadow-md" data-action="edit" data-id="${item.id}" title="Editar Artículo">
-                                                                    <i data-lucide="pencil" class="h-6 w-6"></i>
+                                                                <button class="action-btn p-3 text-purple-600 hover:text-purple-700 hover:bg-purple-100 rounded-xl transition-all duration-200 min-h-[48px] min-w-[48px] flex items-center justify-center hover:scale-110 active:scale-95 shadow-sm hover:shadow-md" data-action="edit" data-id="${item.id}" aria-label="Editar artículo ${item.description} (solo administrador)">
+                                                                    <i data-lucide="pencil" class="h-6 w-6" aria-hidden="true"></i>
                                                                 </button>
-                                                                <button class="action-btn p-3 text-orange-600 hover:text-orange-700 hover:bg-orange-100 rounded-xl transition-all duration-200 min-h-[48px] min-w-[48px] flex items-center justify-center hover:scale-110 active:scale-95 shadow-sm hover:shadow-md" data-action="edit-stock" data-id="${item.id}" title="Editar Stock">
-                                                                    <i data-lucide="edit-3" class="h-6 w-6"></i>
+                                                                <button class="action-btn p-3 text-orange-600 hover:text-orange-700 hover:bg-orange-100 rounded-xl transition-all duration-200 min-h-[48px] min-w-[48px] flex items-center justify-center hover:scale-110 active:scale-95 shadow-sm hover:shadow-md" data-action="edit-stock" data-id="${item.id}" aria-label="Editar stock de ${item.description} (solo administrador)">
+                                                                    <i data-lucide="edit-3" class="h-6 w-6" aria-hidden="true"></i>
                                                                 </button>
-                                                                <button class="action-btn p-3 text-red-600 hover:text-red-700 hover:bg-red-100 rounded-xl transition-all duration-200 min-h-[48px] min-w-[48px] flex items-center justify-center hover:scale-110 active:scale-95 shadow-sm hover:shadow-md" data-action="delete" data-id="${item.id}" title="Eliminar Artículo">
-                                                                    <i data-lucide="trash-2" class="h-6 w-6"></i>
+                                                                <button class="action-btn p-3 text-red-600 hover:text-red-700 hover:bg-red-100 rounded-xl transition-all duration-200 min-h-[48px] min-w-[48px] flex items-center justify-center hover:scale-110 active:scale-95 shadow-sm hover:shadow-md" data-action="delete" data-id="${item.id}" aria-label="Eliminar artículo ${item.description} (solo administrador)">
+                                                                    <i data-lucide="trash-2" class="h-6 w-6" aria-hidden="true"></i>
                                                                 </button>
                                                             ` : ''}
                                                         </div>
@@ -7727,7 +7824,7 @@
                 const daysDiff = Math.floor((today - loanDate) / (1000 * 60 * 60 * 24));
                 return daysDiff > 30; // Consider overdue after 30 days
             }).length;
-            
+
             mainContent.innerHTML = `
                 <div class="relative space-y-6">
                     ${showOnboarding ? `
@@ -10118,37 +10215,26 @@
             const mobileOverlay = document.getElementById('mobile-overlay');
             const menuButton = document.getElementById('menu-button');
             
-            function toggleSidebar() {
-                const isOpen = !sidebar.classList.contains('-translate-x-full');
-                if (isOpen) {
-                    sidebar.classList.add('-translate-x-full');
-                    mobileOverlay.classList.add('hidden');
-                } else {
-                    sidebar.classList.remove('-translate-x-full');
-                    mobileOverlay.classList.remove('hidden');
+            if (menuButton && sidebar) {
+                menuButton.addEventListener('click', () => {
+                    const isOpen = !sidebar.classList.contains('-translate-x-full');
+                    sidebar.classList.toggle('-translate-x-full');
+                    mobileOverlay?.classList.toggle('hidden');
+                    menuButton.setAttribute('aria-expanded', isOpen ? 'false' : 'true');
+                    menuButton.setAttribute('aria-label', isOpen ? 'Abrir menú de navegación' : 'Cerrar menú de navegación');
+                });
+                
+                // Close sidebar when clicking overlay
+                if (mobileOverlay) {
+                    mobileOverlay.addEventListener('click', () => {
+                        sidebar.classList.add('-translate-x-full');
+                        mobileOverlay.classList.add('hidden');
+                        menuButton.setAttribute('aria-expanded', 'false');
+                        menuButton.setAttribute('aria-label', 'Abrir menú de navegación');
+                    });
                 }
             }
             
-            menuButton.addEventListener('click', toggleSidebar);
-            
-            // Close sidebar when clicking overlay
-            mobileOverlay.addEventListener('click', () => {
-                sidebar.classList.add('-translate-x-full');
-                mobileOverlay.classList.add('hidden');
-            });
-            
-            // Close sidebar when clicking outside on mobile
-            document.addEventListener('click', (e) => {
-                if (window.innerWidth < 768) {
-                    const isClickInsideSidebar = sidebar.contains(e.target);
-                    const isClickOnMenuButton = menuButton.contains(e.target);
-                    
-                    if (!isClickInsideSidebar && !isClickOnMenuButton && !sidebar.classList.contains('-translate-x-full')) {
-                        sidebar.classList.add('-translate-x-full');
-                        mobileOverlay.classList.add('hidden');
-                    }
-                }
-            });
             
             // Handle window resize for mobile enhancements
             window.addEventListener('resize', () => {
@@ -10257,7 +10343,9 @@
             // Advanced search panel toggle
             if (advancedToggle && advancedPanel) {
                 advancedToggle.addEventListener('click', () => {
+                    const isExpanded = !advancedPanel.classList.contains('hidden');
                     advancedPanel.classList.toggle('hidden');
+                    advancedToggle.setAttribute('aria-expanded', isExpanded ? 'false' : 'true');
                     setTimeout(() => {
                         if (typeof safeCreateIcons === 'function') {
                             safeCreateIcons();
@@ -10636,33 +10724,109 @@
         }
 
         // --- LÓGICA DE MODALES ---
+        // Store element that opened modal for focus restoration
+        let previousActiveElement = null;
+        
         function showModal(title, content, maxWidth = 'max-w-2xl') {
             const modalContainer = document.getElementById('modal-container');
+            // Store current active element
+            previousActiveElement = document.activeElement;
+            
+            const modalId = 'modal-' + Date.now();
+            const titleId = 'modal-title-' + Date.now();
+            
             modalContainer.innerHTML = `
-                <div id="app-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-40">
-                    <div class="relative top-4 sm:top-20 mx-auto p-4 sm:p-5 border w-full sm:w-auto ${maxWidth} shadow-sm rounded-md themed-card themed-border pop-animation mobile-modal">
+                <div id="app-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-40" role="dialog" aria-modal="true" aria-labelledby="${titleId}" aria-describedby="${modalId}-description">
+                    <div class="relative top-4 sm:top-20 mx-auto p-4 sm:p-5 border w-full sm:w-auto ${maxWidth} shadow-sm rounded-md themed-card themed-border pop-animation mobile-modal" id="${modalId}">
                         <div class="flex justify-between items-center pb-3 border-b themed-border">
-                            <h3 class="text-xl sm:text-2xl font-bold">${title}</h3>
-                            <button id="close-modal-btn" class="p-2 rounded hover:bg-gray-100 transition-colors">
-                                <i data-lucide="x" class="h-5 w-5 sm:h-6 sm:w-6"></i>
+                            <h3 id="${titleId}" class="text-xl sm:text-2xl font-bold">${title}</h3>
+                            <button id="close-modal-btn" class="p-2 rounded hover:bg-gray-100 transition-colors" aria-label="Cerrar modal">
+                                <i data-lucide="x" class="h-5 w-5 sm:h-6 sm:w-6" aria-hidden="true"></i>
                             </button>
                         </div>
-                        <div class="mt-3">${content}</div>
+                        <div class="mt-3" id="${modalId}-description">${content}</div>
                     </div>
                 </div>`;
             safeCreateIcons();
-            document.getElementById('close-modal-btn').addEventListener('click', closeModal);
-            document.getElementById('app-modal').addEventListener('click', (e) => { if (e.target.id === 'app-modal') closeModal(); });
+            
+            const modal = document.getElementById('app-modal');
+            const closeBtn = document.getElementById('close-modal-btn');
+            const modalContent = document.getElementById(modalId);
+            
+            // Close button handler
+            closeBtn.addEventListener('click', () => {
+                closeModal();
+                // Restore focus to previous element
+                if (previousActiveElement && typeof previousActiveElement.focus === 'function') {
+                    previousActiveElement.focus();
+                }
+            });
+            
+            // Close on backdrop click
+            modal.addEventListener('click', (e) => { 
+                if (e.target.id === 'app-modal') {
+                    closeModal();
+                    if (previousActiveElement && typeof previousActiveElement.focus === 'function') {
+                        previousActiveElement.focus();
+                    }
+                }
+            });
+            
+            // Trap focus within modal
+            const focusableElements = modalContent.querySelectorAll(
+                'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+            );
+            const firstFocusable = focusableElements[0];
+            const lastFocusable = focusableElements[focusableElements.length - 1];
+            
+            // Handle Escape key
+            const handleEscape = (e) => {
+                if (e.key === 'Escape') {
+                    closeModal();
+                    if (previousActiveElement && typeof previousActiveElement.focus === 'function') {
+                        previousActiveElement.focus();
+                    }
+                    document.removeEventListener('keydown', handleEscape);
+                }
+            };
+            document.addEventListener('keydown', handleEscape);
+            
+            // Trap focus with Tab key
+            const handleTab = (e) => {
+                if (e.key !== 'Tab') return;
+                
+                if (e.shiftKey) {
+                    if (document.activeElement === firstFocusable) {
+                        e.preventDefault();
+                        lastFocusable.focus();
+                    }
+                } else {
+                    if (document.activeElement === lastFocusable) {
+                        e.preventDefault();
+                        firstFocusable.focus();
+                    }
+                }
+            };
+            modalContent.addEventListener('keydown', handleTab);
             
             // Auto-focus first input in modal
             setTimeout(() => {
-                const firstInput = modalContainer.querySelector('input:not([type="hidden"]):not([disabled]), textarea:not([disabled]), select:not([disabled])');
+                const firstInput = modalContent.querySelector('input:not([type="hidden"]):not([disabled]), textarea:not([disabled]), select:not([disabled])');
                 if (firstInput) {
                     firstInput.focus();
+                } else if (firstFocusable) {
+                    firstFocusable.focus();
                 }
             }, 100);
         }
-        function closeModal() { document.getElementById('modal-container').innerHTML = ''; }
+        function closeModal() { 
+            const modalContainer = document.getElementById('modal-container');
+            modalContainer.innerHTML = '';
+            // Restore focus if previous element exists
+            if (previousActiveElement && typeof previousActiveElement.focus === 'function') {
+                previousActiveElement.focus();
+            }
+        }
         
         // Mobile table enhancement function
         function enhanceMobileTables() {
@@ -14172,7 +14336,6 @@
                     newFAB.addEventListener('click', (e) => {
                         e.preventDefault();
                         e.stopPropagation();
-                        console.log('FAB clicked'); // Debug
                         showQuickAddItemModal();
                     });
                     
@@ -14180,7 +14343,6 @@
                     newFAB.addEventListener('touchstart', (e) => {
                         e.preventDefault();
                         e.stopPropagation();
-                        console.log('FAB touched'); // Debug
                         showQuickAddItemModal();
                     });
                     
@@ -14197,7 +14359,7 @@
             if (!str || typeof str !== 'string') return str;
             
             // Lista de palabras que no deben capitalizarse (preposiciones, artículos, etc.)
-            const lowercaseWords = ['de', 'del', 'la', 'el', 'en', 'con', 'por', 'para', 'a', 'al', 'un', 'una', 'y', 'o', 'pero', 'mas', 'sin', 'sobre', 'bajo', 'entre', 'hasta', 'desde', 'hacia', 'durante', 'mediante', 'según', 'ante', 'bajo', 'cabe', 'con', 'contra', 'de', 'desde', 'en', 'entre', 'hacia', 'hasta', 'para', 'por', 'según', 'sin', 'sobre', 'tras'];
+            const lowercaseWords = ['de', 'del', 'la', 'el', 'en', 'con', 'por', 'para', 'a', 'al', 'un', 'una', 'y', 'o', 'pero', 'mas', 'sin', 'sobre', 'bajo', 'entre', 'hasta', 'desde', 'hacia', 'durante', 'mediante', 'según', 'ante', 'cabe', 'contra', 'tras'];
             
             return str
                 .toLowerCase()

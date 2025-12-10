@@ -9731,35 +9731,58 @@
                                         <div>
                                             <label for="new-category-name" class="block text-sm font-medium text-gray-700 mb-2">Añadir Nueva Categoría</label>
                                             <div class="flex space-x-3">
-                                                <input type="text" id="new-category-name" placeholder="Nombre de la categoría" class="themed-input flex-grow border border-gray-300 rounded px-4 py-2.5 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors">
-                                                <button id="add-category-btn" class="bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-4 py-2.5 rounded flex items-center space-x-2 transition-colors">
+                                                <input type="text" id="new-category-name" placeholder="Nombre de la categoría" maxlength="50" class="themed-input flex-grow border border-gray-300 rounded px-4 py-2.5 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors">
+                                                <button id="add-category-btn" class="bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-4 py-2.5 rounded flex items-center space-x-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                                                     <i data-lucide="plus" class="w-4 h-4"></i>
                                                     <span>Añadir</span>
                                                 </button>
                                             </div>
-                                            <p class="text-xs text-gray-500 mt-1">Crea una nueva categoría para organizar tus productos</p>
+                                            <p class="text-xs text-gray-500 mt-1">Crea una nueva categoría para organizar tus productos (máximo 50 caracteres)</p>
                                         </div>
                                         <div>
                                             <h4 class="text-sm font-medium text-gray-700 mb-3">Categorías Existentes</h4>
                                             <div id="category-management-list" class="space-y-2 max-h-80 overflow-y-auto">
-                                                ${state.categories.filter(c => c !== 'Todas').map(cat => `
-                                                    <div class="flex items-center justify-between p-3 bg-white rounded border border-gray-200 hover:border-emerald-300 transition-colors">
-                                                        <div class="flex items-center space-x-3">
-                                                            <div class="p-1.5 bg-emerald-100 rounded-md">
-                                                                <i data-lucide="folder" class="w-3.5 h-3.5 text-emerald-600"></i>
+                                                ${(() => {
+                                                    const categoriesList = state.categories.filter(c => c !== 'Todas');
+                                                    if (categoriesList.length === 0) {
+                                                        return `
+                                                            <div class="text-center py-8 text-gray-500">
+                                                                <i data-lucide="folder-x" class="w-12 h-12 mx-auto mb-3 text-gray-400"></i>
+                                                                <p class="text-sm">No hay categorías creadas aún</p>
+                                                                <p class="text-xs mt-1">Crea una categoría arriba para comenzar</p>
                                                             </div>
-                                                            <span class="category-name text-gray-900 font-medium">${cat}</span>
-                                                        </div>
-                                                        <div class="flex items-center space-x-2">
-                                                            <button class="rename-category-btn p-1.5 text-blue-500 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors" data-category="${cat}" title="Renombrar categoría">
-                                                                <i data-lucide="pencil" class="w-4 h-4"></i>
-                                                            </button>
-                                                            <button class="delete-category-btn p-1.5 text-red-500 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors" data-category="${cat}" title="Eliminar categoría">
-                                                                <i data-lucide="trash-2" class="w-4 h-4"></i>
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                `).join('')}
+                                                        `;
+                                                    }
+                                                    return categoriesList.map(cat => {
+                                                        const itemCount = state.inventory ? state.inventory.filter(item => item.category === cat).length : 0;
+                                                        return `
+                                                            <div class="flex items-center justify-between p-3 bg-white rounded border border-gray-200 hover:border-emerald-300 transition-colors group">
+                                                                <div class="flex items-center space-x-3 flex-grow min-w-0">
+                                                                    <div class="p-1.5 bg-emerald-100 rounded-md flex-shrink-0">
+                                                                        <i data-lucide="folder" class="w-3.5 h-3.5 text-emerald-600"></i>
+                                                                    </div>
+                                                                    <div class="flex-grow min-w-0">
+                                                                        <span class="category-name text-gray-900 font-medium block truncate">${cat}</span>
+                                                                        <div class="flex items-center space-x-2 mt-0.5">
+                                                                            <span class="text-xs ${itemCount === 0 ? 'text-gray-400' : 'text-emerald-600'} flex items-center">
+                                                                                <i data-lucide="${itemCount === 0 ? 'package' : 'package-check'}" class="w-3 h-3 mr-1"></i>
+                                                                                ${itemCount === 0 ? 'Sin artículos' : `${itemCount} artículo${itemCount === 1 ? '' : 's'}`}
+                                                                            </span>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="flex items-center space-x-2 flex-shrink-0">
+                                                                    <button class="rename-category-btn p-1.5 text-blue-500 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors" data-category="${cat}" title="Renombrar categoría">
+                                                                        <i data-lucide="pencil" class="w-4 h-4"></i>
+                                                                    </button>
+                                                                    <button class="delete-category-btn p-1.5 text-red-500 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors" data-category="${cat}" title="Eliminar categoría">
+                                                                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        `;
+                                                    }).join('');
+                                                })()}
                                             </div>
                                         </div>
                                     </div>
@@ -12445,14 +12468,18 @@
                     <div class="space-y-4">
                         <div>
                             <label for="new-category-name-modal" class="block text-sm font-medium themed-text-light">Nombre de la Categoría</label>
-                            <input type="text" id="new-category-name-modal" required placeholder="Ej: Herramientas, Materiales, etc." class="themed-input mt-1 block w-full px-4 py-3 border rounded-md shadow-sm">
+                            <input type="text" id="new-category-name-modal" required placeholder="Ej: Herramientas, Materiales, etc." maxlength="50" class="themed-input mt-1 block w-full px-4 py-3 border rounded-md shadow-sm">
+                            <div class="mt-2 flex items-center justify-between">
+                                <p id="category-validation-message" class="text-xs text-red-500 hidden"></p>
+                                <p id="category-char-count" class="text-xs text-gray-500">0/50</p>
+                            </div>
                         </div>
                         <div class="flex justify-end space-x-3">
                             <button type="button" id="cancel-category-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-4 px-8 rounded min-h-[56px] flex items-center justify-center transition-all duration-200">
                                 <i data-lucide="x" class="h-6 w-6 mr-2"></i>
                                 Cancelar
                             </button>
-                            <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-8 rounded min-h-[56px] flex items-center justify-center transition-all duration-200">
+                            <button type="submit" id="save-category-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-8 rounded min-h-[56px] flex items-center justify-center transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
                                 <i data-lucide="plus" class="h-6 w-6 mr-2"></i>
                                 <span id="save-category-btn-text">Crear Categoría</span>
                                 <i id="save-category-spinner" data-lucide="loader" class="h-5 w-5 animate-spin hidden ml-2"></i>
@@ -12462,50 +12489,200 @@
                 </form>
             `;
             showModal('Crear Nueva Categoría', content, 'max-w-md');
+            safeCreateIcons();
+            
+            const input = document.getElementById('new-category-name-modal');
+            const validationMsg = document.getElementById('category-validation-message');
+            const charCount = document.getElementById('category-char-count');
+            const saveBtn = document.getElementById('save-category-btn');
+            const saveBtnText = document.getElementById('save-category-btn-text');
+            const saveSpinner = document.getElementById('save-category-spinner');
+            
+            // Validación en tiempo real
+            input.addEventListener('input', () => {
+                const value = input.value;
+                charCount.textContent = `${value.length}/50`;
+                
+                if (value.length === 0) {
+                    validationMsg.classList.add('hidden');
+                    saveBtn.disabled = false;
+                    return;
+                }
+                
+                const validation = validateCategoryName(value);
+                if (!validation.valid) {
+                    validationMsg.textContent = validation.error;
+                    validationMsg.classList.remove('hidden');
+                    saveBtn.disabled = true;
+                } else {
+                    validationMsg.classList.add('hidden');
+                    saveBtn.disabled = false;
+                }
+            });
             
             document.getElementById('add-category-form').addEventListener('submit', async (e) => {
                 e.preventDefault();
-                const saveBtnText = document.getElementById('save-category-btn-text');
-                const saveSpinner = document.getElementById('save-category-spinner');
+                const newCategory = input.value.trim();
+                const validation = validateCategoryName(newCategory);
+                
+                if (!validation.valid) {
+                    showNotification(validation.error, 'error');
+                    return;
+                }
+                
                 saveBtnText.classList.add('hidden');
                 saveSpinner.classList.remove('hidden');
+                saveBtn.disabled = true;
 
-                const input = document.getElementById('new-category-name-modal');
-                const newCategory = input.value.trim();
-                
-                if (!newCategory) {
-                    showNotification('El nombre de la categoría no puede estar vacío.', 'error');
-                    saveBtnText.classList.remove('hidden');
-                    saveSpinner.classList.add('hidden');
-                    return;
-                }
-                
-                if (state.categories.includes(newCategory)) {
-                    showNotification('Esa categoría ya existe.', 'info');
-                    saveBtnText.classList.remove('hidden');
-                    saveSpinner.classList.add('hidden');
-                    return;
-                }
-                
-                const updatedCategories = [...state.categories.filter(c => c !== 'Todas'), newCategory].sort();
-                
                 try {
+                    const updatedCategories = [...state.categories.filter(c => c !== 'Todas'), validation.value].sort();
                     await setDoc(doc(db, 'settings', 'global'), { categories: updatedCategories }, { merge: true });
                     showNotification('Categoría creada exitosamente.', 'success');
                     closeModal();
-                    // Refresh the inventory view to show the new category
+                    
+                    // Actualizar vistas si están abiertas
                     if (window.location.hash.substring(1) === 'inventory') {
                         renderInventoryView();
+                    } else if (window.location.hash.substring(1) === 'settings') {
+                        renderSettingsTab('advanced');
                     }
                 } catch (error) {
                     console.error('Error creating category:', error);
                     showNotification('Error al crear la categoría.', 'error');
                     saveBtnText.classList.remove('hidden');
                     saveSpinner.classList.add('hidden');
+                    saveBtn.disabled = false;
                 }
             });
             
             document.getElementById('cancel-category-btn').addEventListener('click', closeModal);
+        }
+
+        function showRenameCategoryModal(oldName) {
+            const content = `
+                <form id="rename-category-form">
+                    <div class="space-y-4">
+                        <div>
+                            <label for="rename-category-name-modal" class="block text-sm font-medium themed-text-light">Nuevo Nombre de la Categoría</label>
+                            <input type="text" id="rename-category-name-modal" required placeholder="Nombre de la categoría" value="${oldName}" maxlength="50" class="themed-input mt-1 block w-full px-4 py-3 border rounded-md shadow-sm">
+                            <div class="mt-2 flex items-center justify-between">
+                                <p id="rename-validation-message" class="text-xs text-red-500 hidden"></p>
+                                <p id="rename-char-count" class="text-xs text-gray-500">${oldName.length}/50</p>
+                            </div>
+                        </div>
+                        <div class="bg-blue-50 border border-blue-200 rounded-md p-3">
+                            <p class="text-xs text-blue-700">
+                                <i data-lucide="info" class="w-3 h-3 inline mr-1"></i>
+                                Esto actualizará todos los artículos de esta categoría.
+                            </p>
+                        </div>
+                        <div class="flex justify-end space-x-3">
+                            <button type="button" id="cancel-rename-category-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-4 px-8 rounded min-h-[56px] flex items-center justify-center transition-all duration-200">
+                                <i data-lucide="x" class="h-6 w-6 mr-2"></i>
+                                Cancelar
+                            </button>
+                            <button type="submit" id="save-rename-category-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded min-h-[56px] flex items-center justify-center transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
+                                <i data-lucide="save" class="h-6 w-6 mr-2"></i>
+                                <span id="save-rename-btn-text">Guardar Cambios</span>
+                                <i id="save-rename-spinner" data-lucide="loader" class="h-5 w-5 animate-spin hidden ml-2"></i>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            `;
+            showModal(`Renombrar Categoría: "${oldName}"`, content, 'max-w-md');
+            safeCreateIcons();
+            
+            const input = document.getElementById('rename-category-name-modal');
+            const validationMsg = document.getElementById('rename-validation-message');
+            const charCount = document.getElementById('rename-char-count');
+            const saveBtn = document.getElementById('save-rename-category-btn');
+            const saveBtnText = document.getElementById('save-rename-btn-text');
+            const saveSpinner = document.getElementById('save-rename-spinner');
+            
+            // Seleccionar todo el texto al abrir
+            input.select();
+            
+            // Validación en tiempo real
+            input.addEventListener('input', () => {
+                const value = input.value;
+                charCount.textContent = `${value.length}/50`;
+                
+                if (value.trim() === oldName) {
+                    validationMsg.textContent = 'El nombre debe ser diferente al actual.';
+                    validationMsg.classList.remove('hidden');
+                    saveBtn.disabled = true;
+                    return;
+                }
+                
+                if (value.length === 0) {
+                    validationMsg.classList.add('hidden');
+                    saveBtn.disabled = false;
+                    return;
+                }
+                
+                const validation = validateCategoryName(value, oldName);
+                if (!validation.valid) {
+                    validationMsg.textContent = validation.error;
+                    validationMsg.classList.remove('hidden');
+                    saveBtn.disabled = true;
+                } else {
+                    validationMsg.classList.add('hidden');
+                    saveBtn.disabled = false;
+                }
+            });
+            
+            document.getElementById('rename-category-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const newName = input.value.trim();
+                
+                if (newName === oldName) {
+                    showNotification('El nombre debe ser diferente al actual.', 'info');
+                    return;
+                }
+                
+                const validation = validateCategoryName(newName, oldName);
+                if (!validation.valid) {
+                    showNotification(validation.error, 'error');
+                    return;
+                }
+                
+                saveBtnText.classList.add('hidden');
+                saveSpinner.classList.remove('hidden');
+                saveBtn.disabled = true;
+
+                try {
+                    const batch = writeBatch(db);
+                    const itemsToUpdateQuery = query(collection(db, 'inventory'), where('category', '==', oldName));
+                    const querySnapshot = await getDocs(itemsToUpdateQuery);
+                    
+                    querySnapshot.forEach(itemDoc => {
+                        batch.update(itemDoc.ref, { category: validation.value });
+                    });
+                    
+                    const updatedCategories = state.categories.map(c => c === oldName ? validation.value : c).sort();
+                    batch.set(doc(db, 'settings', 'global'), { categories: updatedCategories.filter(c => c !== 'Todas')}, { merge: true });
+
+                    await batch.commit();
+                    showNotification('Categoría renombrada con éxito.', 'success');
+                    closeModal();
+                    
+                    // Actualizar vistas si están abiertas
+                    if (window.location.hash.substring(1) === 'inventory') {
+                        renderInventoryView();
+                    } else if (window.location.hash.substring(1) === 'settings') {
+                        renderSettingsTab('advanced');
+                    }
+                } catch (error) {
+                    console.error('Error renaming category:', error);
+                    showNotification('Error al renombrar la categoría.', 'error');
+                    saveBtnText.classList.remove('hidden');
+                    saveSpinner.classList.add('hidden');
+                    saveBtn.disabled = false;
+                }
+            });
+            
+            document.getElementById('cancel-rename-category-btn').addEventListener('click', closeModal);
         }
 
         // --- LÓGICA DE AJUSTES ---
@@ -12808,101 +12985,207 @@
             }
         }
         
+        // Validación de nombres de categoría
+        function validateCategoryName(name, excludeName = null) {
+            const trimmed = name.trim();
+            
+            if (!trimmed) {
+                return { valid: false, error: 'El nombre no puede estar vacío.' };
+            }
+            
+            if (trimmed.length < 2) {
+                return { valid: false, error: 'El nombre debe tener al menos 2 caracteres.' };
+            }
+            
+            if (trimmed.length > 50) {
+                return { valid: false, error: 'El nombre no puede tener más de 50 caracteres.' };
+            }
+            
+            // Permitir letras, números, espacios, guiones y guiones bajos
+            const validPattern = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ0-9\s\-_]+$/;
+            if (!validPattern.test(trimmed)) {
+                return { valid: false, error: 'Solo se permiten letras, números, espacios, guiones y guiones bajos.' };
+            }
+            
+            // Verificar duplicados (excluyendo el nombre actual si se está renombrando)
+            const categoriesToCheck = excludeName 
+                ? state.categories.filter(c => c !== excludeName && c !== 'Todas')
+                : state.categories.filter(c => c !== 'Todas');
+            
+            if (categoriesToCheck.includes(trimmed)) {
+                return { valid: false, error: 'Ya existe una categoría con ese nombre.' };
+            }
+            
+            return { valid: true, error: null, value: trimmed };
+        }
+
+        // Obtener cantidad de artículos en una categoría
+        async function getCategoryItemCount(categoryName) {
+            try {
+                const itemsQuery = query(collection(db, 'inventory'), where('category', '==', categoryName));
+                const querySnapshot = await getDocs(itemsQuery);
+                return querySnapshot.size;
+            } catch (error) {
+                console.error('Error getting category item count:', error);
+                return 0;
+            }
+        }
+
         async function handleAddCategory() {
             const input = document.getElementById('new-category-name');
-            const newCategory = input.value.trim();
-            if (!newCategory) {
-                showNotification('El nombre de la categoría no puede estar vacío.', 'error');
-                return;
-            }
-            if (state.categories.includes(newCategory)) {
-                showNotification('Esa categoría ya existe.', 'info');
-                return;
-            }
+            const addBtn = document.getElementById('add-category-btn');
+            const originalBtnContent = addBtn.innerHTML;
             
-            const updatedCategories = [...state.categories.filter(c => c !== 'Todas'), newCategory].sort();
+            // Deshabilitar botón y mostrar loading
+            addBtn.disabled = true;
+            addBtn.innerHTML = '<i data-lucide="loader" class="w-4 h-4 animate-spin"></i><span class="ml-2">Añadiendo...</span>';
+            safeCreateIcons();
+            
+            const newCategory = input.value.trim();
+            const validation = validateCategoryName(newCategory);
+            
+            if (!validation.valid) {
+                showNotification(validation.error, 'error');
+                addBtn.disabled = false;
+                addBtn.innerHTML = originalBtnContent;
+                safeCreateIcons();
+                return;
+            }
             
             try {
+                const updatedCategories = [...state.categories.filter(c => c !== 'Todas'), validation.value].sort();
                 await setDoc(doc(db, 'settings', 'global'), { categories: updatedCategories }, { merge: true });
                 input.value = '';
-                showNotification('Categoría añadida.', 'success');
+                showNotification('Categoría añadida exitosamente.', 'success');
+                
+                // Actualizar la vista de ajustes si está abierta
+                if (window.location.hash.substring(1) === 'settings') {
+                    renderSettingsTab('advanced');
+                }
             } catch (error) {
+                console.error('Error adding category:', error);
                 showNotification('Error al añadir la categoría.', 'error');
+            } finally {
+                addBtn.disabled = false;
+                addBtn.innerHTML = originalBtnContent;
+                safeCreateIcons();
             }
         }
 
         async function handleRenameCategory(oldName) {
-            const newName = prompt(`Renombrar categoría "${oldName}":`, oldName);
-            if (!newName || newName.trim() === '' || newName === oldName) return;
-            if (state.categories.includes(newName)) {
-                showNotification('Ya existe una categoría con ese nombre.', 'error');
-                return;
-            }
-
-            showConfirmationModal(`¿Seguro que quieres renombrar "${oldName}" a "${newName}"? Esto actualizará todos los artículos de esta categoría.`, async () => {
-                const batch = writeBatch(db);
-                const itemsToUpdateQuery = query(collection(db, 'inventory'), where('category', '==', oldName));
-                const querySnapshot = await getDocs(itemsToUpdateQuery);
-                
-                querySnapshot.forEach(itemDoc => {
-                    batch.update(itemDoc.ref, { category: newName });
-                });
-                
-                const updatedCategories = state.categories.map(c => c === oldName ? newName : c).sort();
-                batch.set(doc(db, 'settings', 'global'), { categories: updatedCategories.filter(c => c !== 'Todas')}, { merge: true });
-
-                try {
-                    await batch.commit();
-                    showNotification('Categoría renombrada con éxito.', 'success');
-                } catch (error) {
-                    showNotification('Error al renombrar la categoría.', 'error');
-                }
-            });
+            showRenameCategoryModal(oldName);
         }
 
         async function handleDeleteCategory(categoryName) {
-            const itemsInCategoryQuery = query(collection(db, 'inventory'), where('category', '==', categoryName));
-            const querySnapshot = await getDocs(itemsInCategoryQuery);
-            const itemsCount = querySnapshot.size;
+            try {
+                const itemsInCategoryQuery = query(collection(db, 'inventory'), where('category', '==', categoryName));
+                const querySnapshot = await getDocs(itemsInCategoryQuery);
+                const itemsCount = querySnapshot.size;
 
-            let confirmationMessage = `¿Seguro que quieres eliminar la categoría "${categoryName}"?`;
-            if (itemsCount > 0) {
-                confirmationMessage = `¿Seguro que quieres eliminar la categoría "${categoryName}"? Se eliminarán también los ${itemsCount} artículos que contiene. Esta acción no se puede deshacer.`;
-            }
+                let confirmationContent = `
+                    <div class="space-y-4">
+                        <div class="bg-red-50 border border-red-200 rounded-md p-4">
+                            <div class="flex items-start">
+                                <i data-lucide="alert-triangle" class="w-5 h-5 text-red-600 mr-3 mt-0.5"></i>
+                                <div>
+                                    <p class="text-sm font-semibold text-red-800 mb-2">Esta acción no se puede deshacer</p>
+                                    <p class="text-sm text-red-700">Se eliminará la categoría <strong>"${categoryName}"</strong></p>
+                                    ${itemsCount > 0 ? `
+                                        <p class="text-sm text-red-700 mt-2">
+                                            También se eliminarán <strong>${itemsCount} artículo${itemsCount === 1 ? '' : 's'}</strong> que ${itemsCount === 1 ? 'pertenece' : 'pertenecen'} a esta categoría.
+                                        </p>
+                                    ` : `
+                                        <p class="text-sm text-red-700 mt-2">Esta categoría no tiene artículos.</p>
+                                    `}
+                                </div>
+                            </div>
+                        </div>
+                        ${itemsCount > 0 && itemsCount <= 10 ? `
+                            <div class="bg-gray-50 border border-gray-200 rounded-md p-3 max-h-40 overflow-y-auto">
+                                <p class="text-xs font-medium text-gray-700 mb-2">Artículos que se eliminarán:</p>
+                                <ul class="text-xs text-gray-600 space-y-1">
+                                    ${querySnapshot.docs.slice(0, 10).map(doc => {
+                                        const data = doc.data();
+                                        return `<li>• ${data.description || 'Sin descripción'}</li>`;
+                                    }).join('')}
+                                </ul>
+                            </div>
+                        ` : ''}
+                        <div class="flex justify-end space-x-3">
+                            <button id="cancel-delete-category-btn" class="bg-gray-300 hover:bg-gray-400 text-black font-bold py-2 px-6 rounded transition-colors">
+                                Cancelar
+                            </button>
+                            <button id="confirm-delete-category-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded transition-colors flex items-center">
+                                <i data-lucide="trash-2" class="w-4 h-4 mr-2"></i>
+                                <span id="delete-category-btn-text">Eliminar Categoría</span>
+                                <i id="delete-category-spinner" data-lucide="loader" class="w-4 h-4 animate-spin hidden ml-2"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                showModal('Eliminar Categoría', confirmationContent, 'max-w-md');
+                safeCreateIcons();
+                
+                const confirmBtn = document.getElementById('confirm-delete-category-btn');
+                const cancelBtn = document.getElementById('cancel-delete-category-btn');
+                const btnText = document.getElementById('delete-category-btn-text');
+                const spinner = document.getElementById('delete-category-spinner');
+                
+                cancelBtn.addEventListener('click', closeModal);
+                
+                confirmBtn.addEventListener('click', async () => {
+                    confirmBtn.disabled = true;
+                    btnText.classList.add('hidden');
+                    spinner.classList.remove('hidden');
+                    
+                    try {
+                        const batch = writeBatch(db);
 
-            showConfirmationModal(confirmationMessage, async () => {
-                const batch = writeBatch(db);
+                        // Delete all items in the category
+                        querySnapshot.forEach(itemDoc => {
+                            const itemData = itemDoc.data();
+                            batch.delete(itemDoc.ref);
 
-                // Delete all items in the category
-                querySnapshot.forEach(itemDoc => {
-                    const itemData = itemDoc.data();
-                    batch.delete(itemDoc.ref);
+                            // Add a transaction log for each deleted item
+                            const transactionRef = doc(collection(db, 'transactions'));
+                            batch.set(transactionRef, {
+                                itemDescription: itemData.description,
+                                type: 'Eliminado',
+                                quantity: itemData.stock,
+                                timestamp: serverTimestamp(),
+                                user: state.currentUser.email,
+                                notes: `Artículo eliminado por borrado de categoría: ${categoryName}`
+                            });
+                        });
 
-                    // Add a transaction log for each deleted item
-                    const transactionRef = doc(collection(db, 'transactions'));
-                    batch.set(transactionRef, {
-                        itemDescription: itemData.description,
-                        type: 'Eliminado',
-                        quantity: itemData.stock,
-                        timestamp: serverTimestamp(),
-                        user: state.currentUser.email,
-                        notes: `Artículo eliminado por borrado de categoría: ${categoryName}`
-                    });
+                        // Delete the category from settings
+                        const updatedCategories = state.categories.filter(c => c !== categoryName && c !== 'Todas');
+                        const settingsRef = doc(db, 'settings', 'global');
+                        batch.set(settingsRef, { categories: updatedCategories }, { merge: true });
+
+                        await batch.commit();
+                        showNotification(`Categoría "${categoryName}" ${itemsCount > 0 ? `y sus ${itemsCount} artículo${itemsCount === 1 ? '' : 's'}` : ''} han sido eliminados.`, 'success');
+                        closeModal();
+                        
+                        // Actualizar vistas si están abiertas
+                        if (window.location.hash.substring(1) === 'inventory') {
+                            renderInventoryView();
+                        } else if (window.location.hash.substring(1) === 'settings') {
+                            renderSettingsTab('advanced');
+                        }
+                    } catch (error) {
+                        console.error("Error deleting category and its items:", error);
+                        showNotification('Error al eliminar la categoría y sus artículos.', 'error');
+                        confirmBtn.disabled = false;
+                        btnText.classList.remove('hidden');
+                        spinner.classList.add('hidden');
+                    }
                 });
-
-                // Delete the category from settings
-                const updatedCategories = state.categories.filter(c => c !== categoryName && c !== 'Todas');
-                const settingsRef = doc(db, 'settings', 'global');
-                batch.set(settingsRef, { categories: updatedCategories }, { merge: true });
-
-                try {
-                    await batch.commit();
-                    showNotification(`Categoría "${categoryName}" y sus artículos han sido eliminados.`, 'success');
-                } catch (error) {
-                    console.error("Error deleting category and its items:", error);
-                    showNotification('Error al eliminar la categoría y sus artículos.', 'error');
-                }
-            });
+            } catch (error) {
+                console.error('Error getting category items:', error);
+                showNotification('Error al obtener información de la categoría.', 'error');
+            }
         }
 
 

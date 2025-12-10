@@ -550,12 +550,14 @@
         function buildSearchIndex() {
             const index = new Map();
             state.inventory.forEach(item => {
-                const searchText = `${item.description} ${item.category}`.toLowerCase();
+                const description = item.description || '';
+                const category = item.category || '';
+                const searchText = `${description} ${category}`.toLowerCase();
                 const words = searchText.split(/\s+/);
                 const itemData = {
                     id: item.id,
-                    description: item.description,
-                    category: item.category,
+                    description: description,
+                    category: category,
                     searchText: searchText,
                     words: words
                 };
@@ -591,6 +593,9 @@
         
         // Parsear consulta con operadores lógicos (AND, OR, NOT)
         function parseAdvancedQuery(query) {
+            // #region agent log
+            fetch('http://127.0.0.1:7242/ingest/64b38661-b590-4718-9901-63986d535208',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'index.html:593',message:'Parsing advanced query',data:{query: query},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'search_logic'})}).catch(()=>{});
+            // #endregion
             if (!query || !query.trim()) {
                 return { type: 'empty', terms: [] };
             }
@@ -777,7 +782,9 @@
         function evaluateAST(ast, item) {
             if (!ast) return false;
             
-            const searchText = `${item.description} ${item.category}`.toLowerCase();
+            const description = item.description || '';
+            const category = item.category || '';
+            const searchText = `${description} ${category}`.toLowerCase();
             
             switch (ast.type) {
                 case 'term':
@@ -1271,6 +1278,10 @@
         
         // Realizar búsqueda inteligente con soporte para operadores lógicos
         function performSmartSearch(query) {
+            // #region agent log
+            fetch('http://127.0.0.1:7242/ingest/64b38661-b590-4718-9901-63986d535208',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'index.html:1276',message:'Performing smart search',data:{query: query},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'search_exec'})}).catch(()=>{});
+            // #endregion
+            state.aiSearchResults = null; // Clear AI results
             if (!query || query.trim().length === 0) {
                 state.searchTerm = '';
                 renderInventoryView();
@@ -1319,7 +1330,9 @@
             // Si es búsqueda simple, usar AND implícito (todos los términos deben estar)
             if (parsedQuery.type === 'simple') {
                 return items.filter(item => {
-                    const searchText = `${item.description} ${item.category}`.toLowerCase();
+                    const description = item.description || '';
+                    const category = item.category || '';
+                    const searchText = `${description} ${category}`.toLowerCase();
                     // Todos los términos deben estar presentes (AND implícito)
                     return parsedQuery.terms.every(term => {
                         if (term.type === 'exact') {
@@ -4237,9 +4250,15 @@
         }
         
         window.addEventListener('load', () => {
+            // #region agent log
+            fetch('http://127.0.0.1:7242/ingest/64b38661-b590-4718-9901-63986d535208',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'index.html:4239',message:'Window loaded',data:{},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'app_load'})}).catch(e => console.error('Agent log failed', e));
+            // #endregion
             setupStaticEventListeners();
 
             onAuthStateChanged(auth, async (user) => {
+                // #region agent log
+                fetch('http://127.0.0.1:7242/ingest/64b38661-b590-4718-9901-63986d535208',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'index.html:4242',message:'Auth state changed',data:{user: user ? user.uid : 'null'},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'auth_check'})}).catch(()=>{});
+                // #endregion
                 const loginScreen = document.getElementById('login-screen');
                 const appContainer = document.getElementById('app-container');
 
@@ -4471,6 +4490,9 @@
         }
         
         function setupRealtimeListeners() {
+            // #region agent log
+            fetch('http://127.0.0.1:7242/ingest/64b38661-b590-4718-9901-63986d535208',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'index.html:4473',message:'Setting up realtime listeners',data:{},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'data_load'})}).catch(()=>{});
+            // #endregion
             // CRITICAL FIX: Clean up existing listeners before creating new ones to prevent duplicate listeners
             // This prevents infinite Promise.then chains caused by multiple listeners firing simultaneously
             if (unsubscribeFunctions.length > 0) {
@@ -4483,7 +4505,14 @@
             };
 
             const unsubscribeInventory = onSnapshot(collection(db, 'inventory'), (snapshot) => {
-                state.inventory = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })).sort((a, b) => a.description.localeCompare(b.description));
+                // #region agent log
+                fetch('http://127.0.0.1:7242/ingest/64b38661-b590-4718-9901-63986d535208',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'index.html:4485',message:'Inventory snapshot received',data:{count: snapshot.size},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'data_load'})}).catch(()=>{});
+                // #endregion
+                state.inventory = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })).sort((a, b) => {
+                    const descA = a.description || '';
+                    const descB = b.description || '';
+                    return descA.localeCompare(descB);
+                });
                 
                 // Reconstruir índice de búsqueda cuando cambia el inventario
                 buildSearchIndex();
@@ -7881,6 +7910,7 @@
                 clearTimeout(searchTimeout);
                 searchTimeout = setTimeout(() => {
                     state.searchTerm = searchTerm;
+                    state.aiSearchResults = null; // Clear AI results when searching manually
                     state.currentPage = 1;
                     const page = window.location.hash.substring(1) || 'dashboard';
                     navigateTo(page, true);
@@ -7893,6 +7923,7 @@
                     searchInput.value = '';
                     updateSearchUI('');
                     state.searchTerm = '';
+                    state.aiSearchResults = null; // Clear AI results
                     hideSearchSuggestions();
                     searchInput.focus();
                     const page = window.location.hash.substring(1) || 'dashboard';

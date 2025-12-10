@@ -12498,6 +12498,9 @@
             const saveBtnText = document.getElementById('save-category-btn-text');
             const saveSpinner = document.getElementById('save-category-spinner');
             
+            // Deshabilitar botón inicialmente (input vacío)
+            saveBtn.disabled = true;
+            
             // Validación en tiempo real
             input.addEventListener('input', () => {
                 const value = input.value;
@@ -12505,7 +12508,7 @@
                 
                 if (value.length === 0) {
                     validationMsg.classList.add('hidden');
-                    saveBtn.disabled = false;
+                    saveBtn.disabled = true;
                     return;
                 }
                 
@@ -12603,6 +12606,9 @@
             // Seleccionar todo el texto al abrir
             input.select();
             
+            // Deshabilitar botón inicialmente (valor igual al nombre actual)
+            saveBtn.disabled = true;
+            
             // Validación en tiempo real
             input.addEventListener('input', () => {
                 const value = input.value;
@@ -12617,7 +12623,7 @@
                 
                 if (value.length === 0) {
                     validationMsg.classList.add('hidden');
-                    saveBtn.disabled = false;
+                    saveBtn.disabled = true;
                     return;
                 }
                 

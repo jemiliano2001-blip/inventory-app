@@ -1,4 +1,4 @@
-# Script simple para commit y push rápido
+# Script simple para commit y push rapido
 # Uso: .\commit-and-push.ps1 "Mensaje del commit"
 
 param(
@@ -6,37 +6,37 @@ param(
 )
 
 if ([string]::IsNullOrWhiteSpace($Message)) {
-    $Message = "Actualización: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
+    $Message = "Actualizacion: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
 }
 
-Write-Host "🔍 Verificando cambios..." -ForegroundColor Cyan
+Write-Host "[*] Verificando cambios..." -ForegroundColor Cyan
 
 $changes = git status --porcelain
 if ([string]::IsNullOrWhiteSpace($changes)) {
-    Write-Host "✓ No hay cambios" -ForegroundColor Green
+    Write-Host "[OK] No hay cambios" -ForegroundColor Green
     exit 0
 }
 
-Write-Host "📝 Cambios encontrados:" -ForegroundColor Yellow
+Write-Host "[*] Cambios encontrados:" -ForegroundColor Yellow
 git status --short
 
-Write-Host "`n➕ Agregando archivos..." -ForegroundColor Cyan
+Write-Host "`n[+] Agregando archivos..." -ForegroundColor Cyan
 git add .
 
-Write-Host "💾 Creando commit: $Message" -ForegroundColor Cyan
+Write-Host "[*] Creando commit: $Message" -ForegroundColor Cyan
 git commit -m $Message
 
 if ($LASTEXITCODE -eq 0) {
-    Write-Host "🚀 Enviando a GitHub..." -ForegroundColor Cyan
+    Write-Host "[*] Enviando a GitHub..." -ForegroundColor Cyan
     $branch = git rev-parse --abbrev-ref HEAD
     git push origin $branch
     
     if ($LASTEXITCODE -eq 0) {
-        Write-Host "✅ Completado exitosamente" -ForegroundColor Green
+        Write-Host "[OK] Completado exitosamente" -ForegroundColor Green
     } else {
-        Write-Host "❌ Error en push" -ForegroundColor Red
+        Write-Host "[ERROR] Error en push" -ForegroundColor Red
     }
 } else {
-    Write-Host "❌ Error en commit" -ForegroundColor Red
+    Write-Host "[ERROR] Error en commit" -ForegroundColor Red
 }
 

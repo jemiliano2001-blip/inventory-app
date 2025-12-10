@@ -5,7 +5,7 @@
   "scripts": {
     "auto-commit": "powershell -ExecutionPolicy Bypass -File scripts/auto-commit.ps1",
     "watch": "powershell -ExecutionPolicy Bypass -File scripts/watch-changes.ps1",
-    "git:push": "git add . && git commit -m \"Auto-update: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')\" && git push"
+    "commit": "powershell -ExecutionPolicy Bypass -File commit-and-push.ps1"
   },
   "keywords": ["inventory", "management"],
   "author": "",

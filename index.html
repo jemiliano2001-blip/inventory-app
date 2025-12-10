@@ -7598,11 +7598,21 @@
                                         </a>
                                     </li>
                                     ${state.categories.map(cat => `
-                                        <li>
-                                            <a href="#" class="category-filter flex items-center px-4 py-3 rounded-xl transition-all duration-200 ${state.activeCategory === cat ? 'bg-gray-900 text-white font-semibold shadow-md' : 'hover:bg-gray-100 text-gray-700 hover:shadow-sm'}" data-category="${cat}">
-                                                <i data-lucide="folder" class="h-4 w-4 mr-3"></i>
-                                                ${cat}
-                                            </a>
+                                        <li class="group">
+                                            <div class="flex items-center gap-2">
+                                                <a href="#" class="category-filter flex items-center flex-1 px-4 py-3 rounded-xl transition-all duration-200 ${state.activeCategory === cat ? 'bg-gray-900 text-white font-semibold shadow-md' : 'hover:bg-gray-100 text-gray-700 hover:shadow-sm'}" data-category="${cat}">
+                                                    <i data-lucide="folder" class="h-4 w-4 mr-3"></i>
+                                                    <span class="flex-1 truncate">${cat}</span>
+                                                </a>
+                                                <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <button class="rename-category-btn p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors" data-category="${cat}" title="Renombrar categoría">
+                                                        <i data-lucide="pencil" class="w-4 h-4"></i>
+                                                    </button>
+                                                    <button class="delete-category-btn p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors" data-category="${cat}" title="Eliminar categoría">
+                                                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
                                         </li>
                                     `).join('')}
                                 </ul>

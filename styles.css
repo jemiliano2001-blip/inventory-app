@@ -69,6 +69,28 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: auto;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.skip-link:focus {
+  left: 1rem;
+  top: 1rem;
+  width: auto;
+  height: auto;
+  padding: 0.75rem 1rem;
+  background: #0f172a;
+  color: #ffffff;
+  border-radius: 0.5rem;
+  z-index: 1000;
+  box-shadow: var(--shadow-md);
+}
+
 h1, h2, h3, h4, h5, h6 {
   color: var(--color-text-primary);
   font-weight: 600;
@@ -289,13 +311,14 @@ h1, h2, h3, h4, h5, h6 {
   align-items: flex-start;
   text-align: left;
   padding: 1.5rem;
-  background-color: var(--card-bg);
-  border: 1px solid var(--border-color);
+  background-color: var(--card-bg, #ffffff);
+  border: 1px solid var(--border-color, #e5e7eb);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-sm, 0 1px 2px rgba(15, 23, 42, 0.06));
   transition: all var(--transition-base);
   height: 100%;
   width: 100%;
+  color: var(--text-color, #0f172a);
 }
 
 .quick-action-card:hover {
@@ -335,7 +358,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .quick-action-description {
   font-size: 0.875rem;
-  color: var(--color-text-secondary);
+  color: var(--color-text-secondary, #6b7280);
   line-height: 1.5;
   margin-bottom: 1rem;
   flex-grow: 1;

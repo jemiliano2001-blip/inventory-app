@@ -4880,64 +4880,85 @@
                  
                  widgetsHTML += `
                     <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-100 col-span-full lg:col-span-2" style="box-shadow: var(--shadow-lg);">
-                        <div class="flex items-center mb-6">
-                            <div class="h-10 w-10 rounded-xl bg-gradient-to-br from-indigo-100 to-indigo-200 flex items-center justify-center mr-3 shadow-md">
-                                <i data-lucide="zap" class="h-5 w-5 text-indigo-600"></i>
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center gap-3">
+                                <div class="h-10 w-10 rounded-xl bg-gradient-to-br from-indigo-100 to-indigo-200 flex items-center justify-center shadow-md">
+                                    <i data-lucide="zap" class="h-5 w-5 text-indigo-600"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-lg font-bold text-gray-900">Acciones Rápidas</h3>
+                                    <p class="text-sm text-gray-500 leading-snug">Atajos visuales para lo más usado</p>
+                                </div>
                             </div>
-                            <h3 class="text-lg font-bold text-gray-900">Acciones Rápidas</h3>
+                            <div class="hidden sm:flex items-center text-xs text-gray-500 gap-1">
+                                <i data-lucide="mouse-pointer-click" class="w-4 h-4"></i>
+                                <span>Listas para un clic</span>
+                            </div>
                         </div>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                             <button id="quick-add-item" 
-                                    class="quick-action-card action-add-item quick-action-tooltip" 
+                                    class="quick-action-card action-add-item quick-action-tooltip group w-full flex flex-col items-start text-left gap-3 p-4 md:p-5 rounded-xl border border-gray-200 bg-white shadow-sm hover:-translate-y-1 hover:shadow-lg transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500" 
                                     data-tooltip="Agregar un nuevo artículo al inventario"
                                     aria-label="Agregar Artículo">
-                                <div class="quick-action-icon">
-                                    <i data-lucide="plus"></i>
-                                </div>
-                                <div class="quick-action-title">Agregar Artículo</div>
-                                <div class="quick-action-description">Registra un nuevo artículo en el sistema de inventario</div>
-                                ${state.userRole === 'admin' ? '<div class="quick-action-admin-badge"><i data-lucide="shield" class="w-3 h-3"></i> Solo Admin</div>' : ''}
-                                ${keyboardShortcutsEnabled ? `
-                                    <div class="quick-action-shortcut">
-                                        <span class="quick-action-shortcut-key">${modifierKey}</span>
-                                        <span>+</span>
-                                        <span class="quick-action-shortcut-key">1</span>
+                                <div class="flex items-start gap-3 w-full">
+                                    <div class="quick-action-icon bg-indigo-50 text-indigo-600 group-hover:bg-indigo-100 group-hover:shadow rounded-lg shrink-0">
+                                        <i data-lucide="plus"></i>
                                     </div>
-                                ` : ''}
+                                    <div class="flex-1 space-y-1">
+                                        <div class="quick-action-title text-gray-900">Agregar Artículo</div>
+                                        <div class="quick-action-description text-gray-600">Registra un nuevo artículo en el sistema de inventario</div>
+                                        ${state.userRole === 'admin' ? '<div class="quick-action-admin-badge"><i data-lucide="shield" class="w-3 h-3"></i> Solo Admin</div>' : ''}
+                                        ${keyboardShortcutsEnabled ? `
+                                            <div class="quick-action-shortcut justify-start sm:justify-end">
+                                                <span class="quick-action-shortcut-key">${modifierKey}</span>
+                                                <span>+</span>
+                                                <span class="quick-action-shortcut-key">1</span>
+                                            </div>
+                                        ` : ''}
+                                    </div>
+                                </div>
                             </button>
                             <button id="quick-add-entry" 
-                                    class="quick-action-card action-add-entry quick-action-tooltip" 
+                                    class="quick-action-card action-add-entry quick-action-tooltip group w-full flex flex-col items-start text-left gap-3 p-4 md:p-5 rounded-xl border border-gray-200 bg-white shadow-sm hover:-translate-y-1 hover:shadow-lg transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500" 
                                     data-tooltip="Registrar una nueva entrada de inventario"
                                     aria-label="Nueva Entrada">
-                                <div class="quick-action-icon">
-                                    <i data-lucide="plus-circle"></i>
-                                </div>
-                                <div class="quick-action-title">Nueva Entrada</div>
-                                <div class="quick-action-description">Registra una entrada de stock al inventario</div>
-                                ${keyboardShortcutsEnabled ? `
-                                    <div class="quick-action-shortcut">
-                                        <span class="quick-action-shortcut-key">${modifierKey}</span>
-                                        <span>+</span>
-                                        <span class="quick-action-shortcut-key">2</span>
+                                <div class="flex items-start gap-3 w-full">
+                                    <div class="quick-action-icon bg-emerald-50 text-emerald-600 group-hover:bg-emerald-100 group-hover:shadow rounded-lg shrink-0">
+                                        <i data-lucide="plus-circle"></i>
                                     </div>
-                                ` : ''}
+                                    <div class="flex-1 space-y-1">
+                                        <div class="quick-action-title text-gray-900">Nueva Entrada</div>
+                                        <div class="quick-action-description text-gray-600">Registra una entrada de stock al inventario</div>
+                                        ${keyboardShortcutsEnabled ? `
+                                            <div class="quick-action-shortcut justify-start sm:justify-end">
+                                                <span class="quick-action-shortcut-key">${modifierKey}</span>
+                                                <span>+</span>
+                                                <span class="quick-action-shortcut-key">2</span>
+                                            </div>
+                                        ` : ''}
+                                    </div>
+                                </div>
                             </button>
                             <button id="quick-add-checkout" 
-                                    class="quick-action-card action-checkout quick-action-tooltip" 
+                                    class="quick-action-card action-checkout quick-action-tooltip group w-full flex flex-col items-start text-left gap-3 p-4 md:p-5 rounded-xl border border-gray-200 bg-white shadow-sm hover:-translate-y-1 hover:shadow-lg transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500" 
                                     data-tooltip="Realizar un intercambio o préstamo"
                                     aria-label="Intercambio">
-                                <div class="quick-action-icon">
-                                    <i data-lucide="arrow-right-left"></i>
-                                </div>
-                                <div class="quick-action-title">Intercambio</div>
-                                <div class="quick-action-description">Registra un préstamo o intercambio de artículo</div>
-                                ${keyboardShortcutsEnabled ? `
-                                    <div class="quick-action-shortcut">
-                                        <span class="quick-action-shortcut-key">${modifierKey}</span>
-                                        <span>+</span>
-                                        <span class="quick-action-shortcut-key">3</span>
+                                <div class="flex items-start gap-3 w-full">
+                                    <div class="quick-action-icon bg-orange-50 text-orange-600 group-hover:bg-orange-100 group-hover:shadow rounded-lg shrink-0">
+                                        <i data-lucide="arrow-right-left"></i>
                                     </div>
-                                ` : ''}
+                                    <div class="flex-1 space-y-1">
+                                        <div class="quick-action-title text-gray-900">Intercambio</div>
+                                        <div class="quick-action-description text-gray-600">Registra un préstamo o intercambio de artículo</div>
+                                        ${keyboardShortcutsEnabled ? `
+                                            <div class="quick-action-shortcut justify-start sm:justify-end">
+                                                <span class="quick-action-shortcut-key">${modifierKey}</span>
+                                                <span>+</span>
+                                                <span class="quick-action-shortcut-key">3</span>
+                                            </div>
+                                        ` : ''}
+                                    </div>
+                                </div>
                             </button>
                         </div>
                     </div>
@@ -5139,7 +5160,13 @@
                         <div class="lg:w-1/4">
                             <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-100" style="box-shadow: var(--shadow-lg);">
                                 <div class="flex items-center justify-between mb-4">
-                                    <h3 class="text-lg font-bold text-gray-900">Categorías</h3>
+                                    <div class="flex items-center gap-2">
+                                        <h3 class="text-lg font-bold text-gray-900">Categorías</h3>
+                                        <a href="#settings" class="inline-flex items-center text-xs text-gray-500 hover:text-indigo-600 gap-1 transition-colors" aria-label="Gestionar categorías en Configuración">
+                                            <i data-lucide="settings" class="w-4 h-4"></i>
+                                            <span>Editar en Configuración</span>
+                                        </a>
+                                    </div>
                                     <button id="add-category-btn-inventory" class="bg-green-600 hover:bg-green-700 text-white p-3 rounded-xl transition-all duration-200 min-h-[48px] min-w-[48px] flex items-center justify-center shadow-md hover:shadow-lg hover:scale-110 active:scale-95" title="Agregar nueva categoría">
                                         <i data-lucide="plus" class="h-6 w-6"></i>
                                     </button>
@@ -5152,21 +5179,11 @@
                                         </a>
                                     </li>
                                     ${state.categories.map(cat => `
-                                        <li class="group">
-                                            <div class="flex items-center gap-2">
-                                                <a href="#" class="category-filter flex items-center flex-1 px-4 py-3 rounded-xl transition-all duration-200 ${state.activeCategory === cat ? 'bg-gray-900 text-white font-semibold shadow-md' : 'hover:bg-gray-100 text-gray-700 hover:shadow-sm'}" data-category="${cat}">
-                                                    <i data-lucide="folder" class="h-4 w-4 mr-3"></i>
-                                                    <span class="flex-1 truncate">${cat}</span>
-                                                </a>
-                                                <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                    <button class="rename-category-btn p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors" data-category="${cat}" title="Renombrar categoría">
-                                                        <i data-lucide="pencil" class="w-4 h-4"></i>
-                                                    </button>
-                                                    <button class="delete-category-btn p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors" data-category="${cat}" title="Eliminar categoría">
-                                                        <i data-lucide="trash-2" class="w-4 h-4"></i>
-                                                    </button>
-                                                </div>
-                                            </div>
+                                        <li>
+                                            <a href="#" class="category-filter flex items-center px-4 py-3 rounded-xl transition-all duration-200 ${state.activeCategory === cat ? 'bg-gray-900 text-white font-semibold shadow-md' : 'hover:bg-gray-100 text-gray-700 hover:shadow-sm'}" data-category="${cat}">
+                                                <i data-lucide="folder" class="h-4 w-4 mr-3"></i>
+                                                <span class="flex-1 truncate">${cat}</span>
+                                            </a>
                                         </li>
                                     `).join('')}
                                 </ul>

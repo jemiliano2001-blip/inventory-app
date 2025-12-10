@@ -5,10 +5,13 @@
   "main": "index.html",
   "private": true,
   "scripts": {
+    "clean": "rimraf dist",
+    "clean:all": "rimraf dist node_modules .npm .cache",
+    "prebuild": "npm run clean",
     "build:css": "tailwindcss -i ./src/input.css -o ./dist/output.css --minify",
     "watch:css": "tailwindcss -i ./src/input.css -o ./dist/output.css --watch",
-    "dev": "npm run build:css && vercel dev",
-    "start": "npm run build:css && vercel dev",
+    "dev": "npm run clean && npm run build:css && vercel dev",
+    "start": "npm run clean && npm run build:css && vercel dev",
     "audit": "npm audit --audit-level=moderate",
     "deploy": "npm run build:css && vercel --prod",
     "preview": "npm run build:css && vercel"
@@ -17,7 +20,8 @@
     "vercel": "^32.0.0",
     "tailwindcss": "^3.4.0",
     "postcss": "^8.4.0",
-    "autoprefixer": "^10.4.0"
+    "autoprefixer": "^10.4.0",
+    "rimraf": "^5.0.5"
   },
   "engines": {
     "node": "22.x"

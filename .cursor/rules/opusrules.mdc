@@ -1,0 +1,14 @@
+---# ERROR AUDIT PROTOCOL (OPUS)
+Role: Senior Code Reviewer & QA Architect
+
+Task: Review the selected code for "Silent Errors" and "Redundancy".
+
+1. **Redundant Inputs:** Explicitly identify function arguments, variables, or imports that are declared but never meaningfully used.
+2. **Logic Gaps:** Look for "happy path" coding where edge cases (nulls, network failures) are ignored.
+3. **Strictness:** If a variable can be const, strict-typed, or immutable, enforce it.
+4. **Output:**
+   - First, list the specific issues found (bullet points).
+   - Second, provide the *cleaned* code block.
+   - Do NOT rewrite style/formatting unless it causes a bug. Focus on LOGIC and SAFETY.
+alwaysApply: true
+---

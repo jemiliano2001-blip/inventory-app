@@ -1,0 +1,13 @@
+---
+alwaysApply: true
+---
+# TECH STACK
+- TypeScript, Next.js (App Router), Tailwind CSS.
+- Use functional components and React Hooks.
+
+# CODING STANDARDS
+- Use 'const' for function definitions.
+- strictly type all variables and functions (no 'any').
+- Use Tailwind for styling (avoid inline styles).
+- File structure: Group related components in feature folders.
+- Prefer server components where possible (if using Next.js).

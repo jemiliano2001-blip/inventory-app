@@ -15,8 +15,18 @@ function HistoryPage() {
 
   useEffect(() => {
     const unsubscribe = transactionService.subscribe((data) => {
+      const parseTime = (ts: unknown): number => {
+        if (ts && typeof ts === 'object') {
+          if ('seconds' in ts && typeof (ts as { seconds: number }).seconds === 'number') {
+            return ((ts as { seconds: number }).seconds) * 1000;
+          }
+        }
+        const parsed = new Date(ts as string | number | Date);
+        return isNaN(parsed.getTime()) ? 0 : parsed.getTime();
+      };
+
       const sorted = [...data].sort((a, b) => 
-        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+        parseTime(b.timestamp) - parseTime(a.timestamp)
       );
       setTransactions(sorted);
       setFilteredTransactions(sorted);
@@ -45,8 +55,18 @@ function HistoryPage() {
     setFilteredTransactions(filtered);
   }, [filterType, searchQuery, transactions]);
 
-  const formatDate = (timestamp: string): string => {
-    const date = new Date(timestamp);
+  const formatDate = (timestamp: string | unknown): string => {
+    const parseTime = (ts: unknown): number => {
+      if (ts && typeof ts === 'object') {
+        if ('seconds' in ts && typeof (ts as { seconds: number }).seconds === 'number') {
+          return ((ts as { seconds: number }).seconds) * 1000;
+        }
+      }
+      const parsed = new Date(ts as string | number | Date);
+      return isNaN(parsed.getTime()) ? 0 : parsed.getTime();
+    };
+    
+    const date = new Date(parseTime(timestamp));
     return date.toLocaleDateString('es-ES', {
       year: 'numeric',
       month: 'short',
@@ -117,7 +137,7 @@ function HistoryPage() {
     }
   };
 
-  const transactionTypes = ['Todos', 'Entrada', 'Salida', 'Préstamo', 'Devolución', 'Creación', 'Eliminación', 'Modificación', 'Ajuste +', 'Ajuste -'];
+  const transactionTypes = ['Todos', 'Entrada', 'Salida', 'Préstamo', 'Devolución', 'Creación', 'Eliminación', 'Modificación', 'Ajuste Positivo', 'Ajuste Negativo'];
 
   return (
     <DashboardLayout title="Historial" subtitle="Registro de transacciones del inventario">
@@ -234,14 +254,14 @@ function HistoryPage() {
                       <div className="flex items-center justify-between">
                         <h3 className="text-sm font-bold text-gray-900">{transaction.itemDescription}</h3>
                         <span className={`text-sm font-semibold ${
-                          transaction.type === 'Entrada' || transaction.type === 'Ajuste +' || transaction.type === 'Devolución'
+                          transaction.type === 'Entrada' || transaction.type === 'Ajuste Positivo' || transaction.type === 'Devolución'
                             ? 'text-green-600'
-                            : transaction.type === 'Salida' || transaction.type === 'Ajuste -' || transaction.type === 'Préstamo'
+                            : transaction.type === 'Salida' || transaction.type === 'Ajuste Negativo' || transaction.type === 'Préstamo'
                             ? 'text-red-600'
                             : 'text-gray-600'
                         }`}>
-                          {transaction.type === 'Entrada' || transaction.type === 'Ajuste +' || transaction.type === 'Devolución' ? '+' : 
-                           transaction.type === 'Salida' || transaction.type === 'Ajuste -' || transaction.type === 'Préstamo' ? '-' : ''}
+                          {transaction.type === 'Entrada' || transaction.type === 'Ajuste Positivo' || transaction.type === 'Devolución' ? '+' : 
+                           transaction.type === 'Salida' || transaction.type === 'Ajuste Negativo' || transaction.type === 'Préstamo' ? '-' : ''}
                           {transaction.quantity}
                         </span>
                       </div>

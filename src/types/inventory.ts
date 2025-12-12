@@ -6,6 +6,8 @@
 export interface FirebaseTimestamp {
   seconds: number;
   nanoseconds: number;
+  toMillis(): number;
+  toDate(): Date;
 }
 
 /**

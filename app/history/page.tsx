@@ -14,23 +14,11 @@ function HistoryPage() {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  // Helper function to convert FirebaseTimestamp to milliseconds
-  const timestampToMillis = (timestamp: Transaction['timestamp']): number => {
-    const ts = timestamp as { toMillis?: () => number; toDate?: () => Date; seconds?: number };
-    if (typeof ts.toMillis === 'function') {
-      return ts.toMillis();
-    }
-    if (typeof ts.toDate === 'function') {
-      return ts.toDate().getTime();
-    }
-    return (ts.seconds || 0) * 1000;
-  };
-
   useEffect(() => {
     const unsubscribe = transactionService.subscribe((data) => {
       // FIX: Sort by converting FirebaseTimestamp to milliseconds
       const sorted = [...data].sort((a, b) => 
-        timestampToMillis(b.timestamp) - timestampToMillis(a.timestamp)
+        b.timestamp.toMillis() - a.timestamp.toMillis()
       );
       setTransactions(sorted);
       setFilteredTransactions(sorted);

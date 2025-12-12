@@ -6,14 +6,14 @@ import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { useInventoryStore } from '@/store/inventoryStore';
 import { useFirebaseInventory } from '@/hooks/useFirebaseInventory';
 import { transactionService, loanService } from '@/lib/firestore';
-import { Transaction, Loan } from '@/types/inventory';
+import { Transaction, ActiveLoan } from '@/types/inventory';
 
 function DashboardPage(): JSX.Element {
   useFirebaseInventory();
   
   const inventory = useInventoryStore((state) => state.inventory);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [loans, setLoans] = useState<Loan[]>([]);
+  const [loans, setLoans] = useState<ActiveLoan[]>([]);
 
   useEffect(() => {
     const unsubscribeTransactions = transactionService.subscribe((data) => {

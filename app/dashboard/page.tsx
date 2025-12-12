@@ -8,7 +8,7 @@ import { useFirebaseInventory } from '@/hooks/useFirebaseInventory';
 import { transactionService, loanService } from '@/lib/firestore';
 import { Transaction, ActiveLoan } from '@/types/inventory';
 
-function DashboardPage(): JSX.Element {
+function DashboardPage() {
   useFirebaseInventory();
   
   const inventory = useInventoryStore((state) => state.inventory);
@@ -57,7 +57,7 @@ function DashboardPage(): JSX.Element {
     });
   };
 
-  const getTransactionIcon = (type: string): JSX.Element => {
+  const getTransactionIcon = (type: string) => {
     switch (type) {
       case 'Entrada':
         return (
@@ -280,7 +280,7 @@ function DashboardPage(): JSX.Element {
   );
 }
 
-function DashboardPageWrapper(): JSX.Element {
+function DashboardPageWrapper() {
   return (
     <ProtectedRoute>
       <DashboardPage />

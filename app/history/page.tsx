@@ -6,7 +6,7 @@ import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { transactionService } from '@/lib/firestore';
 import { Transaction } from '@/types/inventory';
 
-function HistoryPage(): JSX.Element {
+function HistoryPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [filteredTransactions, setFilteredTransactions] = useState<Transaction[]>([]);
   const [filterType, setFilterType] = useState<string>('Todos');
@@ -56,7 +56,7 @@ function HistoryPage(): JSX.Element {
     });
   };
 
-  const getTransactionIcon = (type: string): JSX.Element => {
+  const getTransactionIcon = (type: string) => {
     switch (type) {
       case 'Entrada':
         return (
@@ -264,7 +264,7 @@ function HistoryPage(): JSX.Element {
   );
 }
 
-export default function HistoryPageWrapper(): JSX.Element {
+export default function HistoryPageWrapper() {
   return (
     <ProtectedRoute>
       <HistoryPage />

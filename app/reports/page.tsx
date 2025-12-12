@@ -3,7 +3,7 @@
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 
-function ReportsPage(): JSX.Element {
+function ReportsPage() {
   return (
     <DashboardLayout title="Reportes" subtitle="Análisis y reportes del inventario">
       <div className="flex items-center justify-center min-h-[400px]">
@@ -23,7 +23,7 @@ function ReportsPage(): JSX.Element {
   );
 }
 
-function ReportsPageWrapper(): JSX.Element {
+function ReportsPageWrapper() {
   return (
     <ProtectedRoute>
       <ReportsPage />

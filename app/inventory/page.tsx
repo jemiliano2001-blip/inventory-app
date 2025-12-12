@@ -14,7 +14,7 @@ import { EntryModal } from '@/components/modals/EntryModal';
 import { CheckoutModal } from '@/components/modals/CheckoutModal';
 import { EditStockModal } from '@/components/modals/EditStockModal';
 
-function InventoryPage(): JSX.Element {
+function InventoryPage() {
   useFirebaseInventory();
   
   const { user } = useAuth();
@@ -204,7 +204,7 @@ function InventoryPage(): JSX.Element {
   );
 }
 
-export default function InventoryPageWrapper(): JSX.Element {
+export default function InventoryPageWrapper() {
   return (
     <ProtectedRoute>
       <InventoryPage />

@@ -3,7 +3,7 @@
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 
-function ShoppingPage(): JSX.Element {
+function ShoppingPage() {
   return (
     <DashboardLayout title="Lista de Compras" subtitle="Gestión de lista de compras">
       <div className="flex items-center justify-center min-h-[400px]">
@@ -23,7 +23,7 @@ function ShoppingPage(): JSX.Element {
   );
 }
 
-function ShoppingPageWrapper(): JSX.Element {
+function ShoppingPageWrapper() {
   return (
     <ProtectedRoute>
       <ShoppingPage />

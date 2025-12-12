@@ -6,7 +6,7 @@ import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { loanService } from '@/lib/firestore';
 import { Loan } from '@/types/inventory';
 
-function LoansPage(): JSX.Element {
+function LoansPage() {
   const [loans, setLoans] = useState<Loan[]>([]);
   const [filter, setFilter] = useState<'active' | 'returned' | 'all'>('active');
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -302,7 +302,7 @@ function LoansPage(): JSX.Element {
   );
 }
 
-export default function LoansPageWrapper(): JSX.Element {
+export default function LoansPageWrapper() {
   return (
     <ProtectedRoute>
       <LoansPage />

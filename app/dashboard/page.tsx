@@ -16,28 +16,11 @@ function DashboardPage() {
   const [loans, setLoans] = useState<ActiveLoan[]>([]);
 
   useEffect(() => {
-    const unsubscribeTransactions = transactionService.subscribe((data: Transaction[]) => {
-      const sorted = [...data].sort((a: Transaction, b: Transaction) => {
-        const parseTime = (ts: unknown): number => {
-          // Covers Firestore Timestamp (with .seconds property), Date, string, or number
-          if (ts && typeof ts === 'object') {
-            // Firestore Timestamp detection (has .seconds and .nanoseconds properties)
-            // Uses: https://firebase.google.com/docs/reference/js/firestore.Timestamp
-            if ('seconds' in ts && typeof (ts as { seconds: number }).seconds === 'number') {
-              // Convert seconds to ms
-              return ((ts as { seconds: number }).seconds) * 1000;
-            }
-          }
-          // Else fallback parse
-          const parsed = new Date(ts as string | number | Date);
-          return isNaN(parsed.getTime()) ? 0 : parsed.getTime();
-        };
-
-        const aTime = parseTime(a.timestamp);
-        const bTime = parseTime(b.timestamp);
-
-        return bTime - aTime;
-      }).slice(0, 10);
+    const unsubscribeTransactions = transactionService.subscribe((data) => {
+      // FIX: Sort using seconds directly to avoid Date errors
+      const sorted = [...data].sort((a, b) => 
+        b.timestamp.seconds - a.timestamp.seconds
+      ).slice(0, 10);
       setTransactions(sorted);
     });
 
@@ -56,18 +39,10 @@ function DashboardPage() {
   const activeLoans = loans.filter(loan => loan.returnedAt === null).length;
   const categoriesCount = new Set(inventory.map(item => item.category)).size;
 
-  const formatDate = (timestamp: string | unknown): string => {
-    const parseTime = (ts: unknown): number => {
-      if (ts && typeof ts === 'object') {
-        if ('seconds' in ts && typeof (ts as { seconds: number }).seconds === 'number') {
-          return ((ts as { seconds: number }).seconds) * 1000;
-        }
-      }
-      const parsed = new Date(ts as string | number | Date);
-      return isNaN(parsed.getTime()) ? 0 : parsed.getTime();
-    };
-    
-    const date = new Date(parseTime(timestamp));
+  const formatDate = (timestamp: any) => {
+    if (!timestamp) return '';
+    // FIX: Handle Firebase Timestamp object correctly
+    const date = new Date(timestamp.seconds * 1000);
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
     const diffMins = Math.floor(diffMs / 60000);

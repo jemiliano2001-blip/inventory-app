@@ -15,18 +15,8 @@ function HistoryPage() {
 
   useEffect(() => {
     const unsubscribe = transactionService.subscribe((data) => {
-      const parseTime = (ts: unknown): number => {
-        if (ts && typeof ts === 'object') {
-          if ('seconds' in ts && typeof (ts as { seconds: number }).seconds === 'number') {
-            return ((ts as { seconds: number }).seconds) * 1000;
-          }
-        }
-        const parsed = new Date(ts as string | number | Date);
-        return isNaN(parsed.getTime()) ? 0 : parsed.getTime();
-      };
-
       const sorted = [...data].sort((a, b) => 
-        parseTime(b.timestamp) - parseTime(a.timestamp)
+        b.timestamp.seconds - a.timestamp.seconds
       );
       setTransactions(sorted);
       setFilteredTransactions(sorted);
@@ -55,18 +45,8 @@ function HistoryPage() {
     setFilteredTransactions(filtered);
   }, [filterType, searchQuery, transactions]);
 
-  const formatDate = (timestamp: string | unknown): string => {
-    const parseTime = (ts: unknown): number => {
-      if (ts && typeof ts === 'object') {
-        if ('seconds' in ts && typeof (ts as { seconds: number }).seconds === 'number') {
-          return ((ts as { seconds: number }).seconds) * 1000;
-        }
-      }
-      const parsed = new Date(ts as string | number | Date);
-      return isNaN(parsed.getTime()) ? 0 : parsed.getTime();
-    };
-    
-    const date = new Date(parseTime(timestamp));
+  const formatDate = (timestamp: any): string => {
+    const date = new Date(timestamp.seconds * 1000);
     return date.toLocaleDateString('es-ES', {
       year: 'numeric',
       month: 'short',

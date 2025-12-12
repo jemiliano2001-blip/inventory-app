@@ -69,36 +69,35 @@ function InventoryPage(): JSX.Element {
 
   return (
     <DashboardLayout title="Inventario" subtitle="Gestión de artículos y stock">
-      <div className="space-y-6">
+      <div className="space-y-8 max-w-7xl mx-auto">
         {/* Action Bar */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
-          <div className="flex items-center space-x-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <button
+            onClick={handleAddItem}
+            className="flex items-center space-x-2 px-5 py-2.5 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-all shadow-md hover:shadow-lg text-sm font-medium"
+            aria-label="Agregar nuevo artículo"
+          >
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            <span>Agregar Artículo</span>
+          </button>
+          
+          <div className="flex items-center space-x-3 w-full sm:w-auto">
             <button
-              onClick={handleAddItem}
-              className="flex items-center space-x-2 px-6 py-3 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors font-medium shadow-lg hover:shadow-xl"
-              aria-label="Agregar nuevo artículo"
-            >
-              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-              <span>Agregar Artículo</span>
-            </button>
-          </div>
-          <div className="flex items-center space-x-4">
-            <button
-              className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+              className="flex-1 sm:flex-none flex items-center justify-center space-x-2 px-4 py-2.5 border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-700 transition-colors text-sm font-medium"
               aria-label="Exportar inventario"
             >
-              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
               </svg>
               <span>Exportar</span>
             </button>
             <button
-              className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+              className="flex-1 sm:flex-none flex items-center justify-center space-x-2 px-4 py-2.5 border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-700 transition-colors text-sm font-medium"
               aria-label="Importar inventario"
             >
-              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
               </svg>
               <span>Importar</span>
@@ -108,49 +107,46 @@ function InventoryPage(): JSX.Element {
 
         {/* Stats Summary */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-white rounded-lg shadow p-6 border border-gray-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Total Artículos</p>
-                <p className="text-3xl font-bold text-gray-900">{inventory.length}</p>
-              </div>
-              <div className="h-12 w-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                <svg className="h-6 w-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                </svg>
-              </div>
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex items-center justify-between hover:shadow-md transition-shadow duration-200">
+            <div>
+              <p className="text-sm font-medium text-slate-500 mb-1">Total Artículos</p>
+              <p className="text-3xl font-bold text-slate-900 tracking-tight">{inventory.length}</p>
+            </div>
+            <div className="h-12 w-12 bg-blue-50 rounded-lg flex items-center justify-center border border-blue-100">
+              <svg className="h-6 w-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+              </svg>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-6 border border-gray-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Stock Bajo</p>
-                <p className="text-3xl font-bold text-red-600">
-                  {inventory.filter(item => item.stock < item.minStock).length}
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex items-center justify-between hover:shadow-md transition-shadow duration-200">
+            <div>
+              <p className="text-sm font-medium text-slate-500 mb-1">Stock Bajo</p>
+              <div className="flex items-baseline space-x-2">
+                <p className="text-3xl font-bold text-red-600 tracking-tight">
+                    {inventory.filter(item => item.stock < item.minStock).length}
                 </p>
+                <span className="text-xs font-medium text-red-500 bg-red-50 px-2 py-0.5 rounded-full">Atención</span>
               </div>
-              <div className="h-12 w-12 bg-red-100 rounded-lg flex items-center justify-center">
-                <svg className="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
-              </div>
+            </div>
+            <div className="h-12 w-12 bg-red-50 rounded-lg flex items-center justify-center border border-red-100">
+              <svg className="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-6 border border-gray-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Categorías</p>
-                <p className="text-3xl font-bold text-purple-600">
-                  {new Set(inventory.map(item => item.category)).size}
-                </p>
-              </div>
-              <div className="h-12 w-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                <svg className="h-6 w-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
-                </svg>
-              </div>
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex items-center justify-between hover:shadow-md transition-shadow duration-200">
+            <div>
+              <p className="text-sm font-medium text-slate-500 mb-1">Categorías</p>
+              <p className="text-3xl font-bold text-purple-600 tracking-tight">
+                {new Set(inventory.map(item => item.category)).size}
+              </p>
+            </div>
+            <div className="h-12 w-12 bg-purple-50 rounded-lg flex items-center justify-center border border-purple-100">
+              <svg className="h-6 w-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+              </svg>
             </div>
           </div>
         </div>

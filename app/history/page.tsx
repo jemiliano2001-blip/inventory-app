@@ -14,11 +14,23 @@ function HistoryPage() {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
+  // Helper function to convert FirebaseTimestamp to milliseconds
+  const timestampToMillis = (timestamp: Transaction['timestamp']): number => {
+    const ts = timestamp as { toMillis?: () => number; toDate?: () => Date; seconds?: number };
+    if (typeof ts.toMillis === 'function') {
+      return ts.toMillis();
+    }
+    if (typeof ts.toDate === 'function') {
+      return ts.toDate().getTime();
+    }
+    return (ts.seconds || 0) * 1000;
+  };
+
   useEffect(() => {
     const unsubscribe = transactionService.subscribe((data) => {
-      // FIX: Sort by seconds (numbers) directly
+      // FIX: Sort by converting FirebaseTimestamp to milliseconds
       const sorted = [...data].sort((a, b) => 
-        b.timestamp.seconds - a.timestamp.seconds
+        timestampToMillis(b.timestamp) - timestampToMillis(a.timestamp)
       );
       setTransactions(sorted);
       setFilteredTransactions(sorted);
@@ -48,9 +60,19 @@ function HistoryPage() {
   }, [filterType, searchQuery, transactions]);
 
   // FIX: Properly handle Firestore Timestamp
-  const formatDate = (timestamp: any) => {
-    if (!timestamp || !timestamp.seconds) return '';
-    const date = new Date(timestamp.seconds * 1000);
+  const formatDate = (timestamp: Transaction['timestamp']): string => {
+    if (!timestamp) return '';
+    const ts = timestamp as { toDate?: () => Date; toMillis?: () => number; seconds?: number };
+    let date: Date;
+    if (typeof ts.toDate === 'function') {
+      date = ts.toDate();
+    } else if (typeof ts.toMillis === 'function') {
+      date = new Date(ts.toMillis());
+    } else if (ts.seconds) {
+      date = new Date(ts.seconds * 1000);
+    } else {
+      return '';
+    }
     return date.toLocaleDateString('es-ES', {
       year: 'numeric',
       month: 'short',

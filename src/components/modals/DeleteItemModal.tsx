@@ -11,7 +11,7 @@ interface DeleteItemModalProps {
   currentUser: string;
 }
 
-export const DeleteItemModal = ({ isOpen, onClose, item, currentUser }: DeleteItemModalProps): JSX.Element | null => {
+export const DeleteItemModal = ({ isOpen, onClose, item, currentUser }: DeleteItemModalProps) => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>('');
 

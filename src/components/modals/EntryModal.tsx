@@ -11,7 +11,7 @@ interface EntryModalProps {
   currentUser: string;
 }
 
-export const EntryModal = ({ isOpen, onClose, item, currentUser }: EntryModalProps): JSX.Element | null => {
+export const EntryModal = ({ isOpen, onClose, item, currentUser }: EntryModalProps) => {
   const [quantity, setQuantity] = useState<number>(1);
   const [notes, setNotes] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);

@@ -10,7 +10,7 @@ interface DashboardLayoutProps {
   subtitle: string;
 }
 
-export const DashboardLayout = ({ children, title, subtitle }: DashboardLayoutProps): JSX.Element => {
+export const DashboardLayout = ({ children, title, subtitle }: DashboardLayoutProps) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false);
 
   const toggleSidebar = (): void => {

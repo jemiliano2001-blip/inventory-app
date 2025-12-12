@@ -13,7 +13,7 @@ interface CheckoutModalProps {
 
 type CheckoutType = 'salida' | 'prestamo';
 
-export const CheckoutModal = ({ isOpen, onClose, item, currentUser }: CheckoutModalProps): JSX.Element | null => {
+export const CheckoutModal = ({ isOpen, onClose, item, currentUser }: CheckoutModalProps) => {
   const [checkoutType, setCheckoutType] = useState<CheckoutType>('salida');
   const [quantity, setQuantity] = useState<number>(1);
   const [borrower, setBorrower] = useState<string>('');

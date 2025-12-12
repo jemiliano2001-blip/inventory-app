@@ -22,7 +22,7 @@ const categories = [
 
 const units = ['pza', 'kg', 'lt', 'mt', 'caja', 'paquete', 'rollo'];
 
-export const AddItemModal = ({ isOpen, onClose, currentUser }: AddItemModalProps): JSX.Element | null => {
+export const AddItemModal = ({ isOpen, onClose, currentUser }: AddItemModalProps) => {
   const [description, setDescription] = useState<string>('');
   const [category, setCategory] = useState<string>('Electrónica');
   const [stock, setStock] = useState<number>(0);

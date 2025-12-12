@@ -6,7 +6,7 @@ interface AllProvidersProps {
   children: React.ReactNode
 }
 
-const AllProviders = ({ children }: AllProvidersProps): JSX.Element => {
+const AllProviders = ({ children }: AllProvidersProps) => {
   return (
     <AuthProvider>
       {children}

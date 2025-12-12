@@ -13,7 +13,7 @@ interface EditStockModalProps {
 
 type AdjustmentType = 'set' | 'add' | 'subtract';
 
-export const EditStockModal = ({ isOpen, onClose, item, currentUser }: EditStockModalProps): JSX.Element | null => {
+export const EditStockModal = ({ isOpen, onClose, item, currentUser }: EditStockModalProps) => {
   const [adjustmentType, setAdjustmentType] = useState<AdjustmentType>('set');
   const [amount, setAmount] = useState<number>(0);
   const [notes, setNotes] = useState<string>('');

@@ -5,13 +5,13 @@ import { useAuth } from '@/contexts/AuthContext';
 
 interface NavLinkProps {
   href: string;
-  icon: JSX.Element;
+  icon: React.ReactElement;
   label: string;
   badge?: number;
   isActive?: boolean;
 }
 
-const NavLink = ({ href, icon, label, badge, isActive }: NavLinkProps): JSX.Element => {
+const NavLink = ({ href, icon, label, badge, isActive }: NavLinkProps) => {
   return (
     <a
       href={href}
@@ -41,7 +41,7 @@ interface SidebarProps {
   onClose: () => void;
 }
 
-export const Sidebar = ({ isOpen, onClose }: SidebarProps): JSX.Element => {
+export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
   const pathname = usePathname();
   const router = useRouter();
   const { signOut } = useAuth();

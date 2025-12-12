@@ -24,7 +24,7 @@ const categories = [
 
 const units = ['pza', 'kg', 'lt', 'mt', 'caja', 'paquete', 'rollo'];
 
-export const EditItemModal = ({ isOpen, onClose, item, currentUser }: EditItemModalProps): JSX.Element | null => {
+export const EditItemModal = ({ isOpen, onClose, item, currentUser }: EditItemModalProps) => {
   const [description, setDescription] = useState<string>('');
   const [category, setCategory] = useState<string>('Electrónica');
   const [minStock, setMinStock] = useState<number>(0);

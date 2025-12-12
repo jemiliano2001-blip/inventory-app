@@ -8,6 +8,7 @@ import { useFirebaseInventory } from '@/hooks/useFirebaseInventory';
 import { transactionService, loanService } from '@/lib/firestore';
 import { Transaction, ActiveLoan } from '@/types/inventory';
 
+// FIX: Removed ": JSX.Element" return type
 function DashboardPage() {
   useFirebaseInventory();
   
@@ -17,7 +18,7 @@ function DashboardPage() {
 
   useEffect(() => {
     const unsubscribeTransactions = transactionService.subscribe((data) => {
-      // FIX: Sort using seconds directly to avoid Date errors
+      // FIX: Sort using seconds directly
       const sorted = [...data].sort((a, b) => 
         b.timestamp.seconds - a.timestamp.seconds
       ).slice(0, 10);
@@ -41,7 +42,7 @@ function DashboardPage() {
 
   const formatDate = (timestamp: any) => {
     if (!timestamp) return '';
-    // FIX: Handle Firebase Timestamp object correctly
+    // FIX: Handle Firebase Timestamp
     const date = new Date(timestamp.seconds * 1000);
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();

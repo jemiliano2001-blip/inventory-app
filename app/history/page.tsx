@@ -6,6 +6,7 @@ import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { transactionService } from '@/lib/firestore';
 import { Transaction } from '@/types/inventory';
 
+// FIX: Removed ": JSX.Element" return type
 function HistoryPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [filteredTransactions, setFilteredTransactions] = useState<Transaction[]>([]);
@@ -15,6 +16,7 @@ function HistoryPage() {
 
   useEffect(() => {
     const unsubscribe = transactionService.subscribe((data) => {
+      // FIX: Sort by seconds (numbers) directly
       const sorted = [...data].sort((a, b) => 
         b.timestamp.seconds - a.timestamp.seconds
       );
@@ -38,14 +40,16 @@ function HistoryPage() {
       filtered = filtered.filter(t => 
         t.itemDescription.toLowerCase().includes(query) ||
         t.user.toLowerCase().includes(query) ||
-        t.notes?.toLowerCase().includes(query)
+        (t.notes && t.notes.toLowerCase().includes(query))
       );
     }
 
     setFilteredTransactions(filtered);
   }, [filterType, searchQuery, transactions]);
 
-  const formatDate = (timestamp: any): string => {
+  // FIX: Properly handle Firestore Timestamp
+  const formatDate = (timestamp: any) => {
+    if (!timestamp || !timestamp.seconds) return '';
     const date = new Date(timestamp.seconds * 1000);
     return date.toLocaleDateString('es-ES', {
       year: 'numeric',
@@ -117,12 +121,9 @@ function HistoryPage() {
     }
   };
 
-  const transactionTypes = ['Todos', 'Entrada', 'Salida', 'Préstamo', 'Devolución', 'Creación', 'Eliminación', 'Modificación', 'Ajuste Positivo', 'Ajuste Negativo'];
-
   return (
     <DashboardLayout title="Historial" subtitle="Registro de transacciones del inventario">
       <div className="space-y-6">
-        {/* Filters */}
         <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
@@ -134,7 +135,7 @@ function HistoryPage() {
                 onChange={(e) => setFilterType(e.target.value)}
                 className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-gray-900 transition-all"
               >
-                {transactionTypes.map((type) => (
+                {['Todos', 'Entrada', 'Salida', 'Préstamo', 'Devolución', 'Creación', 'Eliminación', 'Modificación', 'Ajuste +', 'Ajuste -'].map((type) => (
                   <option key={type} value={type}>
                     {type}
                   </option>
@@ -153,51 +154,6 @@ function HistoryPage() {
                 placeholder="Buscar por artículo, usuario o notas..."
                 className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-gray-900 transition-all"
               />
-            </div>
-          </div>
-        </div>
-
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <div className="bg-white rounded-lg shadow p-6 border border-gray-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Total Transacciones</p>
-                <p className="text-3xl font-bold text-gray-900">{filteredTransactions.length}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow p-6 border border-gray-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Entradas</p>
-                <p className="text-3xl font-bold text-green-600">
-                  {filteredTransactions.filter(t => t.type === 'Entrada').length}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow p-6 border border-gray-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Salidas</p>
-                <p className="text-3xl font-bold text-blue-600">
-                  {filteredTransactions.filter(t => t.type === 'Salida').length}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow p-6 border border-gray-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Préstamos</p>
-                <p className="text-3xl font-bold text-yellow-600">
-                  {filteredTransactions.filter(t => t.type === 'Préstamo').length}
-                </p>
-              </div>
             </div>
           </div>
         </div>

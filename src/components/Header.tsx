@@ -9,7 +9,7 @@ interface HeaderProps {
   onMenuToggle: () => void;
 }
 
-export const Header = ({ title, subtitle, onMenuToggle }: HeaderProps): React.JSX.Element => {
+export const Header = ({ title, subtitle, onMenuToggle }: HeaderProps): React. => {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [showAdvancedSearch, setShowAdvancedSearch] = useState<boolean>(false);
 

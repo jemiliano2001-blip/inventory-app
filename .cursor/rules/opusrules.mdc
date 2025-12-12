@@ -1,3 +1,6 @@
+
+alwaysApply: true
+---
 ---# ERROR AUDIT PROTOCOL (OPUS)
 Role: Senior Code Reviewer & QA Architect
 
@@ -10,5 +13,3 @@ Task: Review the selected code for "Silent Errors" and "Redundancy".
    - First, list the specific issues found (bullet points).
    - Second, provide the *cleaned* code block.
    - Do NOT rewrite style/formatting unless it causes a bug. Focus on LOGIC and SAFETY.
-alwaysApply: true
----

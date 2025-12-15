@@ -45,6 +45,7 @@ export type TransactionType =
   | 'Ajuste Negativo'
   | 'Creación'
   | 'Eliminado'
+  | 'Modificación'
   | 'Intercambio'
   | 'Préstamo'
   | 'Devolución'

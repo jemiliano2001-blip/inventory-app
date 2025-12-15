@@ -65,7 +65,7 @@ export const EditStockModal = ({ isOpen, onClose, item, currentUser }: EditStock
       await inventoryService.update(item.id, { stock: newStock });
 
       const difference = newStock - item.stock;
-      const transactionType = difference > 0 ? 'Ajuste +' : 'Ajuste -';
+      const transactionType: 'Ajuste Positivo' | 'Ajuste Negativo' = difference > 0 ? 'Ajuste Positivo' : 'Ajuste Negativo';
 
       await transactionService.create({
         itemId: item.id,

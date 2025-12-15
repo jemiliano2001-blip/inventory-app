@@ -25,7 +25,7 @@ export const DeleteItemModal = ({ isOpen, onClose, item, currentUser }: DeleteIt
       await transactionService.create({
         itemId: item.id,
         itemDescription: item.description,
-        type: 'Eliminación',
+        type: 'Eliminado',
         quantity: item.stock,
         user: currentUser,
         notes: `Artículo eliminado del inventario`,

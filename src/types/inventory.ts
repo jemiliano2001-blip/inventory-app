@@ -103,6 +103,7 @@ export interface ActiveLoan {
 
 /**
  * Loan interface - loans with full details including status
+ * Used in LoansPage and loanService
  */
 export interface Loan {
   id: string;

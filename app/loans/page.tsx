@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { loanService } from '@/lib/firestore';
-import { Loan } from '@/types/inventory';
+import type { Loan } from '@/types/inventory';
 
 function LoansPage() {
   const [loans, setLoans] = useState<Loan[]>([]);

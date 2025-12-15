@@ -101,6 +101,22 @@ export interface ActiveLoan {
 }
 
 /**
+ * Loan interface - loans with full details including status
+ */
+export interface Loan {
+  id: string;
+  itemId: string;
+  itemDescription: string;
+  borrower: string;
+  quantity: number;
+  loanDate: string;
+  expectedReturnDate: string | null;
+  isReturned: boolean;
+  notes?: string;
+  returnedAt?: string | null;
+}
+
+/**
  * Shopping list item interface
  */
 export interface ShoppingListItem {

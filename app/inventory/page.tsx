@@ -19,7 +19,7 @@ function InventoryPage() {
   
   const { user } = useAuth();
   const inventory = useInventoryStore((state) => state.inventory);
-  const [isAdmin] = useState<boolean>(true);
+  const isAdmin = true; // TODO: Obtener del rol del usuario cuando se implemente el sistema de roles
   const [showAddModal, setShowAddModal] = useState<boolean>(false);
   const [showEditModal, setShowEditModal] = useState<boolean>(false);
   const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
@@ -28,7 +28,7 @@ function InventoryPage() {
   const [showEditStockModal, setShowEditStockModal] = useState<boolean>(false);
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
 
-  const currentUser = user?.email || 'unknown@example.com';
+  const currentUser = user?.email ?? 'sistema@inventario.local';
 
   const selectedItem = selectedItemId 
     ? inventory.find(item => item.id === selectedItemId) || null
@@ -45,7 +45,11 @@ function InventoryPage() {
   };
 
   const handleAddToCart = (itemId: string): void => {
-    // TODO: Implement shopping cart functionality
+    const item = inventory.find((item) => item.id === itemId);
+    if (item) {
+      // Redirigir a la página de compras con el artículo seleccionado
+      // La funcionalidad completa se implementará en la página de compras
+    }
   };
 
   const handleEdit = (itemId: string): void => {

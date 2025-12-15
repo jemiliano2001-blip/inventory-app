@@ -9,14 +9,13 @@ interface HeaderProps {
   onMenuToggle: () => void;
 }
 
-export const Header = ({ title, subtitle, onMenuToggle }: HeaderProps): React. => {
+export const Header = ({ title, subtitle, onMenuToggle }: HeaderProps): React.ReactElement => {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [showAdvancedSearch, setShowAdvancedSearch] = useState<boolean>(false);
 
   const performSearch = useCallback((query: string): void => {
-    // TODO: Implement search logic with the query
     if (query.trim()) {
-      // Search implementation will go here
+      // La búsqueda se implementará cuando se integre con el store de inventario
     }
   }, []);
 

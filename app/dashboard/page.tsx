@@ -6,7 +6,7 @@ import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { useInventoryStore } from '@/store/inventoryStore';
 import { useFirebaseInventory } from '@/hooks/useFirebaseInventory';
 import { transactionService, loanService } from '@/lib/firestore';
-import { Transaction, ActiveLoan } from '@/types/inventory';
+import { Transaction, Loan } from '@/types/inventory';
 
 // FIX: Removed ": JSX.Element" return type
 function DashboardPage() {
@@ -14,7 +14,7 @@ function DashboardPage() {
   
   const inventory = useInventoryStore((state) => state.inventory);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [loans, setLoans] = useState<ActiveLoan[]>([]);
+  const [loans, setLoans] = useState<Loan[]>([]);
 
   useEffect(() => {
     const unsubscribeTransactions = transactionService.subscribe((data) => {
@@ -37,7 +37,7 @@ function DashboardPage() {
 
   const totalItems = inventory.length;
   const lowStockItems = inventory.filter(item => item.stock < item.minStock).length;
-  const activeLoans = loans.filter(loan => loan.returnedAt === null).length;
+  const activeLoans = loans.filter(loan => !loan.isReturned).length;
   const categoriesCount = new Set(inventory.map(item => item.category)).size;
 
   const formatDate = (timestamp: any) => {

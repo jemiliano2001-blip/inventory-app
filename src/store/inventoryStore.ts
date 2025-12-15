@@ -59,6 +59,7 @@ export const useInventoryStore = create<InventoryStore>((set, get) => ({
   },
 
   incrementStock: (id: string, quantity: number) => {
+    if (quantity <= 0) return;
     set((state) => ({
       inventory: state.inventory.map((item) =>
         item.id === id ? { ...item, stock: item.stock + quantity } : item
@@ -67,6 +68,7 @@ export const useInventoryStore = create<InventoryStore>((set, get) => ({
   },
 
   decrementStock: (id: string, quantity: number) => {
+    if (quantity <= 0) return;
     set((state) => ({
       inventory: state.inventory.map((item) => {
         if (item.id === id) {

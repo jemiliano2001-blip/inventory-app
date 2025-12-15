@@ -13,14 +13,13 @@ import {
   writeBatch,
   onSnapshot,
   Timestamp,
-  type DocumentData,
-  type QueryConstraint,
 } from 'firebase/firestore';
 import { db } from './firebase';
 import type {
   InventoryItem,
   Transaction,
   ActiveLoan,
+  Loan,
   ShoppingListItem,
   AppSettings,
 } from '@/types/inventory';
@@ -158,24 +157,27 @@ export const loanService = {
     })) as ActiveLoan[];
   },
 
-  create: async (loan: Omit<ActiveLoan, 'id'>): Promise<string> => {
+  create: async (loan: Omit<Loan, 'id'>): Promise<string> => {
     const docRef = await addDoc(collection(db, COLLECTIONS.LOANS), loan);
     return docRef.id;
   },
 
   markReturned: async (id: string): Promise<void> => {
     const docRef = doc(db, COLLECTIONS.LOANS, id);
-    await updateDoc(docRef, { returnedAt: serverTimestamp() });
+    await updateDoc(docRef, { 
+      isReturned: true,
+      returnedAt: new Date().toISOString()
+    });
   },
 
-  subscribe: (callback: (loans: ActiveLoan[]) => void): (() => void) => {
+  subscribe: (callback: (loans: Loan[]) => void): (() => void) => {
     const unsubscribe = onSnapshot(
-      query(collection(db, COLLECTIONS.LOANS), where('returnedAt', '==', null)),
+      collection(db, COLLECTIONS.LOANS),
       (snapshot) => {
         const loans = snapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
-        })) as ActiveLoan[];
+        })) as Loan[];
         callback(loans);
       }
     );

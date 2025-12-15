@@ -31,12 +31,23 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   }, []);
 
   const signIn = async (email: string, password: string): Promise<User> => {
-    const user = await authService.signIn(email, password);
-    return user;
+    try {
+      const authenticatedUser = await authService.signIn(email, password);
+      return authenticatedUser;
+    } catch (error) {
+      throw error;
+    }
   };
 
   const signOut = async (): Promise<void> => {
-    await authService.signOut();
+    try {
+      await authService.signOut();
+    } catch (error) {
+      if (process.env.NODE_ENV === 'development') {
+        console.error('[Auth] Error al cerrar sesión:', error);
+      }
+      throw error;
+    }
   };
 
   const value: AuthContextType = {

@@ -3,6 +3,9 @@
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 
+// Force dynamic rendering to prevent prerendering during build
+export const dynamic = 'force-dynamic';
+
 function ReportsPage() {
   return (
     <DashboardLayout title="Reportes" subtitle="Análisis y reportes del inventario">

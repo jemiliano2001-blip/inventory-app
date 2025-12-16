@@ -6,6 +6,9 @@ import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { loanService } from '@/lib/firestore';
 import type { Loan } from '@/types/inventory';
 
+// Force dynamic rendering to prevent prerendering during build
+export const dynamic = 'force-dynamic';
+
 function LoansPage() {
   const [loans, setLoans] = useState<Loan[]>([]);
   const [filter, setFilter] = useState<'active' | 'returned' | 'all'>('active');

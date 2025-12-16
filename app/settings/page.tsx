@@ -3,6 +3,9 @@
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 
+// Force dynamic rendering to prevent prerendering during build
+export const dynamic = 'force-dynamic';
+
 function SettingsPage() {
   return (
     <DashboardLayout title="Configuración" subtitle="Ajustes y preferencias del sistema">

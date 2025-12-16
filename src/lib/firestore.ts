@@ -14,7 +14,7 @@ import {
   onSnapshot,
   Timestamp,
 } from 'firebase/firestore';
-import { db } from './firebase';
+import { getFirestoreInstance } from './firebase';
 import type {
   InventoryItem,
   Transaction,
@@ -37,6 +37,7 @@ export const COLLECTIONS = {
 // Inventory CRUD operations
 export const inventoryService = {
   getAll: async (): Promise<InventoryItem[]> => {
+    const db = getFirestoreInstance();
     const snapshot = await getDocs(collection(db, COLLECTIONS.INVENTORY));
     return snapshot.docs.map((doc) => ({
       id: doc.id,
@@ -45,6 +46,7 @@ export const inventoryService = {
   },
 
   getById: async (id: string): Promise<InventoryItem | null> => {
+    const db = getFirestoreInstance();
     const docRef = doc(db, COLLECTIONS.INVENTORY, id);
     const docSnap = await getDoc(docRef);
     return docSnap.exists()
@@ -55,6 +57,7 @@ export const inventoryService = {
   create: async (
     item: Omit<InventoryItem, 'id'>
   ): Promise<{ id: string; item: InventoryItem }> => {
+    const db = getFirestoreInstance();
     const docRef = await addDoc(collection(db, COLLECTIONS.INVENTORY), item);
     return {
       id: docRef.id,
@@ -66,15 +69,18 @@ export const inventoryService = {
     id: string,
     updates: Partial<Omit<InventoryItem, 'id'>>
   ): Promise<void> => {
+    const db = getFirestoreInstance();
     const docRef = doc(db, COLLECTIONS.INVENTORY, id);
     await updateDoc(docRef, updates);
   },
 
   delete: async (id: string): Promise<void> => {
+    const db = getFirestoreInstance();
     await deleteDoc(doc(db, COLLECTIONS.INVENTORY, id));
   },
 
   updateStock: async (id: string, newStock: number): Promise<void> => {
+    const db = getFirestoreInstance();
     const docRef = doc(db, COLLECTIONS.INVENTORY, id);
     await updateDoc(docRef, { stock: newStock });
   },
@@ -82,6 +88,7 @@ export const inventoryService = {
   subscribe: (
     callback: (items: InventoryItem[]) => void
   ): (() => void) => {
+    const db = getFirestoreInstance();
     const unsubscribe = onSnapshot(
       collection(db, COLLECTIONS.INVENTORY),
       (snapshot) => {
@@ -99,6 +106,7 @@ export const inventoryService = {
 // Transaction operations
 export const transactionService = {
   getAll: async (): Promise<Transaction[]> => {
+    const db = getFirestoreInstance();
     const snapshot = await getDocs(
       query(
         collection(db, COLLECTIONS.TRANSACTIONS),
@@ -114,6 +122,7 @@ export const transactionService = {
   create: async (
     transaction: Omit<Transaction, 'id' | 'timestamp'>
   ): Promise<string> => {
+    const db = getFirestoreInstance();
     const docRef = await addDoc(collection(db, COLLECTIONS.TRANSACTIONS), {
       ...transaction,
       timestamp: serverTimestamp(),
@@ -122,12 +131,14 @@ export const transactionService = {
   },
 
   delete: async (id: string): Promise<void> => {
+    const db = getFirestoreInstance();
     await deleteDoc(doc(db, COLLECTIONS.TRANSACTIONS, id));
   },
 
   subscribe: (
     callback: (transactions: Transaction[]) => void
   ): (() => void) => {
+    const db = getFirestoreInstance();
     const unsubscribe = onSnapshot(
       query(
         collection(db, COLLECTIONS.TRANSACTIONS),
@@ -148,6 +159,7 @@ export const transactionService = {
 // Loans operations
 export const loanService = {
   getActive: async (): Promise<ActiveLoan[]> => {
+    const db = getFirestoreInstance();
     const snapshot = await getDocs(
       query(collection(db, COLLECTIONS.LOANS), where('returnedAt', '==', null))
     );
@@ -158,11 +170,13 @@ export const loanService = {
   },
 
   create: async (loan: Omit<Loan, 'id'>): Promise<string> => {
+    const db = getFirestoreInstance();
     const docRef = await addDoc(collection(db, COLLECTIONS.LOANS), loan);
     return docRef.id;
   },
 
   markReturned: async (id: string): Promise<void> => {
+    const db = getFirestoreInstance();
     const docRef = doc(db, COLLECTIONS.LOANS, id);
     await updateDoc(docRef, { 
       isReturned: true,
@@ -171,6 +185,7 @@ export const loanService = {
   },
 
   subscribe: (callback: (loans: Loan[]) => void): (() => void) => {
+    const db = getFirestoreInstance();
     const unsubscribe = onSnapshot(
       collection(db, COLLECTIONS.LOANS),
       (snapshot) => {
@@ -188,6 +203,7 @@ export const loanService = {
 // Shopping list operations
 export const shoppingListService = {
   getAll: async (): Promise<ShoppingListItem[]> => {
+    const db = getFirestoreInstance();
     const snapshot = await getDocs(collection(db, COLLECTIONS.SHOPPING_LIST));
     return snapshot.docs.map((doc) => ({
       id: doc.id,
@@ -196,17 +212,20 @@ export const shoppingListService = {
   },
 
   create: async (item: Omit<ShoppingListItem, 'id'>): Promise<string> => {
+    const db = getFirestoreInstance();
     const docRef = await addDoc(collection(db, COLLECTIONS.SHOPPING_LIST), item);
     return docRef.id;
   },
 
   delete: async (id: string): Promise<void> => {
+    const db = getFirestoreInstance();
     await deleteDoc(doc(db, COLLECTIONS.SHOPPING_LIST, id));
   },
 
   subscribe: (
     callback: (items: ShoppingListItem[]) => void
   ): (() => void) => {
+    const db = getFirestoreInstance();
     const unsubscribe = onSnapshot(
       collection(db, COLLECTIONS.SHOPPING_LIST),
       (snapshot) => {
@@ -224,19 +243,24 @@ export const shoppingListService = {
 // Settings operations
 export const settingsService = {
   get: async (): Promise<AppSettings | null> => {
+    const db = getFirestoreInstance();
     const docRef = doc(db, COLLECTIONS.SETTINGS, 'global');
     const docSnap = await getDoc(docRef);
     return docSnap.exists() ? (docSnap.data() as AppSettings) : null;
   },
 
   update: async (settings: Partial<AppSettings>): Promise<void> => {
+    const db = getFirestoreInstance();
     const docRef = doc(db, COLLECTIONS.SETTINGS, 'global');
     await updateDoc(docRef, settings);
   },
 };
 
 // Batch operations helper
-export const createBatch = () => writeBatch(db);
+export const createBatch = () => {
+  const db = getFirestoreInstance();
+  return writeBatch(db);
+};
 
 // Server timestamp helper
 export { serverTimestamp, Timestamp };

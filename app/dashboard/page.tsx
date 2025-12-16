@@ -8,6 +8,9 @@ import { useFirebaseInventory } from '@/hooks/useFirebaseInventory';
 import { transactionService, loanService } from '@/lib/firestore';
 import { Transaction, Loan } from '@/types/inventory';
 
+// Force dynamic rendering to prevent prerendering during build
+export const dynamic = 'force-dynamic';
+
 // FIX: Removed ": JSX.Element" return type
 function DashboardPage() {
   useFirebaseInventory();

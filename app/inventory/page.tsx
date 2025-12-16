@@ -14,6 +14,9 @@ import { EntryModal } from '@/components/modals/EntryModal';
 import { CheckoutModal } from '@/components/modals/CheckoutModal';
 import { EditStockModal } from '@/components/modals/EditStockModal';
 
+// Force dynamic rendering to prevent prerendering during build
+export const dynamic = 'force-dynamic';
+
 function InventoryPage() {
   useFirebaseInventory();
   

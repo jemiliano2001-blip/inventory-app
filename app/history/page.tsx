@@ -6,6 +6,9 @@ import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { transactionService } from '@/lib/firestore';
 import { Transaction } from '@/types/inventory';
 
+// Force dynamic rendering to prevent prerendering during build
+export const dynamic = 'force-dynamic';
+
 // FIX: Removed ": JSX.Element" return type
 function HistoryPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
